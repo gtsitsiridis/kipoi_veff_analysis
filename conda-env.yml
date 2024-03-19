@@ -1,0 +1,14 @@
+name: kipoi-enformer
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - pyarrow
+  - numpy
+  - pandas
+  - pyranges
+  - pytest
+  - kipoiseq
+  - cyvcf2
+  - pip
+  - pip:
