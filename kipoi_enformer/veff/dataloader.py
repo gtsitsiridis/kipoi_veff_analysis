@@ -152,12 +152,3 @@ class VCF_Enformer_DL(Enformer_DL):
             variants=MultiSampleVCF(vcf_file, lazy=vcf_lazy)
         )
 
-
-def test_dataloader():
-    dl = VCF_Enformer_DL(
-        fasta_file="example_files/fasta_file",
-        gtf_file="example_files/gtf_file",
-        vcf_file="example_files/promoter_variants.chr22.vcf",
-    )
-    for i in dl:
-        print(i)
