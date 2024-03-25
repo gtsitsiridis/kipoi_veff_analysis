@@ -16,7 +16,7 @@ class Enformer_DL(SampleIterator):
             regions_of_interest: pr.PyRanges,
             reference_sequence: BaseExtractor,
             variants: VariantFetcher,
-            interval_attrs=('gene_id', 'transcript_id')
+            interval_attrs=('gene_id', 'transcript_id'),
     ):
         self.regions_of_interest = regions_of_interest
         self.reference_sequence = reference_sequence
@@ -68,19 +68,17 @@ class Enformer_DL(SampleIterator):
             }
 
 
-def get_roi_from_transcript(transcript_start: int, transcript_end: int, is_on_negative_strand: bool) -> (int, int):
+def get_roi_from_transcript(transcript_start: int, transcript_end: int, is_on_negative_strand: bool,
+                            upstream_tss: int = 10, downstream_tss: int = 10) -> (int, int):
     """
     Get region-of-interest for Enformer in relation to the TSS of a transcript
+    :param upstream_tss: number of base pairs upstream of the TSS
+    :param downstream_tss: number of base pairs downstream of the TSS
     :param transcript_start: 0-based start position of the transcript
     :param transcript_end: 1-based end position of the transcript
     :param is_on_negative_strand: is the gene on the negative strand?
-    :return: Tuple of (start, end) position for the region of interest
+    :return: Tuple of (start-0-based, end-1-based) position for the region of interest
     """
-    # number of base pairs upstream of the TSS
-    upstream_tss = 10
-    # number of base pairs downstream of the TSS
-    downstream_tss = 10
-
     if is_on_negative_strand:
         tss = transcript_end
         # convert 1-based to 0-based
@@ -101,9 +99,11 @@ def get_roi_from_transcript(transcript_start: int, transcript_end: int, is_on_ne
     return start, end
 
 
-def get_roi_from_genome_annotation(genome_annotation: pd.DataFrame):
+def get_roi_from_genome_annotation(genome_annotation: pd.DataFrame, upstream_tss: int = 10, downstream_tss: int = 10):
     """
     Get region-of-interest for Enformer from some genome annotation
+        :param upstream_tss: number of base pairs upstream of the TSS
+    :param downstream_tss: number of base pairs downstream of the TSS
     :param genome_annotation: Pandas dataframe with the following columns:
         - Chromosome
         - Start
@@ -121,7 +121,7 @@ def get_roi_from_genome_annotation(genome_annotation: pd.DataFrame):
     )
 
     def adjust_row(row):
-        start, end = get_roi_from_transcript(row.Start, row.End, row.Strand)
+        start, end = get_roi_from_transcript(row.Start, row.End, row.Strand == '-', upstream_tss, downstream_tss)
         row.Start = start
         row.End = end
 
@@ -141,6 +141,8 @@ class VCF_Enformer_DL(Enformer_DL):
             vcf_file_tbi=None,
             vcf_lazy=True,
     ):
+        # reads the genome annotation
+        # start and end are transformed to 0-based and 1-based respectively
         genome_annotation = pr.read_gtf(gtf_file, as_df=True)
         roi = get_roi_from_genome_annotation(genome_annotation)
         roi = pr.PyRanges(roi)
@@ -151,4 +153,3 @@ class VCF_Enformer_DL(Enformer_DL):
             reference_sequence=FastaStringExtractor(fasta_file, use_strand=True),
             variants=MultiSampleVCF(vcf_file, lazy=vcf_lazy)
         )
-
