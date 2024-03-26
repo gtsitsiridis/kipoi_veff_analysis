@@ -17,11 +17,14 @@ class Enformer_DL(SampleIterator):
             reference_sequence: BaseExtractor,
             variants: VariantFetcher,
             interval_attrs=('gene_id', 'transcript_id'),
+            upstream_tss: int = 10, downstream_tss: int = 10
     ):
         self.regions_of_interest = regions_of_interest
         self.reference_sequence = reference_sequence
         self.variants = variants
         self.interval_attrs = interval_attrs
+        self.upstream_tss = upstream_tss
+        self.downstream_tss = downstream_tss
 
         if not self.reference_sequence.use_strand:
             raise ValueError(
@@ -37,6 +40,7 @@ class Enformer_DL(SampleIterator):
         self.one_hot = OneHot()
 
     def __iter__(self):
+        # todo onehot encode the sequences
         interval: Interval
         variant: Variant
         for interval, variant in self.matcher:
@@ -49,7 +53,8 @@ class Enformer_DL(SampleIterator):
                         self.variant_seq_extractor.extract(
                             interval,
                             [variant],
-                            anchor=135 if interval.neg_strand else 70,
+                            anchor=interval.start + self.upstream_tss if not interval.neg_strand
+                            else interval.end - self.downstream_tss
                         )),
                 },
                 "metadata": {
@@ -69,7 +74,7 @@ class Enformer_DL(SampleIterator):
 
 
 def get_roi_from_transcript(transcript_start: int, transcript_end: int, is_on_negative_strand: bool,
-                            upstream_tss: int = 10, downstream_tss: int = 10) -> (int, int):
+                            upstream_tss: int, downstream_tss: int) -> (int, int):
     """
     Get region-of-interest for Enformer in relation to the TSS of a transcript
     :param upstream_tss: number of base pairs upstream of the TSS
@@ -99,7 +104,7 @@ def get_roi_from_transcript(transcript_start: int, transcript_end: int, is_on_ne
     return start, end
 
 
-def get_roi_from_genome_annotation(genome_annotation: pd.DataFrame, upstream_tss: int = 10, downstream_tss: int = 10):
+def get_roi_from_genome_annotation(genome_annotation: pd.DataFrame, upstream_tss: int, downstream_tss: int):
     """
     Get region-of-interest for Enformer from some genome annotation
         :param upstream_tss: number of base pairs upstream of the TSS
@@ -140,16 +145,20 @@ class VCF_Enformer_DL(Enformer_DL):
             vcf_file,
             vcf_file_tbi=None,
             vcf_lazy=True,
+            upstream_tss: int = 10,
+            downstream_tss: int = 10
     ):
         # reads the genome annotation
         # start and end are transformed to 0-based and 1-based respectively
         genome_annotation = pr.read_gtf(gtf_file, as_df=True)
-        roi = get_roi_from_genome_annotation(genome_annotation)
+        roi = get_roi_from_genome_annotation(genome_annotation, upstream_tss=upstream_tss,
+                                             downstream_tss=downstream_tss)
         roi = pr.PyRanges(roi)
 
         from kipoiseq.extractors import MultiSampleVCF
         super().__init__(
             regions_of_interest=roi,
             reference_sequence=FastaStringExtractor(fasta_file, use_strand=True),
-            variants=MultiSampleVCF(vcf_file, lazy=vcf_lazy)
+            variants=MultiSampleVCF(vcf_file, lazy=vcf_lazy),
+            upstream_tss=upstream_tss, downstream_tss=downstream_tss
         )
