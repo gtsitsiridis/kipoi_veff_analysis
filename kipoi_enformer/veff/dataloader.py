@@ -17,7 +17,8 @@ class Enformer_DL(SampleIterator):
             reference_sequence: BaseExtractor,
             variants: VariantFetcher,
             interval_attrs=('gene_id', 'transcript_id'),
-            upstream_tss: int = 10, downstream_tss: int = 10
+            upstream_tss: int = 10, downstream_tss: int = 10,
+            is_onehot: bool = True
     ):
         self.regions_of_interest = regions_of_interest
         self.reference_sequence = reference_sequence
@@ -37,25 +38,38 @@ class Enformer_DL(SampleIterator):
             interval_attrs=interval_attrs
         )
 
-        self.one_hot = OneHot()
+        self.one_hot = None
+        if is_onehot:
+            self.one_hot = OneHot()
+
+    def _transform_seq(self, seq: str):
+        if self.one_hot is not None:
+            return self.one_hot(seq)
+        else:
+            return seq
 
     def __iter__(self):
-        # todo onehot encode the sequences
+        # todo test that sequences are correct
         interval: Interval
         variant: Variant
         for interval, variant in self.matcher:
             yield {
                 "inputs": {
-                    "ref_seq": (  # self.one_hot(
-                        self.reference_sequence.extract(interval)
+                    "ref_seq": (
+                        self._transform_seq(
+                            self.reference_sequence.extract(interval)
+                        )
                     ),
-                    "alt_seq": (  # self.one_hot(
-                        self.variant_seq_extractor.extract(
-                            interval,
-                            [variant],
-                            anchor=interval.start + self.upstream_tss if not interval.neg_strand
-                            else interval.end - self.downstream_tss
-                        )),
+                    "alt_seq": (
+                        self._transform_seq(
+                            self.variant_seq_extractor.extract(
+                                interval,
+                                [variant],
+                                anchor=interval.start + self.upstream_tss if not interval.neg_strand
+                                else interval.end - self.downstream_tss
+                            )
+                        )
+                    ),
                 },
                 "metadata": {
                     "variant": {
@@ -146,7 +160,8 @@ class VCF_Enformer_DL(Enformer_DL):
             vcf_file_tbi=None,
             vcf_lazy=True,
             upstream_tss: int = 10,
-            downstream_tss: int = 10
+            downstream_tss: int = 10,
+            is_onehot: bool = True
     ):
         # reads the genome annotation
         # start and end are transformed to 0-based and 1-based respectively
@@ -160,5 +175,6 @@ class VCF_Enformer_DL(Enformer_DL):
             regions_of_interest=roi,
             reference_sequence=FastaStringExtractor(fasta_file, use_strand=True),
             variants=MultiSampleVCF(vcf_file, lazy=vcf_lazy),
-            upstream_tss=upstream_tss, downstream_tss=downstream_tss
+            upstream_tss=upstream_tss, downstream_tss=downstream_tss,
+            is_onehot=is_onehot
         )
