@@ -1,6 +1,6 @@
 import pytest
 
-from kipoi_enformer.veff.dataloader import VCF_Enformer_DL, get_roi_from_genome_annotation
+from kipoi_enformer.veff.dataloader import VCF_Enformer_DL, get_tss_from_genome_annotation
 from pathlib import Path
 import pyranges as pr
 import traceback
@@ -60,44 +60,41 @@ def variants():
     }
 
 
-def test_get_roi_from_genome_annotation(chr22_example_files):
-    upstream_tss = 10
-    downstream_tss = 10
-
+def test_get_tss_from_genome_annotation(chr22_example_files):
     genome_annotation = pr.read_gtf(chr22_example_files['gtf'], as_df=True)
-    roi = get_roi_from_genome_annotation(genome_annotation, upstream_tss=upstream_tss, downstream_tss=downstream_tss)
+    roi = get_tss_from_genome_annotation(genome_annotation)
 
     # check the number of transcripts
     # grep -v '^#' annot.chr22.gtf | cut -f 3 | grep transcript | wc -l
-    assert len(roi) == 4511
+    assert len(roi) == 5279
 
     # are the extracted ROIs correct
     # criteria are the strand and transcript start and end
     # roi start is zero based
     # roi end is 1 based
-    def test_roi(row):
+    def test_tss(row):
         # make tss zero-based
         if row.Strand == '-':
             tss = row.transcript_end - 1
         else:
             tss = row.transcript_start
 
-        assert row.Start == tss - upstream_tss, \
-            f'Transcript {row.transcript_id}; Strand {row.Strand}: {row.Start} != ({tss} - {upstream_tss})'
-        assert row.End == tss + downstream_tss + 1, \
-            f'Transcript {row.transcript_id}; Strand {row.Strand}: {row.End} != ({tss} + {downstream_tss + 1})'
+        assert row.Start == tss, \
+            f'Transcript {row.transcript_id}; Strand {row.Strand}: {row.Start} != {tss}'
+        assert row.End == tss + 1, \
+            f'Transcript {row.transcript_id}; Strand {row.Strand}: {row.End} != ({tss} + 1)'
 
-    roi.apply(test_roi, axis=1)
+    roi.apply(test_tss, axis=1)
 
     # check the extracted ROI for a negative strand transcript
-    roi_i = roi.set_index('transcript_id').loc['ENST00000615943.1']
-    assert roi_i.Start == (10736283 - (upstream_tss + 1))
-    assert roi_i.End == (10736283 + downstream_tss)
+    roi_i = roi.set_index('transcript_id').loc['ENST00000448070.1']
+    assert roi_i.Start == (16076172 - 1)
+    assert roi_i.End == 16076172
 
     # check the extracted ROI for a positive strand transcript
-    roi_i = roi.set_index('transcript_id').loc['ENST00000624155.1']
-    assert roi_i.Start == (11066501 - (upstream_tss + 1))
-    assert roi_i.End == (11066501 + downstream_tss)
+    roi_i = roi.set_index('transcript_id').loc['ENST00000424770.1']
+    assert roi_i.Start == (16062157 - 1)
+    assert roi_i.End == 16062157
 
 
 def test_dataloader(chr22_example_files, variants):
@@ -105,20 +102,27 @@ def test_dataloader(chr22_example_files, variants):
         fasta_file=chr22_example_files['fasta'],
         gtf_file=chr22_example_files['gtf'],
         vcf_file=chr22_example_files['vcf'],
-        is_onehot=False
+        is_onehot=False,
+        downstream_tss=10,
+        upstream_tss=10,
+        seq_length=21
     )
     total = 0
     checked_variants = set()
     for i in dl:
         total += 1
-        var_id = f'{i["metadata"]["variant"]["str"]}_{i["metadata"]["transcript_id"]}'
+        var_id = f'{i["metadata"]["variant"]["str"]}_{i["metadata"]["transcript"]["transcript_id"]}'
         variant = variants.get(var_id, None)
         if variant is not None:
-            checked_variants.add(var_id)
-            # check alt sequence
-            assert i['inputs']['ref_seq'] == variant['ref_seq']
-            assert i['inputs']['alt_seq'] == variant['alt_seq']
-        print(i)
+            if i['metadata']['shift'] == 0:
+                checked_variants.add(var_id)
+                # check alt sequence
+                if i['metadata']['allele'] == 'alt':
+                    pass
+                    assert i['sequence'] == variant['alt_seq']
+                else:
+                    assert i['sequence'] == variant['ref_seq']
+        print(i['metadata'])
 
     # check that all variants in my list were found and checked
     assert checked_variants == set(variants.keys())
