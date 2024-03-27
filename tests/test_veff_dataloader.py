@@ -118,7 +118,6 @@ def test_dataloader(chr22_example_files, variants):
                 checked_variants.add(var_id)
                 # check alt sequence
                 if i['metadata']['allele'] == 'alt':
-                    pass
                     assert i['sequence'] == variant['alt_seq']
                 else:
                     assert i['sequence'] == variant['ref_seq']
