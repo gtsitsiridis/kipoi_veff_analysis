@@ -75,17 +75,14 @@ class Enformer_DL(SampleIterator):
         if is_onehot:
             self.one_hot = OneHot()
 
-    def _extract_seq(self, interval: Interval, variant: Variant, allele: str, shift: int = 0):
-        landmark = interval.attrs['landmark']
-        five_end_len = math.floor(self.seq_length / 2) + shift
-        three_end_len = math.ceil(self.seq_length / 2) - shift
-        interval = Interval(chrom=interval.chrom,
-                            start=landmark - five_end_len,
-                            end=landmark + three_end_len,
-                            strand=interval.strand)
+    def _transform_seq(self, sequence):
+        if self.one_hot is not None:
+            sequence = self.one_hot(sequence)
+        return sequence
+
+    def _extract_seq(self, landmark: int, interval: Interval, variant: Variant):
         assert interval.width() == self.seq_length, f"interval width must be {self.seq_length} but got {interval.width()}"
 
-        assert allele in ['ref', 'alt'], f"allele must be one of ['ref', 'alt'] but got {allele}"
         # Note: If the landmark is within the variant's interval
         # ====|----------Variant----------|=======
         # ===========|Landmark|===================
@@ -93,20 +90,14 @@ class Enformer_DL(SampleIterator):
         # For an explanation on how this works, look at the function
         # VariantSeqExtractor.extract(self, interval, variants, anchor, fixed_len=True, **kwargs)
 
-        if allele == 'ref':
-            seq = self.reference_sequence.extract(interval)
-        else:
+        ref_seq = self.reference_sequence.extract(interval)
+        alt_seq = self.variant_seq_extractor.extract(
+            interval,
+            [variant],
+            anchor=landmark
+        )
 
-            seq = self.variant_seq_extractor.extract(
-                interval,
-                [variant],
-                anchor=landmark
-            )
-
-        if self.one_hot is not None:
-            return self.one_hot(seq)
-        else:
-            return seq
+        return self._transform_seq(ref_seq), self._transform_seq(alt_seq)
 
     def __iter__(self):
         # todo also export the min_bin, max_bin, and tss_bin
@@ -115,14 +106,23 @@ class Enformer_DL(SampleIterator):
         interval: Interval
         variant: Variant
         for interval, variant in self.matcher:
-            for allele in ['alt', 'ref']:
-                for shift in self.shifts:
+            attrs = interval.attrs
+            for shift in self.shifts:
+                landmark = attrs['landmark']
+                five_end_len = math.floor(self.seq_length / 2) + shift
+                three_end_len = math.ceil(self.seq_length / 2) - shift
+                interval = Interval(chrom=interval.chrom,
+                                    start=landmark - five_end_len,
+                                    end=landmark + three_end_len,
+                                    strand=interval.strand)
+                ref_seq, alt_seq = self._extract_seq(landmark=landmark, interval=interval, variant=variant)
+                for allele in ['alt', 'ref']:
                     yield {
-                        "sequence": self._extract_seq(interval, variant, allele, shift),
+                        "sequence": ref_seq if allele == 'ref' else alt_seq,
                         "metadata": {
                             "allele": allele,
                             "shift": shift,
-                            "landmark_pos": interval.attrs['landmark'],
+                            "landmark_pos": attrs['landmark'],
                             "variant": {
                                 "chrom": variant.chrom,
                                 "start": variant.start,
@@ -134,14 +134,16 @@ class Enformer_DL(SampleIterator):
                             },
                             "transcript": {
                                 "chr": interval.chrom,
-                                "start": interval.attrs['transcript_start'],
-                                "stop": interval.attrs['transcript_end'],
+                                "start": attrs['transcript_start'],
+                                "stop": attrs['transcript_end'],
                                 "strand": interval.strand,
-                                "transcript_id": interval.attrs['transcript_id'],
-                                "gene_id": interval.attrs['gene_id'],
+                                "transcript_id": attrs['transcript_id'],
+                                "gene_id": attrs['gene_id'],
                             },
-                            # todo implement this
-                            "enformer_input_region": None,
+                            "enformer_input": {
+                                'start': interval.start,
+                                'stop': interval.end,
+                            },
                         }
                     }
 
