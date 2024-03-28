@@ -39,6 +39,7 @@ def test_enformer(chr22_example_files):
     assert predictions['human'].shape == (batch_size, 896, 5313)
     assert predictions['mouse'].shape == (batch_size, 896, 1643)
 
+    # todo
     # 1 column per shift-allele combination = 6 columns
     # + 2 columns (one per +- shift) for the tss bin index
     # + metadata

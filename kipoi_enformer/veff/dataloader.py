@@ -87,6 +87,24 @@ class Enformer_DL(SampleIterator):
 
         :return: Iterator over the dataset. Each item is a dictionary with the following
             keys:
+            - sequences: Dictionary with the following keys:
+                - ref: List of reference sequences for each shift
+                - alt: List of alternative sequences for each shift
+            - metadata: Dictionary with the following keys:
+                - shift: Shift of the Enformer input sequence
+                - enformer_start: 0-based start of the Enformer input sequence
+                - enformer_stop: 1-based stop of the Enformer input sequence
+                - landmark_pos: 0-based position of the landmark (TSS)
+                - chr: Chromosome
+                - strand: Strand
+                - gene_id: Gene ID
+                - transcript_id: Transcript ID
+                - transcript_start: 0-based
+                - transcript_end: 1-based
+                - variant_start: 0-based
+                - variant_stop: 1-based
+                - ref: Reference allele
+                - alt: Alternative allele
         """
         # todo nested parquet
         # todo polars
