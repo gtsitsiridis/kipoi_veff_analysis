@@ -43,16 +43,22 @@ class Enformer_DL(SampleIterator):
             roi_regions: pr.PyRanges,
             reference_sequence: BaseExtractor,
             variants: VariantFetcher,
-            seq_length: int = SEQUENCE_LENGTH,
-        is_onehot: bool = True,
+            seq_length: int,
+            shifts: tuple,
+            is_onehot: bool,
     ):
         interval_attrs = ['gene_id', 'transcript_id', 'landmark', 'transcript_start', 'transcript_end']
         for attr in interval_attrs:
             assert attr in roi_regions.columns, f"attr must be in {roi_regions.columns}"
+
+        for shift in shifts:
+            assert shift < seq_length, f"shift must be smaller than seq_length but got {shift} >= {seq_length}"
+
         self.seq_length = seq_length
         self.roi_regions = roi_regions
         self.reference_sequence = reference_sequence
         self.variants = variants
+        self.shifts = shifts
 
         if not self.reference_sequence.use_strand:
             raise ValueError(
@@ -70,22 +76,31 @@ class Enformer_DL(SampleIterator):
             self.one_hot = OneHot()
 
     def _extract_seq(self, interval: Interval, variant: Variant, allele: str, shift: int = 0):
-        five_end_len = math.ceil(self.seq_length / 2) + shift
-        three_end_len = math.floor(self.seq_length / 2) - shift
-
+        landmark = interval.attrs['landmark']
+        five_end_len = math.floor(self.seq_length / 2) + shift
+        three_end_len = math.ceil(self.seq_length / 2) - shift
         interval = Interval(chrom=interval.chrom,
-                            start=interval.attrs['landmark'] - five_end_len,
-                            end=interval.attrs['landmark'] + three_end_len)
+                            start=landmark - five_end_len,
+                            end=landmark + three_end_len,
+                            strand=interval.strand)
+        assert interval.width() == self.seq_length, f"interval width must be {self.seq_length} but got {interval.width()}"
 
         assert allele in ['ref', 'alt'], f"allele must be one of ['ref', 'alt'] but got {allele}"
+        # Note: If the landmark is within the variant's interval
+        # ====|----------Variant----------|=======
+        # ===========|Landmark|===================
+        # We take as the new landmark the first base downstream the variant
+        # For an explanation on how this works, look at the function
+        # VariantSeqExtractor.extract(self, interval, variants, anchor, fixed_len=True, **kwargs)
+
         if allele == 'ref':
             seq = self.reference_sequence.extract(interval)
         else:
+
             seq = self.variant_seq_extractor.extract(
                 interval,
                 [variant],
-                anchor=interval.start + five_end_len if not interval.neg_strand
-                else interval.end - three_end_len
+                anchor=landmark
             )
 
         if self.one_hot is not None:
@@ -101,7 +116,7 @@ class Enformer_DL(SampleIterator):
         variant: Variant
         for interval, variant in self.matcher:
             for allele in ['alt', 'ref']:
-                for shift in [-43, 0, 43]:
+                for shift in self.shifts:
                     yield {
                         "sequence": self._extract_seq(interval, variant, allele, shift),
                         "metadata": {
@@ -111,7 +126,7 @@ class Enformer_DL(SampleIterator):
                             "variant": {
                                 "chrom": variant.chrom,
                                 "start": variant.start,
-                                "end": variant.end,
+                                "stop": variant.end,
                                 "ref": variant.ref,
                                 "alt": variant.alt,
                                 "id": variant.id,
@@ -159,7 +174,7 @@ def get_tss_from_genome_annotation(genome_annotation: pd.DataFrame):
         - Feature
         - gene_id
         - transcript_id
-    :return:
+    :return: genome_annotation with additional columns tss (0-based), transcript_start (0-based), transcript_end (1-based)
     """
     roi = genome_annotation.query("`Feature` == 'transcript'")
     roi = roi.assign(
@@ -190,15 +205,21 @@ class VCF_Enformer_DL(Enformer_DL):
             upstream_tss: int = 10,
             downstream_tss: int = 10,
             seq_length: int = SEQUENCE_LENGTH,
+            shifts=(-43, 0, 43),
             is_onehot: bool = True
     ):
         # reads the genome annotation
         # start and end are transformed to 0-based and 1-based respectively
+        for shift in shifts:
+            assert shift < downstream_tss + upstream_tss + 1, \
+                f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {downstream_tss + upstream_tss + 1}"
+
         genome_annotation = pr.read_gtf(gtf_file, as_df=True)
         genome_annotation = get_tss_from_genome_annotation(genome_annotation)
         roi = pr.PyRanges(genome_annotation)
         roi = roi.extend(ext={"5": upstream_tss, "3": downstream_tss})
         roi.landmark = roi.tss
+        # todo do assert length of roi
 
         from kipoiseq.extractors import MultiSampleVCF
         super().__init__(
@@ -206,5 +227,6 @@ class VCF_Enformer_DL(Enformer_DL):
             reference_sequence=FastaStringExtractor(fasta_file, use_strand=True),
             variants=MultiSampleVCF(vcf_file, lazy=vcf_lazy),
             is_onehot=is_onehot,
-            seq_length=seq_length
+            seq_length=seq_length,
+            shifts=shifts
         )

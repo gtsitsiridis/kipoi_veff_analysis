@@ -1,5 +1,4 @@
 import tensorflow_hub as hub
-import tensorflow as tf
 
 
 class Enformer:

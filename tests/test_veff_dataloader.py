@@ -22,40 +22,110 @@ def chr22_example_files():
 @pytest.fixture
 def variants():
     return {
+        # Positive strand
+        # SNP
+        # ===|TSS|===|Var|=======================
         'chr22:16364873:G>A_ENST00000438441.1': {
             'chrom': 'chr22',
-            'ref_start': 16364856,
-            'ref_end': 16364877,
-            'start': 16364872,
-            'end': 16364873,
+            'strand': '+',
+            'tss': 16364866,  # 0-based
+            'ref_start': 16364856,  # 0-based
+            'ref_stop': 16364877,  # 1-based
+            'var_start': 16364872,  # 0-based
+            'var_stop': 16364873,  # 1-based
             'ref': 'G',
             'alt': 'A',
             'ref_seq': 'ACTGGCTGGCCATGCCGTCCC',
             'alt_seq': 'ACTGGCTGGCCATGCCATCCC',
         },
-        'chr22:19420453:A>ATATT_ENST00000471259.1_1': {
+        # Positive strand
+        # SNP
+        # ===|Var|===|TSS|=======================
+        'chr22:17565895:G>C_ENST00000694950.1_1': {
             'chrom': 'chr22',
-            'ref_start': 19420451,
-            'ref_end': 19420472,
-            'start': 19420452,
-            'end': 19420453,
-            'ref': 'A',
-            'alt': 'ATATT',
-            'ref_seq': 'GATATTTATTTATTTATTTGA',
-            'alt_seq': 'TTTATTTATTTATTTATTTGA',
+            'strand': '+',
+            'tss': 17565901,  # 0-based
+            'ref_start': 17565891,  # 0-based
+            'ref_stop': 17565912,  # 1-based
+            'var_start': 17565894,  # 0-based
+            'var_stop': 17565895,  # 1-based
+            'ref': 'G',
+            'alt': 'C',
+            'ref_seq': 'CTCGAACTCCACCGCGGAAAA',
+            'alt_seq': 'CTCCAACTCCACCGCGGAAAA',
         },
+        # Negative strand
+        # SNP
+        # ===|Var|===|TSS|=======================
+        'chr22:16570002:C>T_ENST00000583607.1': {
+            'chrom': 'chr22',
+            'strand': '-',
+            'tss': 16570005,  # 0-based
+            'ref_start': 16569995,  # 0-based
+            'ref_stop': 16570016,  # 1-based
+            'var_start': 16570001,  # 0-based
+            'var_stop': 16570002,  # 1-based
+            'ref': 'C',
+            'alt': 'T',
+            # complement: CTGCAACGAGGGTCTGCATGT
+            'ref_seq': 'ACATGCAGACCCTCGTTGCAG',
+            # complement: CTGCAATGAGGGTCTGCATGT
+            'alt_seq': 'ACATGCAGACCCTCATTGCAG',
+        },
+        # Negative strand
+        # Deletion
+        # ===|Var|===|TSS|=======================
+        'chr22:29130718:CAAA>C_ENST00000403642.5_3': {
+            'chrom': 'chr22',
+            'strand': '-',
+            'tss': 29130708,  # 0-based
+            'ref_start': 29130698,  # 0-based
+            'ref_end': 29130719,  # 1-based
+            'var_start': 29130717,  # 0-based
+            'var_end': 29130721,  # 1-based
+            'ref': 'CAAA',
+            'alt': 'C',
+            # complement: TCCCGAGACATCACGACCTCA
+            'ref_seq': 'TGAGGTCGTGATGTCTCGGGA',
+            # complement: TCCCGAGACATCACGACCTCA
+            'alt_seq': 'TGAGGTCGTGATGTCTCGGGA',
+        },
+        # Negative strand
+        # Insertion
+        # ===|Var|===|TSS|=======================
+        'chr22:19109971:T>TCCCGCCC_ENST00000545799.5_4': {
+            'chrom': 'chr22',
+            'strand': '-',
+            'tss': 19109966,  # 0-based
+            'ref_start': 19109956,  # 0-based
+            'ref_end': 19109977,  # 1-based
+            'var_start': 19109970,  # 0-based
+            'var_end': 19109971,  # 1-based
+            'ref': 'T',
+            'alt': 'TCCCGCCC',
+            # complement: CGCCCCGCCCCGCCTCCCGCC
+            'ref_seq': 'GGCGGGAGGCGGGGCGGGGCG',
+            # complement: CGCCCCGCCCCGCCTCCCGCC
+            'alt_seq': 'GGCGGGAGGCGGGGCGGGGCG',
+        },
+        # special case: the TSS is within the variant's interval; we take the downstream TSS
+        # Negative strand
+        # Deletion
+        # ===|Var|===|TSS|=======================
         'chr22:18359465:GTTATGGAGGTTAGGGAGGTTATGGAGGTTAGGGAGC>G_ENST00000462645.1_3': {
             'chrom': 'chr22',
+            'strand': '-',
+            'tss': 18359468,
             'ref_start': 18359458,
             'ref_end': 18359479,
-            'start': 18359464,
-            'end': 18359501,
+            'var_start': 18359464,
+            'var-stop': 18359501,
             'ref': 'GTTATGGAGGTTAGGGAGGTTATGGAGGTTAGGGAGC',
             'alt': 'G',
             # complement 'TGCAGGGTTATGGAGGTTAGG',
             'ref_seq': 'CCTAACCTCCATAACCCTGCA',
-            # complement 'CACATGCAGGGTTATGGAGGT',
-            'alt_seq': 'ACCTCCATAACCCTGCATGTG',
+            # complement 'ACA TGCAGGG TTATGGAGGTT',
+            'alt_seq': 'AACCTCCATAACCCTGCATGT',
         },
     }
 
@@ -105,7 +175,8 @@ def test_dataloader(chr22_example_files, variants):
         is_onehot=False,
         downstream_tss=10,
         upstream_tss=10,
-        seq_length=21
+        seq_length=21,
+        shifts=(-5, 0, 5)
     )
     total = 0
     checked_variants = set()
@@ -121,7 +192,10 @@ def test_dataloader(chr22_example_files, variants):
                     assert i['sequence'] == variant['alt_seq']
                 else:
                     assert i['sequence'] == variant['ref_seq']
-        print(i['metadata'])
+        if i['metadata']['transcript']['strand'] == '-' and (
+                i['metadata']['variant']['start'] > i['metadata']['transcript']['stop']) and \
+                len(i['metadata']['variant']['alt']) > 1:
+            print(i['metadata'])
 
     # check that all variants in my list were found and checked
     assert checked_variants == set(variants.keys())
