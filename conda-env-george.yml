@@ -18,4 +18,5 @@ dependencies:
   - tensorflow-base=2.15.0
   - tensorflow-estimator=2.15.0
   - tensorflow-hub=0.16.1
+  - ipykernel=6.28.0
   - pip:

@@ -176,7 +176,7 @@ def test_dataloader(chr22_example_files, variants):
         downstream_tss=10,
         upstream_tss=10,
         seq_length=21,
-        shifts=(-5, 0, 5)
+        shift=0
     )
     total = 0
     checked_variants = set()
@@ -189,13 +189,9 @@ def test_dataloader(chr22_example_files, variants):
                   f'{metadata["transcript_id"]}')
         variant = variants.get(var_id, None)
         if variant is not None:
-            if metadata['shift'] == 0:
-                checked_variants.add(var_id)
-                # check alt sequence
-                if metadata['allele'] == 'alt':
-                    assert i['sequence'] == variant['alt_seq']
-                else:
-                    assert i['sequence'] == variant['ref_seq']
+            assert i['sequences']['alt'][0] == variant['alt_seq']
+            assert i['sequences']['ref'][0] == variant['ref_seq']
+            checked_variants.add(var_id)
         print(i['metadata'])
 
     # check that all variants in my list were found and checked

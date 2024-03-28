@@ -19,23 +19,6 @@ SEEN_SEQUENCE_LENGTH = 1_536 * 128
 # ─────┆─────┆════════════════════════┆─────┆─────
 PRED_SEQUENCE_LENGTH = 896 * 128
 
-# padding (only one side!) until the PRED_SEQUENCE_LENGTH window
-# ═════┆═════┆────────────────────────┆═════┆═════
-PADDING = (SEQUENCE_LENGTH - PRED_SEQUENCE_LENGTH) // 2
-# padding (only one side!) until the SEEN_SEQUENCE_LENGTH window
-# ═════┆─────┆────────────────────────┆─────┆═════
-PADDING_UNTIL_SEEN = (SEQUENCE_LENGTH - SEEN_SEQUENCE_LENGTH) // 2
-# padding (only one side!) from PADDING_UNTIL_SEEN to PRED_SEQUENCE_LENGTH
-# ─────┆═════┆────────────────────────┆═════┆─────
-PADDING_SEEN = PADDING - PADDING_UNTIL_SEEN
-
-assert 2 * (PADDING_UNTIL_SEEN + PADDING_SEEN) + PRED_SEQUENCE_LENGTH == SEQUENCE_LENGTH, \
-    "All parts should add up to SEQUENCE_LENGTH"
-assert PADDING_UNTIL_SEEN + PADDING_SEEN == PADDING, \
-    "All padding parts should add up to PADDING"
-assert PRED_SEQUENCE_LENGTH + 2 * (PADDING_SEEN) == SEEN_SEQUENCE_LENGTH, \
-    "All SEEN_SEQUENCE parts should add up to SEEN_SEQUENCE_LENGTH"
-
 
 class Enformer_DL(SampleIterator):
     def __init__(
@@ -44,21 +27,20 @@ class Enformer_DL(SampleIterator):
             reference_sequence: BaseExtractor,
             variants: VariantFetcher,
             seq_length: int,
-            shifts: tuple,
+            shift: int,
             is_onehot: bool,
     ):
         interval_attrs = ['gene_id', 'transcript_id', 'landmark', 'transcript_start', 'transcript_end']
         for attr in interval_attrs:
             assert attr in roi_regions.columns, f"attr must be in {roi_regions.columns}"
-
-        for shift in shifts:
-            assert shift < seq_length, f"shift must be smaller than seq_length but got {shift} >= {seq_length}"
+        assert shift >= 0, f"shift must be positive or zero but got {shift}"
+        assert shift < seq_length, f"shift must be smaller than seq_length but got {shift} >= {seq_length}"
 
         self.seq_length = seq_length
         self.roi_regions = roi_regions
         self.reference_sequence = reference_sequence
         self.variants = variants
-        self.shifts = shifts
+        self.shift = shift
 
         if not self.reference_sequence.use_strand:
             raise ValueError(
@@ -100,44 +82,72 @@ class Enformer_DL(SampleIterator):
         return self._transform_seq(ref_seq), self._transform_seq(alt_seq)
 
     def __iter__(self):
-        # todo also export the min_bin, max_bin, and tss_bin
+        """
+        Iterate over the dataset.
+
+        :return: Iterator over the dataset. Each item is a dictionary with the following
+            keys:
+        """
         # todo nested parquet
         # todo polars
         interval: Interval
         variant: Variant
+        shifts = (0,) if self.shift == 0 else (-self.shift, 0, self.shift)
         for interval, variant in self.matcher:
             attrs = interval.attrs
-            for shift in self.shifts:
-                landmark = attrs['landmark']
-                five_end_len = math.floor(self.seq_length / 2) + shift
-                three_end_len = math.ceil(self.seq_length / 2) - shift
-                interval = Interval(chrom=interval.chrom,
-                                    start=landmark - five_end_len,
-                                    end=landmark + three_end_len,
-                                    strand=interval.strand)
-                ref_seq, alt_seq = self._extract_seq(landmark=landmark, interval=interval, variant=variant)
-                for allele in ['alt', 'ref']:
-                    yield {
-                        "sequence": ref_seq if allele == 'ref' else alt_seq,
-                        "metadata": {
-                            "allele": allele,
-                            "shift": shift,
-                            "landmark_pos": attrs['landmark'],
-                            "landmark_bin": None,
-                            "chr": interval.chrom,
-                            "strand": interval.strand,
-                            "gene_id": attrs['gene_id'],
-                            "transcript_id": attrs['transcript_id'],
-                            "transcript_start": attrs['transcript_start'],
-                            "transcript_end": attrs['transcript_end'],
-                            "variant_start": variant.start,
-                            "variant_stop": variant.end,
-                            "ref": variant.ref,
-                            "alt": variant.alt,
-                            'enformer_start': interval.start,
-                            'enformer_stop': interval.end,
-                        }
-                    }
+            landmark = attrs['landmark']
+
+            # enformer input interval without shift
+            five_end_len = math.floor(self.seq_length / 2)
+            three_end_len = math.ceil(self.seq_length / 2)
+            enformer_interval = Interval(chrom=interval.chrom,
+                                         start=landmark - five_end_len,
+                                         end=landmark + three_end_len,
+                                         strand=interval.strand)
+            assert enformer_interval.width() == self.seq_length, \
+                f"enformer_interval width must be {self.seq_length} but got {enformer_interval.width()}"
+            assert (landmark - enformer_interval.start) == self.seq_length // 2, \
+                f"landmark must be in the middle of the enformer_interval but got {landmark - enformer_interval.start}"
+
+            sequences = {
+                "ref": [],
+                "alt": []
+            }
+            # shift intervals and extract sequences
+            for shift in shifts:
+                shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
+                assert shifted_enformer_interval.width() == self.seq_length, \
+                    f"enformer_interval width must be {self.seq_length} but got {enformer_interval.width()}"
+
+                ref_seq, alt_seq = self._extract_seq(landmark=landmark, interval=shifted_enformer_interval,
+                                                     variant=variant)
+                sequences['ref'].append(ref_seq)
+                sequences['alt'].append(alt_seq)
+
+            yield {
+                "sequences": {
+                    "ref": sequences['ref'],
+                    "alt": sequences['alt']
+                },
+                "metadata": {
+                    # Note: To get the landmark bin:
+                    # landmark_bin = (landmark - shift - (PRED_SEQUENCE_LENGTH - 1) // 2) // BIN_SIZE
+                    "shift": self.shift,  # shift of the Enformer input sequence
+                    "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
+                    "enformer_stop": enformer_interval.end,  # 1-based stop of the enformer input sequence
+                    "landmark_pos": landmark,  # 0-based position of the landmark (TSS)
+                    "chr": interval.chrom,
+                    "strand": interval.strand,
+                    "gene_id": attrs['gene_id'],
+                    "transcript_id": attrs['transcript_id'],
+                    "transcript_start": attrs['transcript_start'],  # 0-based
+                    "transcript_end": attrs['transcript_end'],  # 1-based
+                    "variant_start": variant.start,  # 0-based
+                    "variant_stop": variant.end,  # 1-based
+                    "ref": variant.ref,
+                    "alt": variant.alt,
+                }
+            }
 
 
 def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_negative_strand: bool) -> (int, int):
@@ -199,15 +209,14 @@ class VCF_Enformer_DL(Enformer_DL):
             upstream_tss: int = 10,
             downstream_tss: int = 10,
             seq_length: int = SEQUENCE_LENGTH,
-            shifts=(-43, 0, 43),
+            shift: int = 43,
             is_onehot: bool = True
     ):
+        assert shift < downstream_tss + upstream_tss + 1, \
+            f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {downstream_tss + upstream_tss + 1}"
+
         # reads the genome annotation
         # start and end are transformed to 0-based and 1-based respectively
-        for shift in shifts:
-            assert shift < downstream_tss + upstream_tss + 1, \
-                f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {downstream_tss + upstream_tss + 1}"
-
         genome_annotation = pr.read_gtf(gtf_file, as_df=True)
         genome_annotation = get_tss_from_genome_annotation(genome_annotation)
         roi = pr.PyRanges(genome_annotation)
@@ -222,5 +231,5 @@ class VCF_Enformer_DL(Enformer_DL):
             variants=MultiSampleVCF(vcf_file, lazy=vcf_lazy),
             is_onehot=is_onehot,
             seq_length=seq_length,
-            shifts=shifts
+            shift=shift
         )

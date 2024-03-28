@@ -13,5 +13,6 @@ dependencies:
   - cyvcf2>=0.30.28
   - tensorflow-hub>=0.16.1
   - tensorflow>=2.15.0
+  - ipykernel>=6.28.0
   - pip
   - pip:
