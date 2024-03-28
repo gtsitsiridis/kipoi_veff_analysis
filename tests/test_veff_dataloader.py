@@ -25,7 +25,7 @@ def variants():
         # Positive strand
         # SNP
         # ===|TSS|===|Var|=======================
-        'chr22:16364873:G>A_ENST00000438441.1': {
+        'chr22:16364873:G>A:ENST00000438441.1': {
             'chrom': 'chr22',
             'strand': '+',
             'tss': 16364866,  # 0-based
@@ -41,7 +41,7 @@ def variants():
         # Positive strand
         # SNP
         # ===|Var|===|TSS|=======================
-        'chr22:17565895:G>C_ENST00000694950.1_1': {
+        'chr22:17565895:G>C:ENST00000694950.1_1': {
             'chrom': 'chr22',
             'strand': '+',
             'tss': 17565901,  # 0-based
@@ -57,7 +57,7 @@ def variants():
         # Negative strand
         # SNP
         # ===|Var|===|TSS|=======================
-        'chr22:16570002:C>T_ENST00000583607.1': {
+        'chr22:16570002:C>T:ENST00000583607.1': {
             'chrom': 'chr22',
             'strand': '-',
             'tss': 16570005,  # 0-based
@@ -75,7 +75,7 @@ def variants():
         # Negative strand
         # Deletion
         # ===|Var|===|TSS|=======================
-        'chr22:29130718:CAAA>C_ENST00000403642.5_3': {
+        'chr22:29130718:CAAA>C:ENST00000403642.5_3': {
             'chrom': 'chr22',
             'strand': '-',
             'tss': 29130708,  # 0-based
@@ -93,7 +93,7 @@ def variants():
         # Negative strand
         # Insertion
         # ===|Var|===|TSS|=======================
-        'chr22:19109971:T>TCCCGCCC_ENST00000545799.5_4': {
+        'chr22:19109971:T>TCCCGCCC:ENST00000545799.5_4': {
             'chrom': 'chr22',
             'strand': '-',
             'tss': 19109966,  # 0-based
@@ -112,7 +112,7 @@ def variants():
         # Negative strand
         # Deletion
         # ===|Var|===|TSS|=======================
-        'chr22:18359465:GTTATGGAGGTTAGGGAGGTTATGGAGGTTAGGGAGC>G_ENST00000462645.1_3': {
+        'chr22:18359465:GTTATGGAGGTTAGGGAGGTTATGGAGGTTAGGGAGC>G:ENST00000462645.1_3': {
             'chrom': 'chr22',
             'strand': '-',
             'tss': 18359468,
@@ -182,20 +182,21 @@ def test_dataloader(chr22_example_files, variants):
     checked_variants = set()
     for i in dl:
         total += 1
-        var_id = f'{i["metadata"]["variant"]["str"]}_{i["metadata"]["transcript"]["transcript_id"]}'
+        metadata = i['metadata']
+        # example: chr22:16364873:G>A_
+        var_id = (f'{metadata["chr"]}:{metadata["variant_start"] + 1}:'
+                  f'{metadata["ref"]}>{metadata["alt"]}:'
+                  f'{metadata["transcript_id"]}')
         variant = variants.get(var_id, None)
         if variant is not None:
-            if i['metadata']['shift'] == 0:
+            if metadata['shift'] == 0:
                 checked_variants.add(var_id)
                 # check alt sequence
-                if i['metadata']['allele'] == 'alt':
+                if metadata['allele'] == 'alt':
                     assert i['sequence'] == variant['alt_seq']
                 else:
                     assert i['sequence'] == variant['ref_seq']
-        if i['metadata']['transcript']['strand'] == '-' and (
-                i['metadata']['variant']['start'] > i['metadata']['transcript']['stop']) and \
-                len(i['metadata']['variant']['alt']) > 1:
-            print(i['metadata'])
+        print(i['metadata'])
 
     # check that all variants in my list were found and checked
     assert checked_variants == set(variants.keys())

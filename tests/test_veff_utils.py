@@ -31,10 +31,14 @@ def test_enformer(chr22_example_files):
     )
     batch_size = 1
 
-    res = [x for x in dl][batch_size]
+    res = [x for x in dl][:batch_size]
     input_tensor = tf.convert_to_tensor([x['sequence'] for x in res])
     assert input_tensor.shape == (batch_size, 393_216, 4)
     enformer = Enformer(MODEL_PATH)
     predictions = enformer.predict_on_batch(input_tensor)
     assert predictions['human'].shape == (batch_size, 896, 5313)
     assert predictions['mouse'].shape == (batch_size, 896, 1643)
+
+    # 1 column per shift-allele combination = 6 columns
+    # + 2 columns (one per +- shift) for the tss bin index
+    # + metadata
