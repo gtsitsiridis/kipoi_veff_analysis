@@ -5,8 +5,9 @@ from kipoiseq.extractors import VariantSeqExtractor, SingleVariantMatcher, BaseE
 import math
 import pandas as pd
 import pyranges as pr
-from kipoi_enformer.logger import logger
 import numpy as np
+from kipoiseq.extractors import MultiSampleVCF
+from kipoi_enformer.logger import logger
 
 from kipoiseq.variant_source import VariantFetcher
 
@@ -244,7 +245,6 @@ class VCF_Enformer_DL(Enformer_DL):
         roi.landmark = roi.tss
         # todo do assert length of roi
 
-        from kipoiseq.extractors import MultiSampleVCF
         super().__init__(
             roi_regions=roi,
             reference_sequence=FastaStringExtractor(fasta_file, use_strand=True),

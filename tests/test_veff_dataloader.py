@@ -4,6 +4,7 @@ from kipoi_enformer.veff.dataloader import VCF_Enformer_DL, get_tss_from_genome_
 from pathlib import Path
 import pyranges as pr
 import traceback
+from kipoi_enformer.logger import logger
 
 UPSTREAM_TSS = 10
 DOWNSTREAM_TSS = 10
@@ -179,7 +180,7 @@ def test_dataloader(chr22_example_files, variants):
         shift=0
     )
     total = 0
-    checked_variants = set()
+    checked_variants = dict()
     for i in dl:
         total += 1
         metadata = i['metadata']
@@ -189,10 +190,14 @@ def test_dataloader(chr22_example_files, variants):
                   f'{metadata["transcript_id"]}')
         variant = variants.get(var_id, None)
         if variant is not None:
-            assert i['sequences']['alt'][0] == variant['alt_seq']
-            assert i['sequences']['ref'][0] == variant['ref_seq']
-            checked_variants.add(var_id)
+            if metadata['allele'] == 'ref':
+                assert i['sequence'] == variant['ref_seq']
+            else:
+                assert i['sequence'] == variant['alt_seq']
+            checked_variants[var_id] = checked_variants.get(var_id, 0) + 1
         print(i['metadata'])
 
     # check that all variants in my list were found and checked
-    assert checked_variants == set(variants.keys())
+    assert set(checked_variants.keys()) == set(variants.keys())
+    # check that both alleles were found and checked
+    assert sum(checked_variants.values()) == len(checked_variants) * 2
