@@ -1,11 +1,12 @@
 from kipoi.data import SampleIterator
 from kipoiseq import Interval, Variant
-from kipoiseq.transforms import OneHot
+from kipoiseq.transforms.functional import one_hot_dna
 from kipoiseq.extractors import VariantSeqExtractor, SingleVariantMatcher, BaseExtractor, FastaStringExtractor
 import math
 import pandas as pd
 import pyranges as pr
 from kipoi_enformer.logger import logger
+import numpy as np
 
 from kipoiseq.variant_source import VariantFetcher
 
@@ -55,13 +56,11 @@ class Enformer_DL(SampleIterator):
             interval_attrs=interval_attrs
         )
 
-        self.one_hot = None
-        if is_onehot:
-            self.one_hot = OneHot()
+        self.is_onehot = is_onehot
 
     def _transform_seq(self, sequence):
-        if self.one_hot is not None:
-            sequence = self.one_hot(sequence)
+        if self.is_onehot:
+            sequence = one_hot_dna(sequence).astype(np.float32)
         return sequence
 
     def _extract_seq(self, landmark: int, interval: Interval, variant: Variant):
