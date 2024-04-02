@@ -14,5 +14,6 @@ dependencies:
   - tensorflow-hub>=0.16.1
   - tensorflow>=2.15.0
   - ipykernel>=6.28.0
+  - tensorflow-gpu>=2.15.0
   - pip
   - pip:
