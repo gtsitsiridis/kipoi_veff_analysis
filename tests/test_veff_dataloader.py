@@ -173,7 +173,6 @@ def test_dataloader(chr22_example_files, variants):
         fasta_file=chr22_example_files['fasta'],
         gtf_file=chr22_example_files['gtf'],
         vcf_file=chr22_example_files['vcf'],
-        is_onehot=False,
         downstream_tss=10,
         upstream_tss=10,
         seq_length=21,

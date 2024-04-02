@@ -1,6 +1,5 @@
 from kipoi.data import SampleIterator
 from kipoiseq import Interval, Variant
-from kipoiseq.transforms.functional import one_hot_dna
 from kipoiseq.extractors import VariantSeqExtractor, SingleVariantMatcher, BaseExtractor, FastaStringExtractor
 import math
 import pandas as pd
@@ -30,7 +29,6 @@ class Enformer_DL(SampleIterator):
             variants: VariantFetcher,
             seq_length: int,
             shift: int,
-            is_onehot: bool,
             size: int = None,
     ):
         interval_attrs = ['gene_id', 'transcript_id', 'landmark', 'transcript_start', 'transcript_end']
@@ -57,13 +55,6 @@ class Enformer_DL(SampleIterator):
             interval_attrs=interval_attrs
         )
 
-        self.is_onehot = is_onehot
-
-    def _transform_seq(self, sequence):
-        if self.is_onehot:
-            sequence = one_hot_dna(sequence).astype(np.float32)
-        return sequence
-
     def _extract_seq(self, landmark: int, interval: Interval, variant: Variant):
         assert interval.width() == self.seq_length, f"interval width must be {self.seq_length} but got {interval.width()}"
 
@@ -81,7 +72,7 @@ class Enformer_DL(SampleIterator):
             anchor=landmark
         )
 
-        return self._transform_seq(ref_seq), self._transform_seq(alt_seq)
+        return ref_seq, alt_seq
 
     def __iter__(self):
         """
@@ -249,7 +240,6 @@ class VCF_Enformer_DL(Enformer_DL):
             roi_regions=roi,
             reference_sequence=FastaStringExtractor(fasta_file, use_strand=True),
             variants=MultiSampleVCF(vcf_file, lazy=vcf_lazy),
-            is_onehot=is_onehot,
             seq_length=seq_length,
             shift=shift,
             size=size

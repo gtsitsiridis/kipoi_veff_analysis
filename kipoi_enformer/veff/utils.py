@@ -1,11 +1,13 @@
 import pathlib
 
+import numpy as np
 import tensorflow_hub as hub
 import tensorflow as tf
 from .dataloader import Enformer_DL
 from kipoi_enformer.logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
+from kipoiseq.transforms.functional import one_hot_dna
 
 __all__ = ['Enformer']
 
@@ -96,7 +98,7 @@ class Enformer:
 
     def _process_batch(self, batch):
         batch_size = len(batch)
-        sequences = [data['sequence'] for data in batch]
+        sequences = [one_hot_dna(data['sequence']).astype(np.float32) for data in batch]
         metadata = [data['metadata'] for data in batch]
 
         # create input tensor
