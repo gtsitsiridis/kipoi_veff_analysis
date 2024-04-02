@@ -221,7 +221,6 @@ class VCF_Enformer_DL(Enformer_DL):
             downstream_tss: int = 10,
             seq_length: int = SEQUENCE_LENGTH,
             shift: int = 43,
-            is_onehot: bool = True,
             size: int = None
     ):
         assert shift < downstream_tss + upstream_tss + 1, \
