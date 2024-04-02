@@ -83,9 +83,6 @@ class Enformer_DL(SampleIterator):
 
         return self._transform_seq(ref_seq), self._transform_seq(alt_seq)
 
-    def __len__(self):
-        return len(self.matcher)
-
     def __iter__(self):
         """
         Iterate over the dataset.
