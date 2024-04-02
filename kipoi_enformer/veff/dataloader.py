@@ -107,8 +107,6 @@ class Enformer_DL(SampleIterator):
                 - ref: Reference allele
                 - alt: Alternative allele
         """
-        # todo nested parquet
-        # todo polars
         interval: Interval
         variant: Variant
         shifts = (0,) if self.shift == 0 else (-self.shift, 0, self.shift)
