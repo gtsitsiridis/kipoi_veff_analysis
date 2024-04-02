@@ -2,10 +2,10 @@ from kipoi.data import SampleIterator
 from kipoiseq import Interval, Variant
 from kipoiseq.transforms import OneHot
 from kipoiseq.extractors import VariantSeqExtractor, SingleVariantMatcher, BaseExtractor, FastaStringExtractor
-from kipoi.metadata import GenomicRanges
 import math
 import pandas as pd
 import pyranges as pr
+from kipoi_enformer.logger import logger
 
 from kipoiseq.variant_source import VariantFetcher
 
@@ -29,6 +29,7 @@ class Enformer_DL(SampleIterator):
             seq_length: int,
             shift: int,
             is_onehot: bool,
+            size: int = None,
     ):
         interval_attrs = ['gene_id', 'transcript_id', 'landmark', 'transcript_start', 'transcript_end']
         for attr in interval_attrs:
@@ -41,6 +42,7 @@ class Enformer_DL(SampleIterator):
         self.reference_sequence = reference_sequence
         self.variants = variants
         self.shift = shift
+        self.size = size
 
         if not self.reference_sequence.use_strand:
             raise ValueError(
@@ -81,6 +83,9 @@ class Enformer_DL(SampleIterator):
 
         return self._transform_seq(ref_seq), self._transform_seq(alt_seq)
 
+    def __len__(self):
+        return len(self.matcher)
+
     def __iter__(self):
         """
         Iterate over the dataset.
@@ -111,7 +116,13 @@ class Enformer_DL(SampleIterator):
         interval: Interval
         variant: Variant
         shifts = (0,) if self.shift == 0 else (-self.shift, 0, self.shift)
+        counter = 0
         for interval, variant in self.matcher:
+            # check if we reached the end of the dataset
+            if self.size is not None and counter == self.size:
+                break
+            counter += 1
+
             attrs = interval.attrs
             landmark = attrs['landmark']
 
@@ -139,33 +150,29 @@ class Enformer_DL(SampleIterator):
 
                 ref_seq, alt_seq = self._extract_seq(landmark=landmark, interval=shifted_enformer_interval,
                                                      variant=variant)
-                sequences['ref'].append(ref_seq)
-                sequences['alt'].append(alt_seq)
-
-            yield {
-                "sequences": {
-                    "ref": sequences['ref'],
-                    "alt": sequences['alt']
-                },
-                "metadata": {
-                    # Note: To get the landmark bin:
-                    # landmark_bin = (landmark - shift - (PRED_SEQUENCE_LENGTH - 1) // 2) // BIN_SIZE
-                    "shift": self.shift,  # shift of the Enformer input sequence
-                    "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
-                    "enformer_stop": enformer_interval.end,  # 1-based stop of the enformer input sequence
-                    "landmark_pos": landmark,  # 0-based position of the landmark (TSS)
-                    "chr": interval.chrom,
-                    "strand": interval.strand,
-                    "gene_id": attrs['gene_id'],
-                    "transcript_id": attrs['transcript_id'],
-                    "transcript_start": attrs['transcript_start'],  # 0-based
-                    "transcript_end": attrs['transcript_end'],  # 1-based
-                    "variant_start": variant.start,  # 0-based
-                    "variant_stop": variant.end,  # 1-based
-                    "ref": variant.ref,
-                    "alt": variant.alt,
-                }
-            }
+                for allele in ('ref', 'alt'):
+                    yield {
+                        "sequence": ref_seq if allele == 'ref' else alt_seq,
+                        "metadata": {
+                            # Note: To get the landmark bin:
+                            # landmark_bin = (landmark - shift - (PRED_SEQUENCE_LENGTH - 1) // 2) // BIN_SIZE
+                            "shift": shift,  # shift of the Enformer input sequence,
+                            "allele": allele,  # "ref" or "alt
+                            "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
+                            "enformer_stop": enformer_interval.end,  # 1-based stop of the enformer input sequence
+                            "landmark_pos": landmark,  # 0-based position of the landmark (TSS)
+                            "chr": interval.chrom,
+                            "strand": interval.strand,
+                            "gene_id": attrs['gene_id'],
+                            "transcript_id": attrs['transcript_id'],
+                            "transcript_start": attrs['transcript_start'],  # 0-based
+                            "transcript_end": attrs['transcript_end'],  # 1-based
+                            "variant_start": variant.start,  # 0-based
+                            "variant_stop": variant.end,  # 1-based
+                            "ref": variant.ref,
+                            "alt": variant.alt,
+                        }
+                    }
 
 
 def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_negative_strand: bool) -> (int, int):
@@ -228,7 +235,8 @@ class VCF_Enformer_DL(Enformer_DL):
             downstream_tss: int = 10,
             seq_length: int = SEQUENCE_LENGTH,
             shift: int = 43,
-            is_onehot: bool = True
+            is_onehot: bool = True,
+            size: int = None
     ):
         assert shift < downstream_tss + upstream_tss + 1, \
             f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {downstream_tss + upstream_tss + 1}"
@@ -249,5 +257,6 @@ class VCF_Enformer_DL(Enformer_DL):
             variants=MultiSampleVCF(vcf_file, lazy=vcf_lazy),
             is_onehot=is_onehot,
             seq_length=seq_length,
-            shift=shift
+            shift=shift,
+            size=size
         )

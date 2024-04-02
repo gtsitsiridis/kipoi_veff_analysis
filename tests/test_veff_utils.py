@@ -2,11 +2,10 @@ import pytest
 
 from kipoi_enformer.veff.dataloader import VCF_Enformer_DL, get_tss_from_genome_annotation
 from pathlib import Path
-import pyranges as pr
 import tensorflow as tf
 from kipoi_enformer.veff.utils import Enformer
-
-MODEL_PATH = 'https://tfhub.dev/deepmind/enformer/1'
+import pyarrow.parquet as pq
+from pathlib import Path
 
 
 @pytest.fixture
@@ -19,27 +18,37 @@ def chr22_example_files():
     }
 
 
-def test_enformer(chr22_example_files):
+@pytest.fixture
+def random_model():
+    class RandomModel(tf.keras.Model):
+        def predict_on_batch(self, input_tensor):
+            return {'human': tf.random.normal((input_tensor.shape[0], 896, 5313)),
+                    'mouse': tf.random.normal((input_tensor.shape[0], 896, 1643)),
+                    }
+
+    return RandomModel()
+
+
+def test_random_enformer(chr22_example_files, random_model):
+    batch_size = 3
+    size = 10
+
     dl = VCF_Enformer_DL(
         fasta_file=chr22_example_files['fasta'],
         gtf_file=chr22_example_files['gtf'],
         vcf_file=chr22_example_files['vcf'],
         is_onehot=True,
-        downstream_tss=10,
-        upstream_tss=10,
-        seq_length=393_216
+        downstream_tss=500,
+        upstream_tss=500,
+        shift=43,
+        seq_length=393_216,
+        size=size
     )
-    batch_size = 1
 
-    res = [x for x in dl][:batch_size]
-    input_tensor = tf.convert_to_tensor([x['sequence'] for x in res])
-    assert input_tensor.shape == (batch_size, 393_216, 4)
-    enformer = Enformer(MODEL_PATH)
-    predictions = enformer.predict_on_batch(input_tensor)
-    assert predictions['human'].shape == (batch_size, 896, 5313)
-    assert predictions['mouse'].shape == (batch_size, 896, 1643)
+    model = Enformer(model=random_model)
+    results = model.predict(dl, batch_size=batch_size)
+    assert len(results) == size
 
-    # todo
-    # 1 column per shift-allele combination = 6 columns
-    # + 2 columns (one per +- shift) for the tss bin index
-    # + metadata
+    output_dir = Path('output/test')
+    output_dir.mkdir(exist_ok=True, parents=True)
+    Enformer.to_parquet(results, output_dir / 'random_enformer.parquet')
