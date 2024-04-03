@@ -21,39 +21,36 @@ SEEN_SEQUENCE_LENGTH = 1_536 * 128
 PRED_SEQUENCE_LENGTH = 896 * 128
 
 
-class Enformer_DL(SampleIterator):
+class VCF_Enformer_DL():
     def __init__(
             self,
-            roi_regions: pr.PyRanges,
-            reference_sequence: BaseExtractor,
-            variants: VariantFetcher,
-            seq_length: int,
-            shift: int,
-            size: int = None,
+            fasta_file,
+            gtf_file,
+            vcf_file,
+            vcf_file_tbi=None,
+            vcf_lazy=True,
+            upstream_tss: int = 10,
+            downstream_tss: int = 10,
+            seq_length: int = SEQUENCE_LENGTH,
+            shift: int = 43,
+            size: int = None
     ):
-        interval_attrs = ['gene_id', 'transcript_id', 'landmark', 'transcript_start', 'transcript_end']
-        for attr in interval_attrs:
-            assert attr in roi_regions.columns, f"attr must be in {roi_regions.columns}"
+        assert shift < downstream_tss + upstream_tss + 1, \
+            f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {downstream_tss + upstream_tss + 1}"
         assert shift >= 0, f"shift must be positive or zero but got {shift}"
         assert shift < seq_length, f"shift must be smaller than seq_length but got {shift} >= {seq_length}"
 
-        self.seq_length = seq_length
-        self.roi_regions = roi_regions
-        self.reference_sequence = reference_sequence
-        self.variants = variants
-        self.shift = shift
-        self.size = size
-
+        self.reference_sequence = FastaStringExtractor(fasta_file, use_strand=True)
         if not self.reference_sequence.use_strand:
             raise ValueError(
                 "Reference sequence fetcher does not use strand but this is needed to obtain correct sequences!")
-        self.variant_seq_extractor = VariantSeqExtractor(reference_sequence=reference_sequence)
-
-        self.matcher = SingleVariantMatcher(
-            variant_fetcher=self.variants,
-            pranges=self.roi_regions,
-            interval_attrs=interval_attrs
-        )
+        self.variant_seq_extractor = VariantSeqExtractor(reference_sequence=self.reference_sequence)
+        self.shift = shift
+        self.size = size
+        self.seq_length = seq_length
+        self.gtf_file = gtf_file
+        self.vcf_file = vcf_file
+        self.matcher = get_single_variant_matcher(gtf_file, vcf_file, vcf_lazy, upstream_tss, downstream_tss)
 
     def _extract_seq(self, landmark: int, interval: Interval, variant: Variant):
         assert interval.width() == self.seq_length, f"interval width must be {self.seq_length} but got {interval.width()}"
@@ -73,6 +70,10 @@ class Enformer_DL(SampleIterator):
         )
 
         return ref_seq, alt_seq
+
+    def __len__(self):
+        tmp_matcher = get_single_variant_matcher(self.gtf_file, self.vcf_file, False, 1, 1)
+        return min(self.size, sum(1 for _, _ in tmp_matcher))
 
     def __iter__(self):
         """
@@ -206,37 +207,23 @@ def get_tss_from_genome_annotation(genome_annotation: pd.DataFrame):
     return roi
 
 
-class VCF_Enformer_DL(Enformer_DL):
-    def __init__(
-            self,
-            fasta_file,
-            gtf_file,
-            vcf_file,
-            vcf_file_tbi=None,
-            vcf_lazy=True,
-            upstream_tss: int = 10,
-            downstream_tss: int = 10,
-            seq_length: int = SEQUENCE_LENGTH,
-            shift: int = 43,
-            size: int = None
-    ):
-        assert shift < downstream_tss + upstream_tss + 1, \
-            f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {downstream_tss + upstream_tss + 1}"
+def get_single_variant_matcher(gtf_file: str, vcf_file: str, vcf_lazy: bool, upstream_tss: int, downstream_tss: int):
+    # reads the genome annotation
+    # start and end are transformed to 0-based and 1-based respectively
+    genome_annotation = pr.read_gtf(gtf_file, as_df=True)
+    genome_annotation = get_tss_from_genome_annotation(genome_annotation)
+    roi = pr.PyRanges(genome_annotation)
+    roi = roi.extend(ext={"5": upstream_tss, "3": downstream_tss})
+    roi.landmark = roi.tss
+    # todo do assert length of roi
 
-        # reads the genome annotation
-        # start and end are transformed to 0-based and 1-based respectively
-        genome_annotation = pr.read_gtf(gtf_file, as_df=True)
-        genome_annotation = get_tss_from_genome_annotation(genome_annotation)
-        roi = pr.PyRanges(genome_annotation)
-        roi = roi.extend(ext={"5": upstream_tss, "3": downstream_tss})
-        roi.landmark = roi.tss
-        # todo do assert length of roi
+    interval_attrs = ['gene_id', 'transcript_id', 'landmark', 'transcript_start', 'transcript_end']
+    for attr in interval_attrs:
+        assert attr in roi.columns, f"attr must be in {roi.columns}"
+    variants = MultiSampleVCF(vcf_file, lazy=vcf_lazy)
 
-        super().__init__(
-            roi_regions=roi,
-            reference_sequence=FastaStringExtractor(fasta_file, use_strand=True),
-            variants=MultiSampleVCF(vcf_file, lazy=vcf_lazy),
-            seq_length=seq_length,
-            shift=shift,
-            size=size
-        )
+    return SingleVariantMatcher(
+        variant_fetcher=variants,
+        pranges=roi,
+        interval_attrs=interval_attrs
+    )
