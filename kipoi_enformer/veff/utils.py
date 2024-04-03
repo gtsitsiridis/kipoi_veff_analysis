@@ -128,12 +128,12 @@ class Enformer:
         metadata_names = metadata[0].keys()
 
         # format predictions
-        predictions = {pred_name: pa.array([pred[pred_name].tolist() for pred in predictions],
+        predictions = {pred_name: pa.array((pred[pred_name].tolist() for pred in predictions),
                                            type=pa.list_(pa.list_(pa.float64())))
                        for pred_name in pred_names}
 
         # format metadata
-        metadata = {metadata_name: pa.array([meta[metadata_name] for meta in metadata])
+        metadata = {metadata_name: pa.array((meta[metadata_name] for meta in metadata))
                     for metadata_name in metadata_names}
 
         logger.debug('Constructing pyarrow table')

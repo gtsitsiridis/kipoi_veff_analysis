@@ -35,7 +35,6 @@ def run_enformer(example_files, model):
         fasta_file=example_files['fasta'],
         gtf_file=example_files['gtf'],
         vcf_file=example_files['vcf'],
-        is_onehot=True,
         downstream_tss=500,
         upstream_tss=500,
         shift=43,
