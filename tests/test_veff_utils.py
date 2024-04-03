@@ -7,6 +7,7 @@ from pathlib import Path
 import pyarrow.parquet as pq
 import shutil
 from kipoi_enformer.logger import logger
+import numpy as np
 
 
 @pytest.fixture
@@ -56,7 +57,11 @@ def run_enformer(example_files, model):
     table = pq.read_table(output_dir)
     logger.info(table.schema)
 
-    # assert len(results) == size
+    assert table.shape == (size, 6 + 13)
+
+    x = table['ref_0'].to_pylist()
+    x = np.array(x)
+    assert x.shape == (size, 896, 5313)
 
 
 def test_random_enformer(chr22_example_files, random_model):
