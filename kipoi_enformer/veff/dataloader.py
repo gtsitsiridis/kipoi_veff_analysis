@@ -73,7 +73,10 @@ class VCF_Enformer_DL():
 
     def __len__(self):
         tmp_matcher = get_single_variant_matcher(self.gtf_file, self.vcf_file, False, 1, 1)
-        return min(self.size, sum(1 for _, _ in tmp_matcher))
+        total = sum(1 for _, _ in tmp_matcher)
+        if self.size:
+            return min(self.size, total)
+        return total
 
     def __iter__(self):
         """
