@@ -5,7 +5,6 @@ import tensorflow as tf
 from kipoi_enformer.veff.utils import Enformer
 from pathlib import Path
 import pyarrow.parquet as pq
-import shutil
 from kipoi_enformer.logger import logger
 import numpy as np
 
