@@ -26,9 +26,11 @@ class Enformer:
         else:
             self._model = model
 
-    def predict(self, dataloader: VCF_Enformer_DL, batch_size: int, filepath: str | pathlib.Path):
+    def predict(self, dataloader: VCF_Enformer_DL, batch_size: int, filepath: str | pathlib.Path, tqdm=tqdm):
         """
         Predict on a dataloader and save the results in a parquet file
+        :param tqdm:
+        :param filepath:
         :param output_dir:
         :param dataloader:
         :param batch_size:
