@@ -47,14 +47,12 @@ def run_enformer(example_files, model):
     )
 
     enformer = Enformer(model=model)
-    output_dir = Path('output/test/random_enformer')
-    if output_dir.exists():
-        # remove the output directory and all of its contents if it exists
-        shutil.rmtree(output_dir)
+    output_dir = Path('output/test')
+    output_dir.mkdir(parents=True, exist_ok=True)
+    filepath = output_dir / 'random_enformer.parquet'
+    enformer.predict(dl, batch_size=batch_size, filepath=filepath)
 
-    enformer.predict(dl, batch_size=batch_size, output_dir=output_dir)
-
-    table = pq.read_table(output_dir)
+    table = pq.read_table(filepath)
     logger.info(table.schema)
 
     assert table.shape == (size, 6 + 13)

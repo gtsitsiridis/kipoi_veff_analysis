@@ -8,7 +8,6 @@ from kipoi_enformer.logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
 from kipoiseq.transforms.functional import one_hot_dna
-import pyarrow.dataset as ds
 
 __all__ = ['Enformer']
 
@@ -26,7 +25,7 @@ class Enformer:
         else:
             self._model = model
 
-    def predict(self, dataloader: Enformer_DL, batch_size: int, output_dir: str | pathlib.Path):
+    def predict(self, dataloader: Enformer_DL, batch_size: int, filepath: str | pathlib.Path):
         """
         Predict on a dataloader and save the results in a parquet file
         :param output_dir:
@@ -35,17 +34,16 @@ class Enformer:
         :return: filepath to the parquet dataset
         """
 
-        output_dir = pathlib.Path(output_dir)
-        output_dir.mkdir(exist_ok=False, parents=False)
-
         logger.debug('Predicting on dataloader')
         assert batch_size > 0
 
+        # Hint: order matters
         schema = pa.schema(
             [
                 (f'{allele}_{shift}', pa.list_(pa.list_(pa.float32())))
-                for allele in ['ref', 'alt'] for shift in
+                for shift in
                 ([-dataloader.shift, 0, dataloader.shift] if dataloader.shift else [0])
+                for allele in ['ref', 'alt']
             ] + [
                 ('enformer_start', pa.int64()),
                 ('enformer_end', pa.int64()),
@@ -62,10 +60,12 @@ class Enformer:
                 ('alt', pa.string()),
             ])
 
-        batch_iterator = self.batch_iterator(dataloader, batch_size)
-        ds.write_dataset(batch_iterator, output_dir, format='parquet', schema=schema)
+        batch_iterator = self._batch_iterator(dataloader, batch_size)
+        with pq.ParquetWriter(filepath, schema) as writer:
+            for batch in batch_iterator:
+                writer.write_batch(batch)
 
-    def batch_iterator(self, dataloader: Enformer_DL, batch_size: int):
+    def _batch_iterator(self, dataloader: Enformer_DL, batch_size: int):
         batch = []
         counter = 0
         for data in dataloader:
@@ -146,6 +146,3 @@ class Enformer:
         # construct RecordBatch
         return pa.RecordBatch.from_arrays((list(predictions.values()) + list(metadata.values())),
                                           names=(list(predictions.keys()) + list(metadata.keys())))
-        #
-        # logger.debug(f'Writing pyarrow table to {path}')
-        # pq.write_table(pa_table, path)
