@@ -50,6 +50,8 @@ class VCF_Enformer_DL():
         self.seq_length = seq_length
         self.gtf_file = gtf_file
         self.vcf_file = vcf_file
+        self.upstream_tss = upstream_tss
+        self.downstream_tss = downstream_tss
         self.matcher = get_single_variant_matcher(gtf_file, vcf_file, vcf_lazy, upstream_tss, downstream_tss)
 
     def _extract_seq(self, landmark: int, interval: Interval, variant: Variant):
@@ -72,7 +74,8 @@ class VCF_Enformer_DL():
         return ref_seq, alt_seq
 
     def __len__(self):
-        tmp_matcher = get_single_variant_matcher(self.gtf_file, self.vcf_file, False, 1, 1)
+        tmp_matcher = get_single_variant_matcher(self.gtf_file, self.vcf_file, False, self.upstream_tss,
+                                                 self.downstream_tss)
         total = sum(1 for _, _ in tmp_matcher)
         if self.size:
             return min(self.size, total)
