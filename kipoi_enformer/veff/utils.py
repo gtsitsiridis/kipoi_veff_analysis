@@ -8,7 +8,7 @@ from kipoi_enformer.logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
 from kipoiseq.transforms.functional import one_hot_dna
-from tqdm.notebook import tqdm
+from tqdm.autonotebook import tqdm
 
 __all__ = ['Enformer']
 
