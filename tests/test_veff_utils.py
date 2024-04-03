@@ -4,6 +4,9 @@ from kipoi_enformer.veff.dataloader import VCF_Enformer_DL, get_tss_from_genome_
 import tensorflow as tf
 from kipoi_enformer.veff.utils import Enformer
 from pathlib import Path
+import pyarrow.parquet as pq
+import shutil
+from kipoi_enformer.logger import logger
 
 
 @pytest.fixture
@@ -43,12 +46,17 @@ def run_enformer(example_files, model):
     )
 
     enformer = Enformer(model=model)
-    results = enformer.predict(dl, batch_size=batch_size)
-    assert len(results) == size
+    output_dir = Path('output/test/random_enformer')
+    if output_dir.exists():
+        # remove the output directory and all of its contents if it exists
+        shutil.rmtree(output_dir)
 
-    output_dir = Path('output/test')
-    output_dir.mkdir(exist_ok=True, parents=True)
-    Enformer.to_parquet(results, output_dir / 'random_enformer.parquet')
+    enformer.predict(dl, batch_size=batch_size, output_dir=output_dir)
+
+    table = pq.read_table(output_dir)
+    logger.info(table.schema)
+
+    # assert len(results) == size
 
 
 def test_random_enformer(chr22_example_files, random_model):

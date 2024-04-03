@@ -124,10 +124,7 @@ class Enformer_DL(SampleIterator):
             assert (landmark - enformer_interval.start) == self.seq_length // 2, \
                 f"landmark must be in the middle of the enformer_interval but got {landmark - enformer_interval.start}"
 
-            sequences = {
-                "ref": [],
-                "alt": []
-            }
+            sequences = dict()
             # shift intervals and extract sequences
             for shift in shifts:
                 shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
@@ -136,29 +133,29 @@ class Enformer_DL(SampleIterator):
 
                 ref_seq, alt_seq = self._extract_seq(landmark=landmark, interval=shifted_enformer_interval,
                                                      variant=variant)
-                for allele in ('ref', 'alt'):
-                    yield {
-                        "sequence": ref_seq if allele == 'ref' else alt_seq,
-                        "metadata": {
-                            # Note: To get the landmark bin:
-                            # landmark_bin = (landmark - shift - (PRED_SEQUENCE_LENGTH - 1) // 2) // BIN_SIZE
-                            "shift": shift,  # shift of the Enformer input sequence,
-                            "allele": allele,  # "ref" or "alt
-                            "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
-                            "enformer_stop": enformer_interval.end,  # 1-based stop of the enformer input sequence
-                            "landmark_pos": landmark,  # 0-based position of the landmark (TSS)
-                            "chr": interval.chrom,
-                            "strand": interval.strand,
-                            "gene_id": attrs['gene_id'],
-                            "transcript_id": attrs['transcript_id'],
-                            "transcript_start": attrs['transcript_start'],  # 0-based
-                            "transcript_end": attrs['transcript_end'],  # 1-based
-                            "variant_start": variant.start,  # 0-based
-                            "variant_stop": variant.end,  # 1-based
-                            "ref": variant.ref,
-                            "alt": variant.alt,
-                        }
-                    }
+                sequences[f'ref_{shift}'] = ref_seq
+                sequences[f'alt_{shift}'] = alt_seq
+
+            yield {
+                "sequences": sequences,
+                "metadata": {
+                    # Note: To get the landmark bin:
+                    # landmark_bin = (landmark - shift - (PRED_SEQUENCE_LENGTH - 1) // 2) // BIN_SIZE
+                    "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
+                    "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
+                    "landmark_pos": landmark,  # 0-based position of the landmark (TSS)
+                    "chr": interval.chrom,
+                    "strand": interval.strand,
+                    "gene_id": attrs['gene_id'],
+                    "transcript_id": attrs['transcript_id'],
+                    "transcript_start": attrs['transcript_start'],  # 0-based
+                    "transcript_end": attrs['transcript_end'],  # 1-based
+                    "variant_start": variant.start,  # 0-based
+                    "variant_end": variant.end,  # 1-based
+                    "ref": variant.ref,
+                    "alt": variant.alt,
+                }
+            }
 
 
 def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_negative_strand: bool) -> (int, int):
