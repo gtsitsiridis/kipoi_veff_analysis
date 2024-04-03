@@ -40,28 +40,27 @@ class Enformer:
 
         logger.debug('Predicting on dataloader')
         assert batch_size > 0
-        # todo fetch schema from data
-        schema = pa.schema([
-            ('ref_-43', pa.list_(pa.list_(pa.float32()))),
-            ('ref_0', pa.list_(pa.list_(pa.float32()))),
-            ('ref_43', pa.list_(pa.list_(pa.float32()))),
-            ('alt_-43', pa.list_(pa.list_(pa.float32()))),
-            ('alt_0', pa.list_(pa.list_(pa.float32()))),
-            ('alt_43', pa.list_(pa.list_(pa.float32()))),
-            ('enformer_start', pa.int64()),
-            ('enformer_end', pa.int64()),
-            ('landmark_pos', pa.int64()),
-            ('chr', pa.string()),
-            ('strand', pa.string()),
-            ('gene_id', pa.string()),
-            ('transcript_id', pa.string()),
-            ('transcript_start', pa.int64()),
-            ('transcript_end', pa.int64()),
-            ('variant_start', pa.int64()),
-            ('variant_end', pa.int64()),
-            ('ref', pa.string()),
-            ('alt', pa.string()),
-        ])
+
+        schema = pa.schema(
+            [
+                (f'{allele}_{shift}', pa.list_(pa.list_(pa.float32())))
+                for allele in ['ref', 'alt'] for shift in
+                ([-dataloader.shift, 0, dataloader.shift] if dataloader.shift else [0])
+            ] + [
+                ('enformer_start', pa.int64()),
+                ('enformer_end', pa.int64()),
+                ('landmark_pos', pa.int64()),
+                ('chr', pa.string()),
+                ('strand', pa.string()),
+                ('gene_id', pa.string()),
+                ('transcript_id', pa.string()),
+                ('transcript_start', pa.int64()),
+                ('transcript_end', pa.int64()),
+                ('variant_start', pa.int64()),
+                ('variant_end', pa.int64()),
+                ('ref', pa.string()),
+                ('alt', pa.string()),
+            ])
 
         batch_iterator = self.batch_iterator(dataloader, batch_size)
         ds.write_dataset(batch_iterator, output_dir, format='parquet', schema=schema)

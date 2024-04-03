@@ -192,7 +192,8 @@ def test_dataloader(chr22_example_files, variants):
             assert i['sequences']['ref_0'] == variant['ref_seq']
             assert i['sequences']['alt_0'] == variant['alt_seq']
             checked_variants[var_id] = 2
-        print(i['metadata'])
+        # print(i['metadata'])
 
     # check that all variants in my list were found and checked
     assert set(checked_variants.keys()) == set(variants.keys())
+    print(total)
