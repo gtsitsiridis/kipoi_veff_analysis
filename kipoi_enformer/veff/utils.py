@@ -8,7 +8,7 @@ from kipoi_enformer.logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
 from kipoiseq.transforms.functional import one_hot_dna
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 
 __all__ = ['Enformer']
 
@@ -26,12 +26,10 @@ class Enformer:
         else:
             self._model = model
 
-    def predict(self, dataloader: VCF_Enformer_DL, batch_size: int, filepath: str | pathlib.Path, tqdm=tqdm):
+    def predict(self, dataloader: VCF_Enformer_DL, batch_size: int, filepath: str | pathlib.Path):
         """
         Predict on a dataloader and save the results in a parquet file
-        :param tqdm:
         :param filepath:
-        :param output_dir:
         :param dataloader:
         :param batch_size:
         :return: filepath to the parquet dataset
