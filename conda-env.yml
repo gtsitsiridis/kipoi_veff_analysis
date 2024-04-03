@@ -15,6 +15,6 @@ dependencies:
   - tensorflow>=2.15.0
   - ipykernel>=6.28.0
   - tensorflow-gpu>=2.15.0
-  - ipywidgets=7.7.2
+  - ipywidgets=7.7.2 # only this version works
   - pip
   - pip:
