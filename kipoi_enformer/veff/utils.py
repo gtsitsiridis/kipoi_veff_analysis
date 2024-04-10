@@ -3,7 +3,7 @@ import pathlib
 import numpy as np
 import tensorflow_hub as hub
 import tensorflow as tf
-from .dataloader import VCF_Enformer_DL
+from .dataloader import VCFEnformerDL
 from kipoi_enformer.logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -26,7 +26,7 @@ class Enformer:
         else:
             self._model = model
 
-    def predict(self, dataloader: VCF_Enformer_DL, batch_size: int, filepath: str | pathlib.Path):
+    def predict(self, dataloader: VCFEnformerDL, batch_size: int, filepath: str | pathlib.Path):
         """
         Predict on a dataloader and save the results in a parquet file
         :param filepath:
@@ -66,7 +66,7 @@ class Enformer:
             for batch in tqdm(batch_iterator, total=len(dataloader) // batch_size + 1):
                 writer.write_batch(batch)
 
-    def _batch_iterator(self, dataloader: VCF_Enformer_DL, batch_size: int):
+    def _batch_iterator(self, dataloader: VCFEnformerDL, batch_size: int):
         batch = []
         counter = 0
         for data in dataloader:

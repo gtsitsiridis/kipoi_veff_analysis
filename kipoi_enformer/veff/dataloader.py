@@ -21,22 +21,38 @@ SEEN_SEQUENCE_LENGTH = 1_536 * 128
 PRED_SEQUENCE_LENGTH = 896 * 128
 
 
-class VCF_Enformer_DL():
+class VCFEnformerDL:
     def __init__(
             self,
             fasta_file,
             gtf_file,
             vcf_file,
-            vcf_file_tbi=None,
             vcf_lazy=True,
-            upstream_tss: int = 10,
-            downstream_tss: int = 10,
+            variant_upstream_tss: int = 10,
+            variant_downstream_tss: int = 10,
             seq_length: int = SEQUENCE_LENGTH,
             shift: int = 43,
-            size: int = None
+            size: int = None,
+            canonical_only: bool = False,
+            protein_coding_only: bool = False,
     ):
-        assert shift < downstream_tss + upstream_tss + 1, \
-            f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {downstream_tss + upstream_tss + 1}"
+        """
+
+        :param fasta_file: Fasta file with the reference genome
+        :param gtf_file: GTF file with genome annotation
+        :param vcf_file: VCF file with variants
+        :param vcf_lazy: If True, the VCF file is read lazily
+        :param variant_upstream_tss: The number of bases upstream the TSS to look for variants
+        :param variant_downstream_tss: The number of bases downstream the TSS to look for variants
+        :param seq_length: The length of the sequence to return. This should be the length of the Enformer input sequence.
+        :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
+        :param size: The number of samples to return. If None, all samples are returned.
+        :param canonical_only: If True, only canonical transcripts are extracted from the genome annotation
+        :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
+        """
+
+        assert shift < variant_downstream_tss + variant_upstream_tss + 1, \
+            f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {variant_downstream_tss + variant_upstream_tss + 1}"
         assert shift >= 0, f"shift must be positive or zero but got {shift}"
         assert shift < seq_length, f"shift must be smaller than seq_length but got {shift} >= {seq_length}"
 
@@ -45,14 +61,17 @@ class VCF_Enformer_DL():
             raise ValueError(
                 "Reference sequence fetcher does not use strand but this is needed to obtain correct sequences!")
         self.variant_seq_extractor = VariantSeqExtractor(reference_sequence=self.reference_sequence)
+        self.canonical_only = canonical_only
+        self.protein_coding_only = protein_coding_only
         self.shift = shift
         self.size = size
         self.seq_length = seq_length
         self.gtf_file = gtf_file
         self.vcf_file = vcf_file
-        self.upstream_tss = upstream_tss
-        self.downstream_tss = downstream_tss
-        self.matcher = get_single_variant_matcher(gtf_file, vcf_file, vcf_lazy, upstream_tss, downstream_tss)
+        self.variant_upstream_tss = variant_upstream_tss
+        self.variant_downstream_tss = variant_downstream_tss
+        self.matcher = get_single_variant_matcher(gtf_file, vcf_file, vcf_lazy, variant_upstream_tss,
+                                                  variant_downstream_tss, canonical_only, protein_coding_only)
 
     def _extract_seq(self, landmark: int, interval: Interval, variant: Variant):
         assert interval.width() == self.seq_length, f"interval width must be {self.seq_length} but got {interval.width()}"
@@ -74,8 +93,8 @@ class VCF_Enformer_DL():
         return ref_seq, alt_seq
 
     def __len__(self):
-        tmp_matcher = get_single_variant_matcher(self.gtf_file, self.vcf_file, False, self.upstream_tss,
-                                                 self.downstream_tss)
+        tmp_matcher = get_single_variant_matcher(self.gtf_file, self.vcf_file, False, self.variant_upstream_tss,
+                                                 self.variant_downstream_tss, self.canonical_only, self.protein_coding_only)
         total = sum(1 for _, _ in tmp_matcher)
         if self.size:
             return min(self.size, total)
@@ -182,20 +201,22 @@ def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_ne
     return tss, tss + 1
 
 
-def get_tss_from_genome_annotation(genome_annotation: pd.DataFrame):
+def get_tss_from_genome_annotation(gtf_file: str, canonical_only: bool, protein_coding_only: bool):
     """
     Get TSS from genome annotation
-    :param genome_annotation: Pandas dataframe with the following columns:
-        - Chromosome
-        - Start
-        - End
-        - Strand
-        - Feature
-        - gene_id
-        - transcript_id
+    :param canonical_only:
+    :param protein_coding_only:
+    :param gtf_file: str, path to the GTF file
     :return: genome_annotation with additional columns tss (0-based), transcript_start (0-based), transcript_end (1-based)
     """
+    genome_annotation = pr.read_gtf(gtf_file, as_df=True, duplicate_attr=True)
     roi = genome_annotation.query("`Feature` == 'transcript'")
+    if protein_coding_only:
+        roi = roi.query("`transcript_type` == 'protein_coding'")
+    if canonical_only:
+        # check if Ensembl_canonical is in the set of tags
+        roi = roi[roi['tag'].apply(lambda x: False if pd.isna(x) else ('Ensembl_canonical' in x.split(',')))]
+
     roi = roi.assign(
         transcript_start=roi["Start"],
         transcript_end=roi["End"],
@@ -213,11 +234,11 @@ def get_tss_from_genome_annotation(genome_annotation: pd.DataFrame):
     return roi
 
 
-def get_single_variant_matcher(gtf_file: str, vcf_file: str, vcf_lazy: bool, upstream_tss: int, downstream_tss: int):
+def get_single_variant_matcher(gtf_file: str, vcf_file: str, vcf_lazy: bool, upstream_tss: int, downstream_tss: int,
+                               canonical_only: bool, protein_coding_only: bool):
     # reads the genome annotation
     # start and end are transformed to 0-based and 1-based respectively
-    genome_annotation = pr.read_gtf(gtf_file, as_df=True)
-    genome_annotation = get_tss_from_genome_annotation(genome_annotation)
+    genome_annotation = get_tss_from_genome_annotation(gtf_file, canonical_only, protein_coding_only)
     roi = pr.PyRanges(genome_annotation)
     roi = roi.extend(ext={"5": upstream_tss, "3": downstream_tss})
     roi.landmark = roi.tss

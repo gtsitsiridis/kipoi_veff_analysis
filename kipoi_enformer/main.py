@@ -1,4 +1,4 @@
-from .veff.dataloader import VCF_Enformer_DL
+from .veff.dataloader import VCFEnformerDL
 from .veff.utils import Enformer
 
 

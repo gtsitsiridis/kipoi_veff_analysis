@@ -1,6 +1,6 @@
 import pytest
 
-from kipoi_enformer.veff.dataloader import VCF_Enformer_DL, get_tss_from_genome_annotation
+from kipoi_enformer.veff.dataloader import VCFEnformerDL, get_tss_from_genome_annotation
 from pathlib import Path
 import pyranges as pr
 import traceback
@@ -132,8 +132,7 @@ def variants():
 
 
 def test_get_tss_from_genome_annotation(chr22_example_files):
-    genome_annotation = pr.read_gtf(chr22_example_files['gtf'], as_df=True)
-    roi = get_tss_from_genome_annotation(genome_annotation)
+    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=False, canonical_only=False)
 
     # check the number of transcripts
     # grep -v '^#' annot.chr22.gtf | cut -f 3 | grep transcript | wc -l
@@ -168,15 +167,30 @@ def test_get_tss_from_genome_annotation(chr22_example_files):
     assert roi_i.End == 16062157
 
 
+def test_genome_annotation_protein_canonical(chr22_example_files):
+    # Ground truth bash:
+    # grep -E '^\S+\s+\S+\s+transcript' annot.chr22.gtf | grep -E 'tag\s+"Ensembl_canonical"' |
+    # grep -E 'transcript_type\s+"protein_coding"' | wc -l
+
+    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=False, canonical_only=False)
+    assert len(roi) == 5279
+    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=True, canonical_only=False)
+    assert len(roi) == 1894
+    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=False, canonical_only=True)
+    assert len(roi) == 1212
+    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=True, canonical_only=True)
+    assert len(roi) == 433
+
+
 def test_dataloader(chr22_example_files, variants):
-    dl = VCF_Enformer_DL(
+    dl = VCFEnformerDL(
         fasta_file=chr22_example_files['fasta'],
         gtf_file=chr22_example_files['gtf'],
         vcf_file=chr22_example_files['vcf'],
-        downstream_tss=10,
-        upstream_tss=10,
+        variant_downstream_tss=10,
+        variant_upstream_tss=10,
         seq_length=21,
-        shift=0
+        shift=0,
     )
     total = 0
     checked_variants = dict()

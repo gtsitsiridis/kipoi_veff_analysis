@@ -1,6 +1,6 @@
 import pytest
 
-from kipoi_enformer.veff.dataloader import VCF_Enformer_DL, get_tss_from_genome_annotation
+from kipoi_enformer.veff.dataloader import VCFEnformerDL, get_tss_from_genome_annotation
 import tensorflow as tf
 from kipoi_enformer.veff.utils import Enformer
 from pathlib import Path
@@ -34,12 +34,12 @@ def run_enformer(example_files, model):
     batch_size = 3
     size = 10
 
-    dl = VCF_Enformer_DL(
+    dl = VCFEnformerDL(
         fasta_file=example_files['fasta'],
         gtf_file=example_files['gtf'],
         vcf_file=example_files['vcf'],
-        downstream_tss=500,
-        upstream_tss=500,
+        variant_downstream_tss=500,
+        variant_upstream_tss=500,
         shift=43,
         seq_length=393_216,
         size=size
