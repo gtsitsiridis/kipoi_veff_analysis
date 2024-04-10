@@ -47,7 +47,7 @@ class VCFEnformerDL:
         :param seq_length: The length of the sequence to return. This should be the length of the Enformer input sequence.
         :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
         :param size: The number of samples to return. If None, all samples are returned.
-        :param canonical_only: If True, only canonical transcripts are extracted from the genome annotation
+        :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
         """
 
