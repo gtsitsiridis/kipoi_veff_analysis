@@ -212,7 +212,7 @@ def get_tss_from_genome_annotation(gtf_file: str, canonical_only: bool, protein_
     genome_annotation = pr.read_gtf(gtf_file, as_df=True, duplicate_attr=True)
     roi = genome_annotation.query("`Feature` == 'transcript'")
     if protein_coding_only:
-        roi = roi.query("`transcript_type` == 'protein_coding'")
+        roi = roi.query("`gene_type` == 'protein_coding'")
     if canonical_only:
         # check if Ensembl_canonical is in the set of tags
         roi = roi[roi['tag'].apply(lambda x: False if pd.isna(x) else ('Ensembl_canonical' in x.split(',')))]

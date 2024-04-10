@@ -175,11 +175,12 @@ def test_genome_annotation_protein_canonical(chr22_example_files):
     roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=False, canonical_only=False)
     assert len(roi) == 5279
     roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=True, canonical_only=False)
-    assert len(roi) == 1894
+    assert len(roi) == 3623
     roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=False, canonical_only=True)
     assert len(roi) == 1212
+    # not all genes have a canonical transcript if the genome annotation is not current (e.g. GRCh37 is not current)
     roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=True, canonical_only=True)
-    assert len(roi) == 433
+    assert len(roi) == 441
 
 
 def test_dataloader(chr22_example_files, variants):
