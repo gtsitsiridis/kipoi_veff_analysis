@@ -1,6 +1,6 @@
 import pytest
 
-from kipoi_enformer.veff.dataloader import VCFEnformerDL, get_tss_from_genome_annotation
+from kipoi_enformer.dataloader import VCFEnformerDL, get_tss_from_genome_annotation
 from pathlib import Path
 import pyranges as pr
 import traceback

@@ -16,5 +16,6 @@ dependencies:
   - ipykernel>=6.28.0
   - tensorflow-gpu>=2.15.0
   - ipywidgets=7.7.2 # only this version works
+  - scikit-learn>=1.4.1.post1
   - pip
   - pip:

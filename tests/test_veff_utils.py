@@ -1,8 +1,8 @@
 import pytest
 
-from kipoi_enformer.veff.dataloader import VCFEnformerDL, get_tss_from_genome_annotation
+from kipoi_enformer.dataloader import VCFEnformerDL, get_tss_from_genome_annotation
 import tensorflow as tf
-from kipoi_enformer.veff.utils import Enformer
+from kipoi_enformer.utils import Enformer
 from pathlib import Path
 import pyarrow.parquet as pq
 from kipoi_enformer.logger import logger
