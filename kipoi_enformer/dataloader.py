@@ -4,21 +4,11 @@ from kipoiseq.extractors import VariantSeqExtractor, SingleVariantMatcher, BaseE
 import math
 import pandas as pd
 import pyranges as pr
-import numpy as np
 from kipoiseq.extractors import MultiSampleVCF
-from kipoi_enformer.logger import logger
-
-from kipoiseq.variant_source import VariantFetcher
 
 # length of sequence which enformer gets as input
 # ═════┆═════┆════════════════════════┆═════┆═════
 SEQUENCE_LENGTH = 393_216
-# length of central sequence which enformer actually sees (1536 bins)
-# ─────┆═════┆════════════════════════┆═════┆─────
-SEEN_SEQUENCE_LENGTH = 1_536 * 128
-# length of central sequence for which enformer gives predictions (896 bins)
-# ─────┆─────┆════════════════════════┆─────┆─────
-PRED_SEQUENCE_LENGTH = 896 * 128
 
 
 class VCFEnformerDL:
@@ -83,6 +73,7 @@ class VCFEnformerDL:
         # For an explanation on how this works, look at the function
         # VariantSeqExtractor.extract(self, interval, variants, anchor, fixed_len=True, **kwargs)
 
+        # the landmark/anchor is going to be in the middle of the sequence for both alleles
         ref_seq = self.reference_sequence.extract(interval)
         alt_seq = self.variant_seq_extractor.extract(
             interval,
@@ -94,7 +85,8 @@ class VCFEnformerDL:
 
     def __len__(self):
         tmp_matcher = get_single_variant_matcher(self.gtf_file, self.vcf_file, False, self.variant_upstream_tss,
-                                                 self.variant_downstream_tss, self.canonical_only, self.protein_coding_only)
+                                                 self.variant_downstream_tss, self.canonical_only,
+                                                 self.protein_coding_only)
         total = sum(1 for _, _ in tmp_matcher)
         if self.size:
             return min(self.size, total)
@@ -139,6 +131,10 @@ class VCFEnformerDL:
             landmark = attrs['landmark']
 
             # enformer input interval without shift
+            # the landmark is in the middle of the enformer input sequence
+            # if the sequence length is even, the landmark is closer to the end of the sequence by 1 base,
+            # because the end is 1 based
+            # if the sequence length is odd, the landmark is in the middle of the sequence
             five_end_len = math.floor(self.seq_length / 2)
             three_end_len = math.ceil(self.seq_length / 2)
             enformer_interval = Interval(chrom=interval.chrom,
@@ -165,8 +161,6 @@ class VCFEnformerDL:
             yield {
                 "sequences": sequences,
                 "metadata": {
-                    # Note: To get the landmark bin:
-                    # landmark_bin = (landmark - shift - (PRED_SEQUENCE_LENGTH - 1) // 2) // BIN_SIZE
                     "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
                     "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
                     "landmark_pos": landmark,  # 0-based position of the landmark (TSS)

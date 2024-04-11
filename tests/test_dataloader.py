@@ -1,23 +1,9 @@
 import pytest
 
 from kipoi_enformer.dataloader import VCFEnformerDL, get_tss_from_genome_annotation
-from pathlib import Path
-import pyranges as pr
-import traceback
-from kipoi_enformer.logger import logger
 
 UPSTREAM_TSS = 10
 DOWNSTREAM_TSS = 10
-
-
-@pytest.fixture
-def chr22_example_files():
-    base = Path("assets/example_files/chr22")
-    return {
-        'fasta': base / "seq.chr22.fa",
-        'gtf': base / "annot.chr22.gtf",
-        'vcf': base / "promoter_variants.chr22.vcf",
-    }
 
 
 @pytest.fixture
