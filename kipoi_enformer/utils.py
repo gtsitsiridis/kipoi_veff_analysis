@@ -1,4 +1,5 @@
 import pathlib
+import pickle
 
 import numpy as np
 import tensorflow_hub as hub
@@ -11,8 +12,10 @@ from kipoiseq.transforms.functional import one_hot_dna
 from tqdm.autonotebook import tqdm
 from collections import defaultdict
 import math
+import yaml
+import pickle
 
-__all__ = ['Enformer']
+__all__ = ['Enformer', 'EnformerVeff']
 
 # Enformer model URI
 MODEL_PATH = 'https://tfhub.dev/deepmind/enformer/1'
@@ -75,9 +78,15 @@ class Enformer:
             ])
 
         batch_iterator = self._batch_iterator(dataloader, batch_size)
+        batch_counter = 0
+        total_batches = math.ceil(len(dataloader) / batch_size)
         with pq.ParquetWriter(filepath, schema) as writer:
-            for batch in tqdm(batch_iterator, total=len(dataloader) // batch_size + 1):
+            for batch in tqdm(batch_iterator, total=total_batches):
+                batch_counter += 1
                 writer.write_batch(batch)
+
+        # sanity check for the dataloader
+        assert batch_counter == total_batches
 
     def _batch_iterator(self, dataloader: VCFEnformerDL, batch_size: int):
         batch = []
@@ -159,86 +168,178 @@ class Enformer:
                                           names=(list(predictions.keys()) + list(metadata.keys())))
 
 
-def estimate_veff(prediction_path: str | pathlib.Path, tissue_matcher_lm_dict: dict, enformer_tracks_dict: dict,
-                  output_path: str | pathlib.Path, shift: int = 43, num_bins: int = 3):
-    """
-    Load the predictions from the parquet file lazily.
-    Then, calculate the variant effect size (veff) for each variant-transcript pair.
-    Finally, save the veff values in a new parquet file.
+class EnformerVeff:
+    def __init__(self, tissue_matcher_path: str | pathlib.Path,
+                 enformer_tracks_path: str | pathlib.Path):
+        """
+        :param tissue_matcher_path: A pickle containing dictionary of linear models for each GTEx tissue.
+        :param enformer_tracks_path: A yaml file mapping the name of the tracks to the index in the predictions.
+        """
+        with open(tissue_matcher_path, 'rb') as f:
+            self.tissue_matcher_lm_dict = {k: v['ingenome'] for k, v in pickle.load(f).items()}
 
-    :param enformer_tracks_dict: A dictionary of mapping the name of the tracks to the index in the predictions.
-    :param prediction_path: The parquet file that contains the enformer predictions.
-    :param tissue_matcher_lm_dict: A dictionary of linear models for each GTEx tissue.
-    :param output_path: The parquet file that will contain the veff values.
-    :param num_bins: number of bins to average over for each variant-transcript pair
-    :param shift: The shift applied to the central sequence.
-    The average predictions will be calculated at the landmark bin of each variant-transcript pair.
-    """
-    bin_size = Enformer.BIN_SIZE
-    pred_seq_length = Enformer.PRED_SEQUENCE_LENGTH
-    shifts = [0] if shift == 0 else [-shift, 0, shift]
-    universal_samples = ['Clontech Human Universal Reference Total RNA',
-                         'SABiosciences XpressRef Human Universal Total RNA',
-                         'CAGE:Universal RNA - Human Normal Tissues Biochain']
-    tracks = [v for k, v in enformer_tracks_dict.items()
-              if "CAGE" in k and not any(s in k for s in universal_samples)]
-    assert len(tracks) == 635
+        with open(enformer_tracks_path, 'rb') as f:
+            self.enformer_tracks_dict = yaml.safe_load(f)
 
-    # Load the predictions lazily
-    average_refs = []
-    average_alts = []
-    veff_tbl = None
-    with pq.ParquetFile(prediction_path) as pf:
-        metadata_cols = [x for x in pf.schema.names if x != 'element']
-        veff_tbl = pf.read(columns=metadata_cols)
-        for batch in pf.iter_batches(batch_size=1):
-            ref_preds = []
-            alt_preds = []
-            for shift in shifts:
-                # estimate the landmark bin
-                # todo verify this calculation
-                landmark_bin = (pred_seq_length // 2 + 1 - shift) // bin_size
-                # get num_bins - 1 neighboring bins centered at landmark bin
-                bins = [landmark_bin + i for i in range(-math.floor(num_bins / 2), math.ceil(num_bins / 2))]
-                assert len(bins) == num_bins
-                ref = batch[f'ref_{shift}'][0].as_py()
-                alt = batch[f'alt_{shift}'][0].as_py()
-                ref_preds.append([ref[bin_] for bin_ in bins])
-                alt_preds.append([alt[bin_] for bin_ in bins])
-            ref = np.array(ref_preds)
-            alt = np.array(alt_preds)
+    def estimate_veff(self, prediction_path: str | pathlib.Path, output_path: str | pathlib.Path, shift: int = 43,
+                      num_bins: int = 3, batch_size: int = 1):
+        """
+        Load the predictions from the parquet file lazily.
+        Then, calculate the variant effect size (veff) for each variant-transcript pair.
+        Finally, save the veff values in a new parquet file.
 
-            assert ref.shape == (len(shifts), num_bins, 5313)
-            assert alt.shape == (len(shifts), num_bins, 5313)
+        :param prediction_path: The parquet file that contains the enformer predictions.
+        :param batch_size: The number of records to read and write at once.
+        :param output_path: The parquet file that will contain the veff values.
+        :param num_bins: number of bins to average over for each variant-transcript pair
+        :param shift: The shift applied to the central sequence.
+        The average predictions will be calculated at the landmark bin of each variant-transcript pair.
+        """
 
-            ref = ref[:, :, tracks]
-            alt = alt[:, :, tracks]
+        schema = pa.schema(
+            [('enformer_start', pa.int64()),
+             ('enformer_end', pa.int64()),
+             ('landmark_pos', pa.int64()),
+             ('chr', pa.string()),
+             ('strand', pa.string()),
+             ('gene_id', pa.string()),
+             ('transcript_id', pa.string()),
+             ('transcript_start', pa.int64()),
+             ('transcript_end', pa.int64()),
+             ('variant_start', pa.int64()),
+             ('variant_end', pa.int64()),
+             ('ref', pa.string()),
+             ('alt', pa.string()),
+             ('tissue', pa.string()),
+             ('ref_score', pa.float64()),
+             ('alt_score', pa.float64()),
+             ('delta_score', pa.float64()),
+             ])
+        with pq.ParquetWriter(output_path, schema) as writer:
+            num_rows = pq.read_metadata(prediction_path).num_rows
+            total_batches = math.ceil(num_rows / batch_size)
+            batch_counter = 0
+            logger.debug(f'Iterating over the batches in the parquet file {prediction_path}')
+            logger.debug(f'Writing the veff values to the parquet file {output_path}')
+            for batch_ref, batch_alt, batch_meta in tqdm(
+                    self._batch_iterator(prediction_path, shift, num_bins, batch_size=batch_size), total=total_batches):
+                batch_counter += 1
+                record_batch = self._map_to_tissue(batch_ref, batch_alt, batch_meta)
+                writer.write(record_batch)
 
-            # average over shifts and bins
-            ref = ref.mean(axis=(0, 1))
-            alt = alt.mean(axis=(0, 1))
+            # sanity check
+            assert batch_counter == total_batches
 
-            assert ref.shape == alt.shape
-            assert ref.shape == (635,)
-            assert alt.shape == (635,)
+    def _batch_iterator(self, prediction_path: str | pathlib.Path, shift: int = 43, num_bins: int = 3,
+                        batch_size: int = 1):
+        """
+        Load the predictions from the parquet file lazily.
+        :param prediction_path: The parquet file that contains the enformer predictions.
+        :param shift: The shift applied to the central sequence.
+        :param num_bins: The number of bins to average over for each variant-transcript pair.
+        :param batch_size: The number of records to load at once.
+        :return:
+        """
+        bin_size = Enformer.BIN_SIZE
+        pred_seq_length = Enformer.PRED_SEQUENCE_LENGTH
+        shifts = [0] if shift == 0 else [-shift, 0, shift]
+        universal_samples = ['Clontech Human Universal Reference Total RNA',
+                             'SABiosciences XpressRef Human Universal Total RNA',
+                             'CAGE:Universal RNA - Human Normal Tissues Biochain']
+        tracks = [v for k, v in self.enformer_tracks_dict.items()
+                  if "CAGE" in k and not any(s in k for s in universal_samples)]
+        with pq.ParquetFile(prediction_path) as pf:
+            for batch in pf.iter_batches(batch_size=batch_size):
+                batch_refs = []
+                batch_alts = []
+                batch_meta = []
+                for i in range(len(batch)):
+                    record = {k: batch[k][i] for k in batch.schema.names}
+                    ref, alt, meta = self._aggregate_transcript_variant(shifts, pred_seq_length, bin_size, num_bins,
+                                                                        tracks, record)
+                    batch_refs.append(ref)
+                    batch_alts.append(alt)
+                    batch_meta.append(meta)
+                yield batch_refs, batch_alts, batch_meta
 
-            average_refs.append(ref)
-            average_alts.append(alt)
+    @staticmethod
+    def _aggregate_transcript_variant(shifts, pred_seq_length, bin_size, num_bins, tracks, record):
+        """
+        Aggregate the predictions for a variant-transcript pair.
+        :param shifts:
+        :param pred_seq_length:
+        :param bin_size:
+        :param num_bins:
+        :param tracks:
+        :param record:
+        :return:
+        """
+        ref_preds = []
+        alt_preds = []
+        for shift in shifts:
+            # estimate the landmark bin
+            # todo verify this calculation
+            landmark_bin = (pred_seq_length // 2 + 1 - shift) // bin_size
+            # get num_bins - 1 neighboring bins centered at landmark bin
+            bins = [landmark_bin + i for i in range(-math.floor(num_bins / 2), math.ceil(num_bins / 2))]
+            assert len(bins) == num_bins
+            ref = record[f'ref_{shift}'].as_py()
+            alt = record[f'alt_{shift}'].as_py()
+            ref_preds.append([ref[bin_] for bin_ in bins])
+            alt_preds.append([alt[bin_] for bin_ in bins])
+        ref = np.array(ref_preds)
+        alt = np.array(alt_preds)
 
-    # calculate veff
-    ref = np.stack(average_refs)
-    alt = np.stack(average_alts)
-    ref = np.log10(ref + 1)
-    alt = np.log10(alt + 1)
-    ref_tissue_veff = defaultdict()
-    alt_tissue_veff = defaultdict()
-    for tissue, lm in tissue_matcher_lm_dict.items():
-        ref_tissue_veff[tissue] = lm.predict(ref).tolist()
-        alt_tissue_veff[tissue] = lm.predict(alt).tolist()
+        assert ref.shape == alt.shape == (len(shifts), num_bins, 5313)
+        ref = ref[:, :, tracks]
+        alt = alt[:, :, tracks]
 
-    for tissue in tissue_matcher_lm_dict.keys():
-        veff_tbl = veff_tbl.append_column(f'ref_{tissue}', [ref_tissue_veff[tissue]])
-        veff_tbl = veff_tbl.append_column(f'alt_{tissue}', [alt_tissue_veff[tissue]])
+        # average over shifts and bins
+        ref = ref.mean(axis=(0, 1))
+        alt = alt.mean(axis=(0, 1))
 
-    # save the veff values in a new parquet file
-    pq.write_table(veff_tbl, output_path)
+        assert ref.shape == alt.shape == (len(tracks),)
+        metadata = {k: v for k, v in record.items() if not ('ref_' in k or 'alt_' in k)}
+        return ref, alt, metadata
+
+    def _map_to_tissue(self, batch_ref, batch_alt, batch_meta):
+        """
+        Map the enformer predictions to the GTEx tissues using the linear models.
+        :param batch_ref: The reference predictions.
+        :param batch_alt: The alternative predictions.
+        :param batch_meta: The metadata for each variant-transcript pair.
+        :return:
+        """
+        # calculate veff
+        ref = np.stack(batch_ref)
+        alt = np.stack(batch_alt)
+        ref = np.log10(ref + 1)
+        alt = np.log10(alt + 1)
+        ref_tissue_veff = defaultdict()
+        alt_tissue_veff = defaultdict()
+        for tissue, lm in self.tissue_matcher_lm_dict.items():
+            ref_tissue_veff[tissue] = lm.predict(ref)
+            alt_tissue_veff[tissue] = lm.predict(alt)
+
+        ref_scores = []
+        alt_scores = []
+        delta_scores = []
+        tissues = []
+        meta = defaultdict(list)
+        for tissue in self.tissue_matcher_lm_dict.keys():
+            tissues.extend([tissue] * len(batch_ref))
+            ref_scores.extend(ref_tissue_veff[tissue].tolist())
+            alt_scores.extend(alt_tissue_veff[tissue].tolist())
+            delta_scores.extend((ref_tissue_veff[tissue] - alt_tissue_veff[tissue]).tolist())
+            for m in batch_meta:
+                for k, v in m.items():
+                    meta[k].append(v)
+
+        values = [pa.array(meta[k]) for k in meta] + [pa.array(tissues),
+                                                      pa.array(ref_scores),
+                                                      pa.array(alt_scores),
+                                                      pa.array(delta_scores)]
+        names = [k for k in meta] + ['tissue', 'ref_score', 'alt_score', 'delta_score']
+
+        # write to parquet
+        return pa.RecordBatch.from_arrays(values, names=names)

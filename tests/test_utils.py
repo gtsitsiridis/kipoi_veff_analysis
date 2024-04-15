@@ -2,13 +2,13 @@ import pytest
 
 from kipoi_enformer.dataloader import VCFEnformerDL
 import tensorflow as tf
-from kipoi_enformer.utils import Enformer, estimate_veff
+from kipoi_enformer.utils import Enformer, EnformerVeff
 from pathlib import Path
 import pyarrow.parquet as pq
 from kipoi_enformer.logger import logger
 import numpy as np
 import pickle
-import yaml
+import polars as pl
 
 
 @pytest.fixture
@@ -23,39 +23,23 @@ def random_model():
 
 
 @pytest.fixture
-def random_enformer_filepath():
+def output_dir():
     output_dir = Path('output/test')
     output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir / 'random_enformer.parquet'
+    return output_dir
 
 
 @pytest.fixture
-def random_veff_filepath():
-    output_dir = Path('output/test')
-    output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir / 'random_veff.parquet'
+def gtex_tissue_matcher_path():
+    return Path('assets/gtex_enformer_lm_models_pseudocount1.pkl')
 
 
 @pytest.fixture
-def gtex_tissue_matcher_lm_dict():
-    filepath = Path('assets/gtex_enformer_lm_models_pseudocount1.pkl')
-    with open(filepath, 'rb') as f:
-        data = pickle.load(f)
-
-    return {k: v['ingenome'] for k, v in data.items()}
+def enformer_tracks_path():
+    return Path('assets/enformer_tracks.yaml')
 
 
-@pytest.fixture
-def enformer_tracks_dict():
-    filepath = Path('assets/enformer_tracks.yaml')
-    with open(filepath, 'rb') as f:
-        return yaml.safe_load(f)
-
-
-def run_enformer(example_files, model, output_path):
-    batch_size = 3
-    size = 3
-
+def run_enformer(example_files, model, output_path, size, batch_size):
     dl = VCFEnformerDL(
         fasta_file=example_files['fasta'],
         gtf_file=example_files['gtf'],
@@ -80,14 +64,29 @@ def run_enformer(example_files, model, output_path):
     assert x.shape == (size, 896, 5313)
 
 
-def test_random_enformer(chr22_example_files, random_model, random_enformer_filepath: Path):
-    run_enformer(chr22_example_files, random_model, random_enformer_filepath)
+@pytest.mark.parametrize("size, batch_size", [(3, 1), (5, 3), (10, 5)])
+def test_random_enformer(chr22_example_files, random_model, output_dir: Path, size, batch_size):
+    random_enformer_filepath = output_dir / f'random_enformer_{size}.parquet'
+    run_enformer(chr22_example_files, random_model, random_enformer_filepath, size, batch_size=batch_size)
 
 
-def test_estimate_veff(chr22_example_files, random_model, random_enformer_filepath: Path,
-                       gtex_tissue_matcher_lm_dict: dict, random_veff_filepath: Path, enformer_tracks_dict: dict):
+def test_estimate_veff(chr22_example_files, random_model, output_dir: Path, enformer_tracks_path: Path,
+                       gtex_tissue_matcher_path: Path, size=10, batch_size=3):
+    random_enformer_filepath = output_dir / f'random_enformer_{size}.parquet'
     if not random_enformer_filepath.exists():
-        run_enformer(chr22_example_files, random_model, random_enformer_filepath)
+        logger.debug(f'Creating file: {random_enformer_filepath}')
+        run_enformer(chr22_example_files, random_model, random_enformer_filepath, size=size, batch_size=batch_size)
+    else:
+        logger.debug(f'Using existing file: {random_enformer_filepath}')
 
-    estimate_veff(random_enformer_filepath, tissue_matcher_lm_dict=gtex_tissue_matcher_lm_dict,
-                  output_path=random_veff_filepath, enformer_tracks_dict=enformer_tracks_dict)
+    enformer_veff = EnformerVeff(enformer_tracks_path=enformer_tracks_path,
+                                 tissue_matcher_path=gtex_tissue_matcher_path)
+
+    random_veff_filepath = output_dir / f'random_veff_{size}.parquet'
+    enformer_veff.estimate_veff(random_enformer_filepath, output_path=random_veff_filepath, batch_size=3)
+
+    with open(gtex_tissue_matcher_path, 'rb') as f:
+        num_tissues = len(pickle.load(f))
+
+    veff_tbl = pl.read_parquet(random_veff_filepath)
+    assert veff_tbl.shape == (size * num_tissues, 17)
