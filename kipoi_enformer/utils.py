@@ -14,6 +14,7 @@ from collections import defaultdict
 import math
 import yaml
 import pickle
+import polars as pl
 
 __all__ = ['Enformer', 'EnformerVeff']
 
@@ -57,7 +58,7 @@ class Enformer:
         # Hint: order matters
         schema = pa.schema(
             [
-                (f'{allele}_{shift}', pa.list_(pa.list_(pa.float32())))
+                (f'tracks_{allele}_{shift}', pa.list_(pa.list_(pa.float32())))
                 for shift in
                 ([-dataloader.shift, 0, dataloader.shift] if dataloader.shift else [0])
                 for allele in ['ref', 'alt']
@@ -145,7 +146,7 @@ class Enformer:
             for j in range(seqs_per_record):
                 pred_idx = i * seqs_per_record + j
                 seq_key = sequence_keys[pred_idx]
-                results['predictions'][seq_key].append(predictions[pred_idx])
+                results['predictions'][f'tracks_{seq_key}'].append(predictions[pred_idx])
 
         return results
 
@@ -224,6 +225,7 @@ class EnformerVeff:
             for batch_ref, batch_alt, batch_meta in tqdm(
                     self._batch_iterator(prediction_path, shift, num_bins, batch_size=batch_size), total=total_batches):
                 batch_counter += 1
+                # todo: implement this
                 record_batch = self._map_to_tissue(batch_ref, batch_alt, batch_meta)
                 writer.write(record_batch)
 
@@ -248,32 +250,25 @@ class EnformerVeff:
                              'CAGE:Universal RNA - Human Normal Tissues Biochain']
         tracks = [v for k, v in self.enformer_tracks_dict.items()
                   if "CAGE" in k and not any(s in k for s in universal_samples)]
-        with pq.ParquetFile(prediction_path) as pf:
-            for batch in pf.iter_batches(batch_size=batch_size):
-                batch_refs = []
-                batch_alts = []
-                batch_meta = []
-                for i in range(len(batch)):
-                    record = {k: batch[k][i] for k in batch.schema.names}
-                    ref, alt, meta = self._aggregate_transcript_variant(shifts, pred_seq_length, bin_size, num_bins,
-                                                                        tracks, record)
-                    batch_refs.append(ref)
-                    batch_alts.append(alt)
-                    batch_meta.append(meta)
-                yield batch_refs, batch_alts, batch_meta
+
+        df = pl.read_parquet(prediction_path)
+        for frame in df.iter_slices(n_rows=batch_size):
+            yield self._aggregate_batch(frame, shifts, pred_seq_length,
+                                        bin_size, num_bins, tracks)
 
     @staticmethod
-    def _aggregate_transcript_variant(shifts, pred_seq_length, bin_size, num_bins, tracks, record):
+    def _aggregate_batch(frame, shifts, pred_seq_length, bin_size, num_bins, tracks):
         """
         Aggregate the predictions for a variant-transcript pair.
+        :param frame:
         :param shifts:
         :param pred_seq_length:
         :param bin_size:
         :param num_bins:
         :param tracks:
-        :param record:
         :return:
         """
+
         ref_preds = []
         alt_preds = []
         for shift in shifts:
@@ -283,23 +278,21 @@ class EnformerVeff:
             # get num_bins - 1 neighboring bins centered at landmark bin
             bins = [landmark_bin + i for i in range(-math.floor(num_bins / 2), math.ceil(num_bins / 2))]
             assert len(bins) == num_bins
-            ref = record[f'ref_{shift}'].as_py()
-            alt = record[f'alt_{shift}'].as_py()
-            ref_preds.append([ref[bin_] for bin_ in bins])
-            alt_preds.append([alt[bin_] for bin_ in bins])
-        ref = np.array(ref_preds)
-        alt = np.array(alt_preds)
+            ref = np.stack(frame[f'tracks_ref_{shift}'].to_list())[:, bins, :][:, :, tracks]
+            alt = np.stack(frame[f'tracks_alt_{shift}'].to_list())[:, bins, :][:, :, tracks]
+            ref_preds.append(ref)
+            alt_preds.append(alt)
 
-        assert ref.shape == alt.shape == (len(shifts), num_bins, 5313)
-        ref = ref[:, :, tracks]
-        alt = alt[:, :, tracks]
+        ref = np.stack(ref_preds).swapaxes(0, 1)
+        alt = np.stack(alt_preds).swapaxes(0, 1)
 
+        assert ref.shape == alt.shape == (len(frame), len(shifts), num_bins, len(tracks))
         # average over shifts and bins
-        ref = ref.mean(axis=(0, 1))
-        alt = alt.mean(axis=(0, 1))
+        ref = ref.mean(axis=(1, 2))
+        alt = alt.mean(axis=(1, 2))
 
-        assert ref.shape == alt.shape == (len(tracks),)
-        metadata = {k: v for k, v in record.items() if not ('ref_' in k or 'alt_' in k)}
+        assert ref.shape == alt.shape == (len(frame), len(tracks),)
+        metadata = frame.select([k for k in frame.columns if not ('tracks_' in k)]).to_dict()
         return ref, alt, metadata
 
     def _map_to_tissue(self, batch_ref, batch_alt, batch_meta):
@@ -311,10 +304,8 @@ class EnformerVeff:
         :return:
         """
         # calculate veff
-        ref = np.stack(batch_ref)
-        alt = np.stack(batch_alt)
-        ref = np.log10(ref + 1)
-        alt = np.log10(alt + 1)
+        ref = np.log10(batch_ref + 1)
+        alt = np.log10(batch_alt + 1)
         ref_tissue_veff = defaultdict()
         alt_tissue_veff = defaultdict()
         for tissue, lm in self.tissue_matcher_lm_dict.items():
@@ -331,9 +322,8 @@ class EnformerVeff:
             ref_scores.extend(ref_tissue_veff[tissue].tolist())
             alt_scores.extend(alt_tissue_veff[tissue].tolist())
             delta_scores.extend((ref_tissue_veff[tissue] - alt_tissue_veff[tissue]).tolist())
-            for m in batch_meta:
-                for k, v in m.items():
-                    meta[k].append(v)
+            for k, v in batch_meta.items():
+                meta[k].extend(batch_meta[k])
 
         values = [pa.array(meta[k]) for k in meta] + [pa.array(tissues),
                                                       pa.array(ref_scores),

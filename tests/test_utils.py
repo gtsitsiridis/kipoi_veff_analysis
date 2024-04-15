@@ -59,7 +59,7 @@ def run_enformer(example_files, model, output_path, size, batch_size):
 
     assert table.shape == (size, 6 + 13)
 
-    x = table['ref_0'].to_pylist()
+    x = table['tracks_ref_0'].to_pylist()
     x = np.array(x)
     assert x.shape == (size, 896, 5313)
 
@@ -71,7 +71,7 @@ def test_random_enformer(chr22_example_files, random_model, output_dir: Path, si
 
 
 def test_estimate_veff(chr22_example_files, random_model, output_dir: Path, enformer_tracks_path: Path,
-                       gtex_tissue_matcher_path: Path, size=10, batch_size=3):
+                       gtex_tissue_matcher_path: Path, size=10, batch_size=5):
     random_enformer_filepath = output_dir / f'random_enformer_{size}.parquet'
     if not random_enformer_filepath.exists():
         logger.debug(f'Creating file: {random_enformer_filepath}')
@@ -83,7 +83,7 @@ def test_estimate_veff(chr22_example_files, random_model, output_dir: Path, enfo
                                  tissue_matcher_path=gtex_tissue_matcher_path)
 
     random_veff_filepath = output_dir / f'random_veff_{size}.parquet'
-    enformer_veff.estimate_veff(random_enformer_filepath, output_path=random_veff_filepath, batch_size=3)
+    enformer_veff.estimate_veff(random_enformer_filepath, output_path=random_veff_filepath, batch_size=batch_size)
 
     with open(gtex_tissue_matcher_path, 'rb') as f:
         num_tissues = len(pickle.load(f))
