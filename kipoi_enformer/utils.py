@@ -74,20 +74,16 @@ class Enformer:
                 ('alt', pa.string()),
             ])
 
-        batch_iterator = self._batch_iterator(dataloader, batch_size)
         batch_counter = 0
         total_batches = math.ceil(len(dataloader) / batch_size)
         with pq.ParquetWriter(filepath, schema) as writer:
-            for batch in tqdm(batch_iterator, total=total_batches):
+            for batch in tqdm(dataloader.batch_iter(batch_size=batch_size), total=total_batches):
                 batch_counter += 1
+                batch = self._to_pyarrow(self._process_batch(batch))
                 writer.write_batch(batch)
 
         # sanity check for the dataloader
         assert batch_counter == total_batches
-
-    def _batch_iterator(self, dataloader: VCFDataloader, batch_size: int):
-        for batch in dataloader.batch_iter(batch_size=batch_size):
-            yield self._to_pyarrow(self._process_batch(batch))
 
     def _process_batch(self, batch):
         """
