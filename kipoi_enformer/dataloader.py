@@ -1,31 +1,21 @@
-from kipoi.data import SampleIterator
+from kipoi.data import SampleGenerator
 from kipoiseq import Interval, Variant
 from kipoiseq.extractors import VariantSeqExtractor, SingleVariantMatcher, BaseExtractor, FastaStringExtractor
 import math
 import pandas as pd
 import pyranges as pr
 from kipoiseq.extractors import MultiSampleVCF
+from kipoiseq.transforms.functional import one_hot_dna
 
 # length of sequence which enformer gets as input
 # ═════┆═════┆════════════════════════┆═════┆═════
 SEQUENCE_LENGTH = 393_216
 
 
-class VCFEnformerDL:
-    def __init__(
-            self,
-            fasta_file,
-            gtf_file,
-            vcf_file,
-            vcf_lazy=True,
-            variant_upstream_tss: int = 10,
-            variant_downstream_tss: int = 10,
-            seq_length: int = SEQUENCE_LENGTH,
-            shift: int = 43,
-            size: int = None,
-            canonical_only: bool = False,
-            protein_coding_only: bool = False,
-    ):
+class VCFDataloader(SampleGenerator):
+    def __init__(self, fasta_file, gtf_file, vcf_file, vcf_lazy=True, variant_upstream_tss: int = 10,
+                 variant_downstream_tss: int = 10, seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None,
+                 canonical_only: bool = False, protein_coding_only: bool = False, *args, **kwargs):
         """
 
         :param fasta_file: Fasta file with the reference genome
@@ -41,6 +31,7 @@ class VCFEnformerDL:
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
         """
 
+        super().__init__(*args, **kwargs)
         assert shift < variant_downstream_tss + variant_upstream_tss + 1, \
             f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {variant_downstream_tss + variant_upstream_tss + 1}"
         assert shift >= 0, f"shift must be positive or zero but got {shift}"
@@ -53,7 +44,6 @@ class VCFEnformerDL:
         self.variant_seq_extractor = VariantSeqExtractor(reference_sequence=self.reference_sequence)
         self.canonical_only = canonical_only
         self.protein_coding_only = protein_coding_only
-        self.shift = shift
         self.size = size
         self.seq_length = seq_length
         self.gtf_file = gtf_file
@@ -62,6 +52,7 @@ class VCFEnformerDL:
         self.variant_downstream_tss = variant_downstream_tss
         self.matcher = get_single_variant_matcher(gtf_file, vcf_file, vcf_lazy, variant_upstream_tss,
                                                   variant_downstream_tss, canonical_only, protein_coding_only)
+        self.shifts = (0,) if shift == 0 else (-shift, 0, shift)
 
     def _extract_seq(self, landmark: int, interval: Interval, variant: Variant):
         assert interval.width() == self.seq_length, f"interval width must be {self.seq_length} but got {interval.width()}"
@@ -81,7 +72,7 @@ class VCFEnformerDL:
             anchor=landmark
         )
 
-        return ref_seq, alt_seq
+        return one_hot_dna(ref_seq), one_hot_dna(alt_seq)
 
     def __len__(self):
         tmp_matcher = get_single_variant_matcher(self.gtf_file, self.vcf_file, False, self.variant_upstream_tss,
@@ -119,7 +110,6 @@ class VCFEnformerDL:
         """
         interval: Interval
         variant: Variant
-        shifts = (0,) if self.shift == 0 else (-self.shift, 0, self.shift)
         counter = 0
         for interval, variant in self.matcher:
             # check if we reached the end of the dataset
@@ -148,7 +138,7 @@ class VCFEnformerDL:
 
             sequences = dict()
             # shift intervals and extract sequences
-            for shift in shifts:
+            for shift in self.shifts:
                 shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
                 assert shifted_enformer_interval.width() == self.seq_length, \
                     f"enformer_interval width must be {self.seq_length} but got {enformer_interval.width()}"

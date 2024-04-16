@@ -1,6 +1,7 @@
 import pytest
 
-from kipoi_enformer.dataloader import VCFEnformerDL, get_tss_from_genome_annotation
+from kipoi_enformer.dataloader import VCFDataloader, get_tss_from_genome_annotation
+from kipoiseq.transforms.functional import one_hot2string
 
 UPSTREAM_TSS = 10
 DOWNSTREAM_TSS = 10
@@ -170,7 +171,7 @@ def test_genome_annotation_protein_canonical(chr22_example_files):
 
 
 def test_dataloader(chr22_example_files, variants):
-    dl = VCFEnformerDL(
+    dl = VCFDataloader(
         fasta_file=chr22_example_files['fasta'],
         gtf_file=chr22_example_files['gtf'],
         vcf_file=chr22_example_files['vcf'],
@@ -190,8 +191,8 @@ def test_dataloader(chr22_example_files, variants):
                   f'{metadata["transcript_id"]}')
         variant = variants.get(var_id, None)
         if variant is not None:
-            assert i['sequences']['ref_0'] == variant['ref_seq']
-            assert i['sequences']['alt_0'] == variant['alt_seq']
+            assert one_hot2string(i['sequences']['ref_0'][None, :, :])[0] == variant['ref_seq']
+            assert one_hot2string(i['sequences']['alt_0'][None, :, :])[0] == variant['alt_seq']
             checked_variants[var_id] = 2
         # print(i['metadata'])
 

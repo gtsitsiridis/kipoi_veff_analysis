@@ -1,14 +1,11 @@
 import pathlib
-import pickle
-
 import numpy as np
 import tensorflow_hub as hub
 import tensorflow as tf
-from .dataloader import VCFEnformerDL
+from .dataloader import VCFDataloader
 from kipoi_enformer.logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
-from kipoiseq.transforms.functional import one_hot_dna
 from tqdm.autonotebook import tqdm
 from collections import defaultdict
 import math
@@ -43,7 +40,7 @@ class Enformer:
         else:
             self._model = model
 
-    def predict(self, dataloader: VCFEnformerDL, batch_size: int, filepath: str | pathlib.Path):
+    def predict(self, dataloader: VCFDataloader, batch_size: int, filepath: str | pathlib.Path):
         """
         Predict on a dataloader and save the results in a parquet file
         :param filepath:
@@ -59,8 +56,7 @@ class Enformer:
         schema = pa.schema(
             [
                 (f'tracks_{allele}_{shift}', pa.list_(pa.list_(pa.float32())))
-                for shift in
-                ([-dataloader.shift, 0, dataloader.shift] if dataloader.shift else [0])
+                for shift in dataloader.shifts
                 for allele in ['ref', 'alt']
             ] + [
                 ('enformer_start', pa.int64()),
@@ -89,22 +85,8 @@ class Enformer:
         # sanity check for the dataloader
         assert batch_counter == total_batches
 
-    def _batch_iterator(self, dataloader: VCFEnformerDL, batch_size: int):
-        batch = []
-        counter = 0
-        for data in dataloader:
-            batch.append(data)
-            if len(batch) == batch_size:
-                counter += 1
-                logger.debug(f'Processing batch {counter}')
-                # process batch and save results in a parquet file
-                yield self._to_pyarrow(self._process_batch(batch))
-                batch = []
-
-        # process remaining sequences if any
-        if len(batch) > 0:
-            counter += 1
-            # process batch and save results in a parquet file
+    def _batch_iterator(self, dataloader: VCFDataloader, batch_size: int):
+        for batch in dataloader.batch_iter(batch_size=batch_size):
             yield self._to_pyarrow(self._process_batch(batch))
 
     def _process_batch(self, batch):
@@ -113,13 +95,9 @@ class Enformer:
         :param batch: list of data dicts
         :return: Results dict. Structure: {'metadata': {field: [values]}, 'predictions': {sequence_key: [values]}}
         """
-        batch_size = len(batch)
-
-        # presumably all records will have the same number of sequences
-        seqs_per_record = len(batch[0]['sequences'])
-
-        sequence_keys = [k for data in batch for k in data['sequences'].keys()]
-        sequences = [one_hot_dna(seq).astype(np.float32) for data in batch for seq in data['sequences'].values()]
+        batch_size = len(batch['metadata']['transcript_id'])
+        seqs_per_record = len(batch['sequences'])
+        sequences = np.concatenate(list(batch['sequences'].values()))
 
         # create input tensor
         input_tensor = tf.convert_to_tensor(sequences)
@@ -128,26 +106,12 @@ class Enformer:
         # run model
         predictions = self._model.predict_on_batch(input_tensor)['human'].numpy()
         assert predictions.shape == (batch_size * seqs_per_record, 896, 5313)
-        predictions = predictions.tolist()
+        predictions = predictions.reshape(seqs_per_record, batch_size, 896, 5313)
 
-        # prepare results dict
-        # metadata fields are the same for all records
-        # prediction fields are the same for all records
-        metadata_field_names = list(batch[0]['metadata'].keys())
         results = {
-            'metadata': defaultdict(list),
-            'predictions': defaultdict(list)
+            'metadata': batch['metadata'],
+            'predictions': {f'tracks_{k}': predictions[i, :, :, :] for i, k in enumerate(batch['sequences'].keys())}
         }
-        for i in range(batch_size):
-            metadata = batch[i]['metadata']
-            for f in metadata_field_names:
-                results['metadata'][f].append(metadata[f])
-
-            for j in range(seqs_per_record):
-                pred_idx = i * seqs_per_record + j
-                seq_key = sequence_keys[pred_idx]
-                results['predictions'][f'tracks_{seq_key}'].append(predictions[pred_idx])
-
         return results
 
     @staticmethod
@@ -159,7 +123,7 @@ class Enformer:
         logger.debug('Converting results to pyarrow')
 
         # format predictions
-        predictions = {k: pa.array(v, type=pa.list_(pa.list_(pa.float32())))
+        predictions = {k: pa.array(v.tolist(), type=pa.list_(pa.list_(pa.float32())))
                        for k, v in results['predictions'].items()}
         metadata = {k: pa.array(v) for k, v in results['metadata'].items()}
 

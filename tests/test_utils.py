@@ -1,6 +1,6 @@
 import pytest
 
-from kipoi_enformer.dataloader import VCFEnformerDL
+from kipoi_enformer.dataloader import VCFDataloader
 import tensorflow as tf
 from kipoi_enformer.utils import Enformer, EnformerVeff
 from pathlib import Path
@@ -40,7 +40,7 @@ def enformer_tracks_path():
 
 
 def run_enformer(example_files, model, output_path, size, batch_size):
-    dl = VCFEnformerDL(
+    dl = VCFDataloader(
         fasta_file=example_files['fasta'],
         gtf_file=example_files['gtf'],
         vcf_file=example_files['vcf'],
