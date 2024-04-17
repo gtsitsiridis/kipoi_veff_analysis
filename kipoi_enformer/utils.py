@@ -2,7 +2,7 @@ import pathlib
 import numpy as np
 import tensorflow_hub as hub
 import tensorflow as tf
-from .dataloader import VCFTSSDataloader
+from .dataloader import TSSDataloader
 from kipoi_enformer.logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -13,7 +13,7 @@ import yaml
 import pickle
 import polars as pl
 
-__all__ = ['Enformer', 'EnformerVeff']
+__all__ = ['Enformer', 'EnformerTissueMapper']
 
 # Enformer model URI
 MODEL_PATH = 'https://tfhub.dev/deepmind/enformer/1'
@@ -40,7 +40,7 @@ class Enformer:
         else:
             self._model = model
 
-    def predict(self, dataloader: VCFTSSDataloader, batch_size: int, filepath: str | pathlib.Path):
+    def predict(self, dataloader: TSSDataloader, batch_size: int, filepath: str | pathlib.Path):
         """
         Predict on a dataloader and save the results in a parquet file
         :param filepath:
@@ -53,25 +53,8 @@ class Enformer:
         assert batch_size > 0
 
         # Hint: order matters
-        schema = pa.schema(
-            [
-                (f'tracks:shift:{shift}', pa.list_(pa.list_(pa.float32())))
-                for shift in dataloader.shifts
-            ] + [
-                ('enformer_start', pa.int64()),
-                ('enformer_end', pa.int64()),
-                ('tss', pa.int64()),
-                ('chr', pa.string()),
-                ('strand', pa.string()),
-                ('gene_id', pa.string()),
-                ('transcript_id', pa.string()),
-                ('transcript_start', pa.int64()),
-                ('transcript_end', pa.int64()),
-                ('variant_start', pa.int64()),
-                ('variant_end', pa.int64()),
-                ('ref', pa.string()),
-                ('alt', pa.string()),
-            ])
+        schema = dataloader.pyarrow_metadata_schema
+        schema = schema.insert(0, pa.field(f'tracks', pa.list_(pa.list_(pa.list_(pa.float32())))))
 
         batch_counter = 0
         total_batches = math.ceil(len(dataloader) / batch_size)
@@ -90,9 +73,9 @@ class Enformer:
         :param batch: list of data dicts
         :return: Results dict. Structure: {'metadata': {field: [values]}, 'predictions': {sequence_key: [values]}}
         """
-        batch_size = len(batch['metadata']['transcript_id'])
-        seqs_per_record = len(batch['sequences'])
-        sequences = np.concatenate(list(batch['sequences'].values()))
+        batch_size = batch['sequences'].shape[0]
+        seqs_per_record = batch['sequences'].shape[1]
+        sequences = np.reshape(batch['sequences'], (batch_size * seqs_per_record, 393_216, 4))
 
         # create input tensor
         input_tensor = tf.convert_to_tensor(sequences)
@@ -101,11 +84,11 @@ class Enformer:
         # run model
         predictions = self._model.predict_on_batch(input_tensor)['human'].numpy()
         assert predictions.shape == (batch_size * seqs_per_record, 896, 5313)
-        predictions = predictions.reshape(seqs_per_record, batch_size, 896, 5313)
+        predictions = predictions.reshape(batch_size, seqs_per_record, 896, 5313)
 
         results = {
             'metadata': batch['metadata'],
-            'predictions': {f'tracks:{k}': predictions[i, :, :, :] for i, k in enumerate(batch['sequences'].keys())}
+            'tracks': predictions
         }
         return results
 
@@ -118,177 +101,159 @@ class Enformer:
         logger.debug('Converting results to pyarrow')
 
         # format predictions
-        predictions = {k: pa.array(v.tolist(), type=pa.list_(pa.list_(pa.float32())))
-                       for k, v in results['predictions'].items()}
-        metadata = {k: pa.array(v) for k, v in results['metadata'].items()}
+        metadata = {}
+        for k, v in results['metadata'].items():
+            v = pa.array(v.tolist())
+            if isinstance(v, np.ndarray):
+                v = v.tolist()
+            metadata[k] = v
+
+        formatted_results = {
+            'tracks': pa.array(results['tracks'].tolist(), type=pa.list_(pa.list_(pa.list_(pa.float32())))),
+            **metadata
+        }
 
         logger.debug('Constructing pyarrow record batch')
         # construct RecordBatch
-        return pa.RecordBatch.from_arrays((list(predictions.values()) + list(metadata.values())),
-                                          names=(list(predictions.keys()) + list(metadata.keys())))
+        return pa.RecordBatch.from_arrays(list(formatted_results.values()), names=list(formatted_results.keys()))
 
 
-class EnformerVeff:
-    def __init__(self, tissue_matcher_path: str | pathlib.Path,
-                 enformer_tracks_path: str | pathlib.Path):
+class EnformerTissueMapper:
+    def __init__(self, tracks_path: str | pathlib.Path, tissue_matcher_path: str | pathlib.Path | None = None):
         """
-        :param tissue_matcher_path: A pickle containing dictionary of linear models for each GTEx tissue.
-        :param enformer_tracks_path: A yaml file mapping the name of the tracks to the index in the predictions.
+        :param tracks_path: A yaml file mapping the name of the tracks to the index in the predictions.
+        Only the tracks in the file are considered for the mapping.
+        :param tissue_matcher_path: A pickle containing a dictionary of linear models for each GTEx tissue.
         """
-        with open(tissue_matcher_path, 'rb') as f:
-            self.tissue_matcher_lm_dict = {k: v['ingenome'] for k, v in pickle.load(f).items()}
+        tissue_matcher_lm_dict = None
+        # If tissue_matcher_path is not None, load the linear models
+        if tissue_matcher_path is not None:
+            with open(tissue_matcher_path, 'rb') as f:
+                self.tissue_matcher_lm_dict = {k: v['ingenome'] for k, v in pickle.load(f).items()}
 
-        with open(enformer_tracks_path, 'rb') as f:
-            self.enformer_tracks_dict = yaml.safe_load(f)
+        with open(tracks_path, 'rb') as f:
+            self.tracks_dict = yaml.safe_load(f)
 
-    def estimate_veff(self, prediction_path: str | pathlib.Path, output_path: str | pathlib.Path, shift: int = 43,
-                      num_bins: int = 3, batch_size: int = 1):
+    def predict(self, prediction_path: str | pathlib.Path, output_path: str | pathlib.Path, num_bins: int = 3,
+                batch_size: int = 1):
         """
         Load the predictions from the parquet file lazily.
-        Then, calculate the variant effect size (veff) for each variant-transcript pair.
-        Finally, save the veff values in a new parquet file.
+        For each record, calculate the average predictions over the bins centered at the tss bin.
+        For each tissue in the tissue_matcher_lm_dict, predict a tissue-specific expression score.
+        Finally, save the expression scores in a new parquet file.
 
         :param prediction_path: The parquet file that contains the enformer predictions.
         :param batch_size: The number of records to read and write at once.
-        :param output_path: The parquet file that will contain the veff values.
-        :param num_bins: number of bins to average over for each variant-transcript pair
-        :param shift: The shift applied to the central sequence.
-        The average predictions will be calculated at the tss bin of each variant-transcript pair.
+        :param output_path: The parquet file that will contain the tissue-specific expression scores.
+        :param num_bins: number of bins to average over for each record
+        The average predictions will be calculated at the tss bin of each record.
         """
+        if self.tissue_matcher_lm_dict is None:
+            raise ValueError('The tissue_matcher_lm_dict is not provided. Please train the linear models first.')
 
-        schema = pa.schema(
-            [('enformer_start', pa.int64()),
-             ('enformer_end', pa.int64()),
-             ('tss', pa.int64()),
-             ('chr', pa.string()),
-             ('strand', pa.string()),
-             ('gene_id', pa.string()),
-             ('transcript_id', pa.string()),
-             ('transcript_start', pa.int64()),
-             ('transcript_end', pa.int64()),
-             ('variant_start', pa.int64()),
-             ('variant_end', pa.int64()),
-             ('ref', pa.string()),
-             ('alt', pa.string()),
-             ('tissue', pa.string()),
-             ('ref_score', pa.float64()),
-             ('alt_score', pa.float64()),
-             ('delta_score', pa.float64()),
-             ])
-        with pq.ParquetWriter(output_path, schema) as writer:
+        prediction_schema = pq.read_metadata(prediction_path).schema.to_arrow_schema()
+        output_schema = prediction_schema.remove(prediction_schema.get_field_index('tracks'))
+        output_schema = pa.unify_schemas([output_schema, pa.schema([
+            pa.field('tissue', pa.string()),
+            pa.field('score', pa.float64())
+        ])])
+
+        with pq.ParquetWriter(output_path, output_schema) as writer:
             num_rows = pq.read_metadata(prediction_path).num_rows
             total_batches = math.ceil(num_rows / batch_size)
             batch_counter = 0
             logger.debug(f'Iterating over the batches in the parquet file {prediction_path}')
             logger.debug(f'Writing the veff values to the parquet file {output_path}')
-            for batch_ref, batch_alt, batch_meta in tqdm(
-                    self._batch_iterator(prediction_path, shift, num_bins, batch_size=batch_size), total=total_batches):
+            for batch_agg_pred, batch_meta in tqdm(
+                    self._batch_iterator(prediction_path, num_bins, batch_size=batch_size), total=total_batches):
                 batch_counter += 1
-                # todo: implement this
-                record_batch = self._map_to_tissue(batch_ref, batch_alt, batch_meta)
+                logger.debug('Running model on the batch...')
+                record_batch = self._predict_batch(batch_agg_pred, batch_meta)
+                logger.debug('Writing to file')
                 writer.write(record_batch)
 
             # sanity check
             assert batch_counter == total_batches
 
-    def _batch_iterator(self, prediction_path: str | pathlib.Path, shift: int = 43, num_bins: int = 3,
-                        batch_size: int = 1):
+    def _batch_iterator(self, prediction_path: str | pathlib.Path, num_bins: int = 3, batch_size: int = 1):
         """
         Load the predictions from the parquet file lazily.
         :param prediction_path: The parquet file that contains the enformer predictions.
-        :param shift: The shift applied to the central sequence.
-        :param num_bins: The number of bins to average over for each variant-transcript pair.
+        :param num_bins: The number of bins to average over for each record.
         :param batch_size: The number of records to load at once.
         :return:
         """
         bin_size = Enformer.BIN_SIZE
         pred_seq_length = Enformer.PRED_SEQUENCE_LENGTH
-        shifts = [0] if shift == 0 else [-shift, 0, shift]
-        universal_samples = ['Clontech Human Universal Reference Total RNA',
-                             'SABiosciences XpressRef Human Universal Total RNA',
-                             'CAGE:Universal RNA - Human Normal Tissues Biochain']
-        tracks = [v for k, v in self.enformer_tracks_dict.items()
-                  if "CAGE" in k and not any(s in k for s in universal_samples)]
+        tracks = list(self.tracks_dict.values())
 
         df = pl.read_parquet(prediction_path)
         for frame in df.iter_slices(n_rows=batch_size):
-            yield self._aggregate_batch(frame, shifts, pred_seq_length,
+            yield self._aggregate_batch(frame, pred_seq_length,
                                         bin_size, num_bins, tracks)
 
     @staticmethod
-    def _aggregate_batch(frame, shifts, pred_seq_length, bin_size, num_bins, tracks):
+    def _aggregate_batch(frame, pred_seq_length, bin_size, num_bins, tracks):
         """
-        Aggregate the predictions for a variant-transcript pair.
+        Aggregate the predictions for a record.
         :param frame:
-        :param shifts:
         :param pred_seq_length:
         :param bin_size:
         :param num_bins:
         :param tracks:
         :return:
         """
+        logger.debug('Aggregating the predictions for a batch')
 
-        ref_preds = []
-        alt_preds = []
-        for shift in shifts:
+        pred = np.stack(frame['tracks'].to_list())
+        agg_pred = []
+        # we assume that all records have the same shifts
+        shifts = frame[0, 'shifts']
+        for shift_i, shift in enumerate(shifts):
             # estimate the tss bin
             # todo verify this calculation
             tss_bin = (pred_seq_length // 2 + 1 - shift) // bin_size
             # get num_bins - 1 neighboring bins centered at tss bin
             bins = [tss_bin + i for i in range(-math.floor(num_bins / 2), math.ceil(num_bins / 2))]
             assert len(bins) == num_bins
-            ref = np.stack(frame[f'tracks_ref_{shift}'].to_list())[:, bins, :][:, :, tracks]
-            alt = np.stack(frame[f'tracks_alt_{shift}'].to_list())[:, bins, :][:, :, tracks]
-            ref_preds.append(ref)
-            alt_preds.append(alt)
+            agg_pred.append(pred[:, shift_i, bins, :][:, :, tracks])
 
-        ref = np.stack(ref_preds).swapaxes(0, 1)
-        alt = np.stack(alt_preds).swapaxes(0, 1)
+        agg_pred = np.stack(agg_pred).swapaxes(0, 1)
 
-        assert ref.shape == alt.shape == (len(frame), len(shifts), num_bins, len(tracks))
+        assert agg_pred.shape == (len(frame), len(shifts), num_bins, len(tracks))
         # average over shifts and bins
-        ref = ref.mean(axis=(1, 2))
-        alt = alt.mean(axis=(1, 2))
+        agg_pred = agg_pred.mean(axis=(1, 2))
 
-        assert ref.shape == alt.shape == (len(frame), len(tracks),)
-        metadata = frame.select([k for k in frame.columns if not ('tracks_' in k)]).to_dict()
-        return ref, alt, metadata
+        assert agg_pred.shape == (len(frame), len(tracks),)
+        metadata = frame.select([k for k in frame.columns if k != 'tracks']).to_dict(as_series=False)
+        return agg_pred, metadata
 
-    def _map_to_tissue(self, batch_ref, batch_alt, batch_meta):
+    def _predict_batch(self, batch_agg_pred, batch_meta):
         """
         Map the enformer predictions to the GTEx tissues using the linear models.
-        :param batch_ref: The reference predictions.
-        :param batch_alt: The alternative predictions.
-        :param batch_meta: The metadata for each variant-transcript pair.
+        :param batch_agg_pred: The averaged predictions.
+        :param batch_meta: The metadata for each record.
         :return:
         """
         # calculate veff
-        ref = np.log10(batch_ref + 1)
-        alt = np.log10(batch_alt + 1)
-        ref_tissue_veff = defaultdict()
-        alt_tissue_veff = defaultdict()
+        batch_agg_pred = np.log10(batch_agg_pred + 1)
+        tissue_scores = defaultdict()
         for tissue, lm in self.tissue_matcher_lm_dict.items():
-            ref_tissue_veff[tissue] = lm.predict(ref)
-            alt_tissue_veff[tissue] = lm.predict(alt)
+            tissue_scores[tissue] = lm.predict(batch_agg_pred)
 
-        ref_scores = []
-        alt_scores = []
-        delta_scores = []
+        scores = []
         tissues = []
         meta = defaultdict(list)
         for tissue in self.tissue_matcher_lm_dict.keys():
-            tissues.extend([tissue] * len(batch_ref))
-            ref_scores.extend(ref_tissue_veff[tissue].tolist())
-            alt_scores.extend(alt_tissue_veff[tissue].tolist())
-            delta_scores.extend((ref_tissue_veff[tissue] - alt_tissue_veff[tissue]).tolist())
+            tissues.extend([tissue] * len(batch_agg_pred))
+            scores.extend(tissue_scores[tissue].tolist())
             for k, v in batch_meta.items():
-                meta[k].extend(batch_meta[k])
+                meta[k].extend(v)
 
-        values = [pa.array(meta[k]) for k in meta] + [pa.array(tissues),
-                                                      pa.array(ref_scores),
-                                                      pa.array(alt_scores),
-                                                      pa.array(delta_scores)]
-        names = [k for k in meta] + ['tissue', 'ref_score', 'alt_score', 'delta_score']
+        logger.debug('Constructing pyarrow record batch')
+        values = [pa.array(v) for v in meta.values()] + [pa.array(tissues),
+                                                         pa.array(scores), ]
+        names = [k for k in meta.keys()] + ['tissue', 'score']
 
         # write to parquet
         return pa.RecordBatch.from_arrays(values, names=names)

@@ -8,6 +8,8 @@ import pandas as pd
 import pyranges as pr
 from kipoiseq.extractors import MultiSampleVCF
 from kipoiseq.transforms.functional import one_hot_dna
+import pyarrow as pa
+import numpy as np
 
 __all__ = ['TSSDataloader', 'RefTSSDataloader', 'VCFTSSDataloader', 'get_tss_from_genome_annotation']
 
@@ -60,6 +62,15 @@ class TSSDataloader(SampleGenerator, ABC):
         """
         raise NotImplementedError("The sample generator is not implemented.")
 
+    @property
+    @abstractmethod
+    def pyarrow_metadata_schema(self) -> pa.schema:
+        """
+        Get the pyarrow schema for the metadata.
+        :return: PyArrow schema for the metadata
+        """
+        raise NotImplementedError("The metadata schema is not implemented.")
+
     def __iter__(self):
         """
         Iterate over the dataset.
@@ -105,13 +116,13 @@ class RefTSSDataloader(TSSDataloader):
             strand = row.get('Strand', '.')
             tss = row['tss']
             enformer_interval = construct_enformer_interval(chromosome, strand, tss, self.seq_length)
-            sequences = dict()
+            sequences = []
             # shift intervals and extract sequences
             for shift in self.shifts:
                 shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
                 assert shifted_enformer_interval.width() == self.seq_length, \
                     f"enformer_interval width must be {self.seq_length} but got {enformer_interval.width()}"
-                sequences[f'shift:{shift}'] = one_hot_dna(self.reference_sequence.extract(shifted_enformer_interval))
+                sequences.append(one_hot_dna(self.reference_sequence.extract(shifted_enformer_interval)))
 
             metadata = {
                 "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
@@ -123,12 +134,34 @@ class RefTSSDataloader(TSSDataloader):
                 "transcript_id": row['transcript_id'],
                 "transcript_start": row['transcript_start'],  # 0-based
                 "transcript_end": row['transcript_end'],  # 1-based
+                "shifts": np.array(self.shifts)
             }
 
-            yield metadata, sequences
+            yield metadata, np.stack(sequences)
 
     def __len__(self):
-        return len(self.genome_annotation)
+        return len(self.genome_annotation) if self.size is None else min(self.size, len(self.genome_annotation))
+
+    @property
+    def pyarrow_metadata_schema(self):
+        """
+        Get the pyarrow schema for the metadata.
+        :return: PyArrow schema for the metadata
+        """
+        return pa.schema(
+            [
+                ('enformer_start', pa.int64()),
+                ('enformer_end', pa.int64()),
+                ('tss', pa.int64()),
+                ('chr', pa.string()),
+                ('strand', pa.string()),
+                ('gene_id', pa.string()),
+                ('transcript_id', pa.string()),
+                ('transcript_start', pa.int64()),
+                ('transcript_end', pa.int64()),
+                ('shifts', pa.list_(pa.int64())),
+            ]
+        )
 
 
 class VCFTSSDataloader(TSSDataloader):
@@ -167,15 +200,15 @@ class VCFTSSDataloader(TSSDataloader):
             tss = attrs['tss']
 
             enformer_interval = construct_enformer_interval(interval.chrom, interval.strand, tss, self.seq_length)
-            sequences = dict()
+            sequences = []
             # shift intervals and extract sequences
             for shift in self.shifts:
                 shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
                 assert shifted_enformer_interval.width() == self.seq_length, \
                     f"enformer_interval width must be {self.seq_length} but got {enformer_interval.width()}"
 
-                sequences[f'shift:{shift}'] = self._extract_seq(tss=tss, interval=shifted_enformer_interval,
-                                                                variant=variant)
+                sequences.append(self._extract_seq(tss=tss, interval=shifted_enformer_interval,
+                                                   variant=variant))
 
             metadata = {
                 "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
@@ -191,8 +224,9 @@ class VCFTSSDataloader(TSSDataloader):
                 "variant_end": variant.end,  # 1-based
                 "ref": variant.ref,
                 "alt": variant.alt,
+                "shifts": np.array(self.shifts)
             }
-            yield metadata, sequences,
+            yield metadata, np.stack(sequences),
 
     def _extract_seq(self, tss: int, interval: Interval, variant: Variant):
         assert interval.width() == self.seq_length, f"interval width must be {self.seq_length} but got {interval.width()}"
@@ -236,6 +270,31 @@ class VCFTSSDataloader(TSSDataloader):
             variant_fetcher=variants,
             pranges=roi,
             interval_attrs=interval_attrs
+        )
+
+    @property
+    def pyarrow_metadata_schema(self):
+        """
+        Get the pyarrow schema for the metadata.
+        :return: PyArrow schema for the metadata
+        """
+        return pa.schema(
+            [
+                ('enformer_start', pa.int64()),
+                ('enformer_end', pa.int64()),
+                ('tss', pa.int64()),
+                ('chr', pa.string()),
+                ('strand', pa.string()),
+                ('gene_id', pa.string()),
+                ('transcript_id', pa.string()),
+                ('transcript_start', pa.int64()),
+                ('transcript_end', pa.int64()),
+                ('variant_start', pa.int64()),
+                ('variant_end', pa.int64()),
+                ('ref', pa.string()),
+                ('alt', pa.string()),
+                ('shifts', pa.list_(pa.int64())),
+            ]
         )
 
 
