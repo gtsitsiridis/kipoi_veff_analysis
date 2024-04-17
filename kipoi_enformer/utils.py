@@ -2,7 +2,7 @@ import pathlib
 import numpy as np
 import tensorflow_hub as hub
 import tensorflow as tf
-from .dataloader import VCFDataloader
+from .dataloader import VCFTSSDataloader
 from kipoi_enformer.logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -40,7 +40,7 @@ class Enformer:
         else:
             self._model = model
 
-    def predict(self, dataloader: VCFDataloader, batch_size: int, filepath: str | pathlib.Path):
+    def predict(self, dataloader: VCFTSSDataloader, batch_size: int, filepath: str | pathlib.Path):
         """
         Predict on a dataloader and save the results in a parquet file
         :param filepath:
@@ -55,13 +55,12 @@ class Enformer:
         # Hint: order matters
         schema = pa.schema(
             [
-                (f'tracks_{allele}_{shift}', pa.list_(pa.list_(pa.float32())))
+                (f'tracks:shift:{shift}', pa.list_(pa.list_(pa.float32())))
                 for shift in dataloader.shifts
-                for allele in ['ref', 'alt']
             ] + [
                 ('enformer_start', pa.int64()),
                 ('enformer_end', pa.int64()),
-                ('landmark_pos', pa.int64()),
+                ('tss', pa.int64()),
                 ('chr', pa.string()),
                 ('strand', pa.string()),
                 ('gene_id', pa.string()),
@@ -106,7 +105,7 @@ class Enformer:
 
         results = {
             'metadata': batch['metadata'],
-            'predictions': {f'tracks_{k}': predictions[i, :, :, :] for i, k in enumerate(batch['sequences'].keys())}
+            'predictions': {f'tracks:{k}': predictions[i, :, :, :] for i, k in enumerate(batch['sequences'].keys())}
         }
         return results
 
@@ -154,13 +153,13 @@ class EnformerVeff:
         :param output_path: The parquet file that will contain the veff values.
         :param num_bins: number of bins to average over for each variant-transcript pair
         :param shift: The shift applied to the central sequence.
-        The average predictions will be calculated at the landmark bin of each variant-transcript pair.
+        The average predictions will be calculated at the tss bin of each variant-transcript pair.
         """
 
         schema = pa.schema(
             [('enformer_start', pa.int64()),
              ('enformer_end', pa.int64()),
-             ('landmark_pos', pa.int64()),
+             ('tss', pa.int64()),
              ('chr', pa.string()),
              ('strand', pa.string()),
              ('gene_id', pa.string()),
@@ -232,11 +231,11 @@ class EnformerVeff:
         ref_preds = []
         alt_preds = []
         for shift in shifts:
-            # estimate the landmark bin
+            # estimate the tss bin
             # todo verify this calculation
-            landmark_bin = (pred_seq_length // 2 + 1 - shift) // bin_size
-            # get num_bins - 1 neighboring bins centered at landmark bin
-            bins = [landmark_bin + i for i in range(-math.floor(num_bins / 2), math.ceil(num_bins / 2))]
+            tss_bin = (pred_seq_length // 2 + 1 - shift) // bin_size
+            # get num_bins - 1 neighboring bins centered at tss bin
+            bins = [tss_bin + i for i in range(-math.floor(num_bins / 2), math.ceil(num_bins / 2))]
             assert len(bins) == num_bins
             ref = np.stack(frame[f'tracks_ref_{shift}'].to_list())[:, bins, :][:, :, tracks]
             alt = np.stack(frame[f'tracks_alt_{shift}'].to_list())[:, bins, :][:, :, tracks]

@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 from kipoi.data import SampleGenerator
 from kipoiseq import Interval, Variant
 from kipoiseq.extractors import VariantSeqExtractor, SingleVariantMatcher, BaseExtractor, FastaStringExtractor
@@ -7,12 +9,129 @@ import pyranges as pr
 from kipoiseq.extractors import MultiSampleVCF
 from kipoiseq.transforms.functional import one_hot_dna
 
+__all__ = ['TSSDataloader', 'RefTSSDataloader', 'VCFTSSDataloader', 'get_tss_from_genome_annotation']
+
 # length of sequence which enformer gets as input
 # ═════┆═════┆════════════════════════┆═════┆═════
 SEQUENCE_LENGTH = 393_216
 
 
-class VCFDataloader(SampleGenerator):
+class TSSDataloader(SampleGenerator, ABC):
+    def __init__(self, fasta_file, gtf_file, seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None,
+                 canonical_only: bool = False, protein_coding_only: bool = False, *args, **kwargs):
+        """
+
+        :param fasta_file: Fasta file with the reference genome
+        :param gtf_file: GTF file with genome annotation
+        :param seq_length: The length of the sequence to return. This should be the length of the Enformer input sequence.
+        :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
+        :param size: The number of samples to return. If None, all samples are returned.
+        :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
+        :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
+        """
+
+        super().__init__(*args, **kwargs)
+        assert shift >= 0, f"shift must be positive or zero but got {shift}"
+        assert shift < seq_length, f"shift must be smaller than seq_length but got {shift} >= {seq_length}"
+
+        self.reference_sequence = FastaStringExtractor(fasta_file, use_strand=True)
+        if not self.reference_sequence.use_strand:
+            raise ValueError(
+                "Reference sequence fetcher does not use strand but this is needed to obtain correct sequences!")
+        self.variant_seq_extractor = VariantSeqExtractor(reference_sequence=self.reference_sequence)
+        self.canonical_only = canonical_only
+        self.protein_coding_only = protein_coding_only
+        self.size = size
+        self.seq_length = seq_length
+        self.gtf_file = gtf_file
+        self.genome_annotation = get_tss_from_genome_annotation(gtf_file, canonical_only=canonical_only,
+                                                                protein_coding_only=protein_coding_only)
+        self.shifts = (0,) if shift == 0 else (-shift, 0, shift)
+
+    @abstractmethod
+    def __len__(self):
+        raise NotImplementedError("The length of the dataset is not known.")
+
+    @abstractmethod
+    def _sample_gen(self):
+        """
+        Generate samples for the dataset. The generator should return a tuple of metadata and sequences.
+        :return:
+        """
+        raise NotImplementedError("The sample generator is not implemented.")
+
+    def __iter__(self):
+        """
+        Iterate over the dataset.
+
+        :return: Iterator over the dataset. Each item is a dictionary with the following
+            keys:
+            - sequences: Dictionary of sequences for each TSS shift
+            - metadata: Dictionary with metadata for the sample
+        """
+        counter = 0
+        for metadata, sequences in self._sample_gen():
+            # check if we reached the end of the dataset
+            if self.size is not None and counter == self.size:
+                break
+            counter += 1
+
+            yield {
+                "sequences": sequences,
+                "metadata": metadata
+            }
+
+
+class RefTSSDataloader(TSSDataloader):
+    def __init__(self, fasta_file, gtf_file, seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None,
+                 canonical_only: bool = False, protein_coding_only: bool = False, *args, **kwargs):
+        """
+
+        :param fasta_file: Fasta file with the reference genome
+        :param gtf_file: GTF file with genome annotation
+        :param seq_length: The length of the sequence to return. This should be the length of the Enformer input sequence.
+        :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
+        :param size: The number of samples to return. If None, all samples are returned.
+        :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
+        :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
+        """
+
+        super().__init__(fasta_file=fasta_file, gtf_file=gtf_file, seq_length=seq_length, shift=shift, size=size,
+                         canonical_only=canonical_only, protein_coding_only=protein_coding_only, *args, **kwargs)
+
+    def _sample_gen(self):
+        for _, row in self.genome_annotation.iterrows():
+            chromosome = row['Chromosome']
+            strand = row.get('Strand', '.')
+            tss = row['tss']
+            enformer_interval = construct_enformer_interval(chromosome, strand, tss, self.seq_length)
+            sequences = dict()
+            # shift intervals and extract sequences
+            for shift in self.shifts:
+                shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
+                assert shifted_enformer_interval.width() == self.seq_length, \
+                    f"enformer_interval width must be {self.seq_length} but got {enformer_interval.width()}"
+                sequences[f'shift:{shift}'] = one_hot_dna(self.reference_sequence.extract(shifted_enformer_interval))
+
+            metadata = {
+                "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
+                "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
+                "tss": tss,  # 0-based position of the TSS
+                "chr": chromosome,
+                "strand": strand,
+                "gene_id": row['gene_id'],
+                "transcript_id": row['transcript_id'],
+                "transcript_start": row['transcript_start'],  # 0-based
+                "transcript_end": row['transcript_end'],  # 1-based
+            }
+
+            yield metadata, sequences
+
+    def __len__(self):
+        return len(self.genome_annotation)
+
+
+class VCFTSSDataloader(TSSDataloader):
     def __init__(self, fasta_file, gtf_file, vcf_file, vcf_lazy=True, variant_upstream_tss: int = 10,
                  variant_downstream_tss: int = 10, seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None,
                  canonical_only: bool = False, protein_coding_only: bool = False, *args, **kwargs):
@@ -31,111 +150,23 @@ class VCFDataloader(SampleGenerator):
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
         """
 
-        super().__init__(*args, **kwargs)
+        super().__init__(fasta_file=fasta_file, gtf_file=gtf_file, seq_length=seq_length, shift=shift, size=size,
+                         canonical_only=canonical_only, protein_coding_only=protein_coding_only, *args, **kwargs)
         assert shift < variant_downstream_tss + variant_upstream_tss + 1, \
             f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {variant_downstream_tss + variant_upstream_tss + 1}"
-        assert shift >= 0, f"shift must be positive or zero but got {shift}"
-        assert shift < seq_length, f"shift must be smaller than seq_length but got {shift} >= {seq_length}"
 
-        self.reference_sequence = FastaStringExtractor(fasta_file, use_strand=True)
-        if not self.reference_sequence.use_strand:
-            raise ValueError(
-                "Reference sequence fetcher does not use strand but this is needed to obtain correct sequences!")
         self.variant_seq_extractor = VariantSeqExtractor(reference_sequence=self.reference_sequence)
-        self.canonical_only = canonical_only
-        self.protein_coding_only = protein_coding_only
-        self.size = size
-        self.seq_length = seq_length
-        self.gtf_file = gtf_file
         self.vcf_file = vcf_file
+        self.vcf_lazy = vcf_lazy
         self.variant_upstream_tss = variant_upstream_tss
         self.variant_downstream_tss = variant_downstream_tss
-        self.matcher = get_single_variant_matcher(gtf_file, vcf_file, vcf_lazy, variant_upstream_tss,
-                                                  variant_downstream_tss, canonical_only, protein_coding_only)
-        self.shifts = (0,) if shift == 0 else (-shift, 0, shift)
 
-    def _extract_seq(self, landmark: int, interval: Interval, variant: Variant):
-        assert interval.width() == self.seq_length, f"interval width must be {self.seq_length} but got {interval.width()}"
-
-        # Note: If the landmark is within the variant's interval
-        # ====|----------Variant----------|=======
-        # ===========|Landmark|===================
-        # We take as the new landmark the first base downstream the variant
-        # For an explanation on how this works, look at the function
-        # VariantSeqExtractor.extract(self, interval, variants, anchor, fixed_len=True, **kwargs)
-
-        # the landmark/anchor is going to be in the middle of the sequence for both alleles
-        ref_seq = self.reference_sequence.extract(interval)
-        alt_seq = self.variant_seq_extractor.extract(
-            interval,
-            [variant],
-            anchor=landmark
-        )
-
-        return one_hot_dna(ref_seq), one_hot_dna(alt_seq)
-
-    def __len__(self):
-        tmp_matcher = get_single_variant_matcher(self.gtf_file, self.vcf_file, False, self.variant_upstream_tss,
-                                                 self.variant_downstream_tss, self.canonical_only,
-                                                 self.protein_coding_only)
-        total = sum(1 for _, _ in tmp_matcher)
-        if self.size:
-            return min(self.size, total)
-        return total
-
-    def __iter__(self):
-        """
-        Iterate over the dataset.
-
-        :return: Iterator over the dataset. Each item is a dictionary with the following
-            keys:
-            - sequences: Dictionary with the following keys:
-                - ref: List of reference sequences for each shift
-                - alt: List of alternative sequences for each shift
-            - metadata: Dictionary with the following keys:
-                - shift: Shift of the Enformer input sequence
-                - enformer_start: 0-based start of the Enformer input sequence
-                - enformer_stop: 1-based stop of the Enformer input sequence
-                - landmark_pos: 0-based position of the landmark (TSS)
-                - chr: Chromosome
-                - strand: Strand
-                - gene_id: Gene ID
-                - transcript_id: Transcript ID
-                - transcript_start: 0-based
-                - transcript_end: 1-based
-                - variant_start: 0-based
-                - variant_stop: 1-based
-                - ref: Reference allele
-                - alt: Alternative allele
-        """
-        interval: Interval
-        variant: Variant
-        counter = 0
-        for interval, variant in self.matcher:
-            # check if we reached the end of the dataset
-            if self.size is not None and counter == self.size:
-                break
-            counter += 1
-
+    def _sample_gen(self):
+        for interval, variant in self._get_single_variant_matcher(self.vcf_lazy):
             attrs = interval.attrs
-            landmark = attrs['landmark']
+            tss = attrs['tss']
 
-            # enformer input interval without shift
-            # the landmark is in the middle of the enformer input sequence
-            # if the sequence length is even, the landmark is closer to the end of the sequence by 1 base,
-            # because the end is 1 based
-            # if the sequence length is odd, the landmark is in the middle of the sequence
-            five_end_len = math.floor(self.seq_length / 2)
-            three_end_len = math.ceil(self.seq_length / 2)
-            enformer_interval = Interval(chrom=interval.chrom,
-                                         start=landmark - five_end_len,
-                                         end=landmark + three_end_len,
-                                         strand=interval.strand)
-            assert enformer_interval.width() == self.seq_length, \
-                f"enformer_interval width must be {self.seq_length} but got {enformer_interval.width()}"
-            assert (landmark - enformer_interval.start) == self.seq_length // 2, \
-                f"landmark must be in the middle of the enformer_interval but got {landmark - enformer_interval.start}"
-
+            enformer_interval = construct_enformer_interval(interval.chrom, interval.strand, tss, self.seq_length)
             sequences = dict()
             # shift intervals and extract sequences
             for shift in self.shifts:
@@ -143,29 +174,69 @@ class VCFDataloader(SampleGenerator):
                 assert shifted_enformer_interval.width() == self.seq_length, \
                     f"enformer_interval width must be {self.seq_length} but got {enformer_interval.width()}"
 
-                ref_seq, alt_seq = self._extract_seq(landmark=landmark, interval=shifted_enformer_interval,
-                                                     variant=variant)
-                sequences[f'ref_{shift}'] = ref_seq
-                sequences[f'alt_{shift}'] = alt_seq
+                sequences[f'shift:{shift}'] = self._extract_seq(tss=tss, interval=shifted_enformer_interval,
+                                                                variant=variant)
 
-            yield {
-                "sequences": sequences,
-                "metadata": {
-                    "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
-                    "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
-                    "landmark_pos": landmark,  # 0-based position of the landmark (TSS)
-                    "chr": interval.chrom,
-                    "strand": interval.strand,
-                    "gene_id": attrs['gene_id'],
-                    "transcript_id": attrs['transcript_id'],
-                    "transcript_start": attrs['transcript_start'],  # 0-based
-                    "transcript_end": attrs['transcript_end'],  # 1-based
-                    "variant_start": variant.start,  # 0-based
-                    "variant_end": variant.end,  # 1-based
-                    "ref": variant.ref,
-                    "alt": variant.alt,
-                }
+            metadata = {
+                "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
+                "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
+                "tss": tss,  # 0-based position of the TSS
+                "chr": interval.chrom,
+                "strand": interval.strand,
+                "gene_id": attrs['gene_id'],
+                "transcript_id": attrs['transcript_id'],
+                "transcript_start": attrs['transcript_start'],  # 0-based
+                "transcript_end": attrs['transcript_end'],  # 1-based
+                "variant_start": variant.start,  # 0-based
+                "variant_end": variant.end,  # 1-based
+                "ref": variant.ref,
+                "alt": variant.alt,
             }
+            yield metadata, sequences,
+
+    def _extract_seq(self, tss: int, interval: Interval, variant: Variant):
+        assert interval.width() == self.seq_length, f"interval width must be {self.seq_length} but got {interval.width()}"
+
+        # Note: If the tss is within the variant's interval
+        # ====|----------Variant----------|=======
+        # ===========|TSS|===================
+        # We take as the new tss the first base downstream the variant
+        # For an explanation on how this works, look at the function
+        # VariantSeqExtractor.extract(self, interval, variants, anchor, fixed_len=True, **kwargs)
+
+        # the tss/anchor is going to be in the middle of the sequence for both alleles
+        alt_seq = self.variant_seq_extractor.extract(
+            interval,
+            [variant],
+            anchor=tss
+        )
+
+        return one_hot_dna(alt_seq)
+
+    def __len__(self):
+        tmp_matcher = self._get_single_variant_matcher(vcf_lazy=False)
+        total = sum(1 for _, _ in tmp_matcher)
+        if self.size:
+            return min(self.size, total)
+        return total
+
+    def _get_single_variant_matcher(self, vcf_lazy=True):
+        # reads the genome annotation
+        # start and end are transformed to 0-based and 1-based respectively
+        roi = pr.PyRanges(self.genome_annotation)
+        roi = roi.extend(ext={"5": self.variant_upstream_tss, "3": self.variant_downstream_tss})
+        # todo do assert length of roi
+
+        interval_attrs = ['gene_id', 'transcript_id', 'tss', 'transcript_start', 'transcript_end']
+        for attr in interval_attrs:
+            assert attr in roi.columns, f"attr must be in {roi.columns}"
+        variants = MultiSampleVCF(self.vcf_file, lazy=vcf_lazy)
+
+        return SingleVariantMatcher(
+            variant_fetcher=variants,
+            pranges=roi,
+            interval_attrs=interval_attrs
+        )
 
 
 def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_negative_strand: bool) -> (int, int):
@@ -185,12 +256,9 @@ def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_ne
     return tss, tss + 1
 
 
-def get_tss_from_genome_annotation(gtf_file: str, canonical_only: bool, protein_coding_only: bool):
+def get_tss_from_genome_annotation(gtf_file: str, protein_coding_only: bool = False, canonical_only: bool = False):
     """
     Get TSS from genome annotation
-    :param canonical_only:
-    :param protein_coding_only:
-    :param gtf_file: str, path to the GTF file
     :return: genome_annotation with additional columns tss (0-based), transcript_start (0-based), transcript_end (1-based)
     """
     genome_annotation = pr.read_gtf(gtf_file, as_df=True, duplicate_attr=True)
@@ -210,7 +278,6 @@ def get_tss_from_genome_annotation(gtf_file: str, canonical_only: bool, protein_
         start, end = get_tss_from_transcript(row.Start, row.End, row.Strand == '-')
         row.Start = start
         row.End = end
-
         return row
 
     roi = roi.apply(adjust_row, axis=1)
@@ -218,23 +285,20 @@ def get_tss_from_genome_annotation(gtf_file: str, canonical_only: bool, protein_
     return roi
 
 
-def get_single_variant_matcher(gtf_file: str, vcf_file: str, vcf_lazy: bool, upstream_tss: int, downstream_tss: int,
-                               canonical_only: bool, protein_coding_only: bool):
-    # reads the genome annotation
-    # start and end are transformed to 0-based and 1-based respectively
-    genome_annotation = get_tss_from_genome_annotation(gtf_file, canonical_only, protein_coding_only)
-    roi = pr.PyRanges(genome_annotation)
-    roi = roi.extend(ext={"5": upstream_tss, "3": downstream_tss})
-    roi.landmark = roi.tss
-    # todo do assert length of roi
-
-    interval_attrs = ['gene_id', 'transcript_id', 'landmark', 'transcript_start', 'transcript_end']
-    for attr in interval_attrs:
-        assert attr in roi.columns, f"attr must be in {roi.columns}"
-    variants = MultiSampleVCF(vcf_file, lazy=vcf_lazy)
-
-    return SingleVariantMatcher(
-        variant_fetcher=variants,
-        pranges=roi,
-        interval_attrs=interval_attrs
-    )
+def construct_enformer_interval(chrom, strand, tss, seq_length):
+    # enformer input interval without shift
+    # the tss is in the middle of the enformer input sequence
+    # if the sequence length is even, the tss is closer to the end of the sequence by 1 base,
+    # because the end is 1 based
+    # if the sequence length is odd, the tss is in the middle of the sequence
+    five_end_len = math.floor(seq_length / 2)
+    three_end_len = math.ceil(seq_length / 2)
+    enformer_interval = Interval(chrom=chrom,
+                                 start=tss - five_end_len,
+                                 end=tss + three_end_len,
+                                 strand=strand)
+    assert enformer_interval.width() == seq_length, \
+        f"enformer_interval width must be {seq_length} but got {enformer_interval.width()}"
+    assert (tss - enformer_interval.start) == seq_length // 2, \
+        f"tss must be in the middle of the enformer_interval but got {tss - enformer_interval.start}"
+    return enformer_interval

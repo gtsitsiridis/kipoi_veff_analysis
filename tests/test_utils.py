@@ -1,6 +1,6 @@
 import pytest
 
-from kipoi_enformer.dataloader import VCFDataloader
+from kipoi_enformer.dataloader import VCFTSSDataloader
 import tensorflow as tf
 from kipoi_enformer.utils import Enformer, EnformerVeff
 from pathlib import Path
@@ -40,7 +40,7 @@ def enformer_tracks_path():
 
 
 def run_enformer(example_files, model, output_path, size, batch_size):
-    dl = VCFDataloader(
+    dl = VCFTSSDataloader(
         fasta_file=example_files['fasta'],
         gtf_file=example_files['gtf'],
         vcf_file=example_files['vcf'],
@@ -57,9 +57,9 @@ def run_enformer(example_files, model, output_path, size, batch_size):
     table = pq.read_table(output_path)
     logger.info(table.schema)
 
-    assert table.shape == (size, 6 + 13)
+    assert table.shape == (size, 3 + 13)
 
-    x = table['tracks_ref_0'].to_pylist()
+    x = table['tracks:shift:0'].to_pylist()
     x = np.array(x)
     assert x.shape == (size, 896, 5313)
 

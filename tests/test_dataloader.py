@@ -1,6 +1,6 @@
 import pytest
 
-from kipoi_enformer.dataloader import VCFDataloader, get_tss_from_genome_annotation
+from kipoi_enformer.dataloader import VCFTSSDataloader, RefTSSDataloader, get_tss_from_genome_annotation
 from kipoiseq.transforms.functional import one_hot2string
 
 UPSTREAM_TSS = 10
@@ -118,6 +118,83 @@ def variants():
     }
 
 
+@pytest.fixture()
+def references():
+    return {
+        # Positive strand
+        # SNP
+        # ===|TSS|===|Var|=======================
+        'chr22:ENST00000438441.1': {
+            'chrom': 'chr22',
+            'strand': '+',
+            'tss': 16364866,  # 0-based
+            'start': 16364856,  # 0-based
+            'end': 16364877,  # 1-based
+            'seq': 'ACTGGCTGGCCATGCCGTCCC',
+        },
+        # Positive strand
+        # SNP
+        # ===|Var|===|TSS|=======================
+        'chr22:ENST00000694950.1_1': {
+            'chrom': 'chr22',
+            'strand': '+',
+            'tss': 17565901,  # 0-based
+            'start': 17565891,  # 0-based
+            'end': 17565912,  # 1-based
+            'seq': 'CTCGAACTCCACCGCGGAAAA',
+        },
+        # Negative strand
+        # SNP
+        # ===|Var|===|TSS|=======================
+        'chr22:ENST00000583607.1': {
+            'chrom': 'chr22',
+            'strand': '-',
+            'tss': 16570005,  # 0-based
+            'start': 16569995,  # 0-based
+            'end': 16570016,  # 1-based
+            # complement: CTGCAACGAGGGTCTGCATGT
+            'seq': 'ACATGCAGACCCTCGTTGCAG',
+        },
+        # Negative strand
+        # Deletion
+        # ===|Var|===|TSS|=======================
+        'chr22:ENST00000403642.5_3': {
+            'chrom': 'chr22',
+            'strand': '-',
+            'tss': 29130708,  # 0-based
+            'start': 29130698,  # 0-based
+            'end': 29130719,  # 1-based
+            # complement: TCCCGAGACATCACGACCTCA
+            'seq': 'TGAGGTCGTGATGTCTCGGGA',
+        },
+        # Negative strand
+        # Insertion
+        # ===|Var|===|TSS|=======================
+        'chr22:ENST00000545799.5_4': {
+            'chrom': 'chr22',
+            'strand': '-',
+            'tss': 19109966,  # 0-based
+            'start': 19109956,  # 0-based
+            'end': 19109977,  # 1-based
+            # complement: CGCCCCGCCCCGCCTCCCGCC
+            'seq': 'GGCGGGAGGCGGGGCGGGGCG',
+        },
+        # special case: the TSS is within the variant's interval; we take the downstream TSS
+        # Negative strand
+        # Deletion
+        # ===|Var|===|TSS|=======================
+        'chr22:ENST00000462645.1_3': {
+            'chrom': 'chr22',
+            'strand': '-',
+            'tss': 18359468,
+            'start': 18359458,
+            'end': 18359479,
+            # complement 'TGCAGGGTTATGGAGGTTAGG',
+            'seq': 'CCTAACCTCCATAACCCTGCA',
+        },
+    }
+
+
 def test_get_tss_from_genome_annotation(chr22_example_files):
     roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=False, canonical_only=False)
 
@@ -170,8 +247,8 @@ def test_genome_annotation_protein_canonical(chr22_example_files):
     assert len(roi) == 441
 
 
-def test_dataloader(chr22_example_files, variants):
-    dl = VCFDataloader(
+def test_vcf_dataloader(chr22_example_files, variants):
+    dl = VCFTSSDataloader(
         fasta_file=chr22_example_files['fasta'],
         gtf_file=chr22_example_files['gtf'],
         vcf_file=chr22_example_files['vcf'],
@@ -191,11 +268,34 @@ def test_dataloader(chr22_example_files, variants):
                   f'{metadata["transcript_id"]}')
         variant = variants.get(var_id, None)
         if variant is not None:
-            assert one_hot2string(i['sequences']['ref_0'][None, :, :])[0] == variant['ref_seq']
-            assert one_hot2string(i['sequences']['alt_0'][None, :, :])[0] == variant['alt_seq']
+            # assert one_hot2string(i['sequences']['shift:0'][None, :, :])[0] == variant['ref_seq']
+            assert one_hot2string(i['sequences']['shift:0'][None, :, :])[0] == variant['alt_seq']
             checked_variants[var_id] = 2
-        # print(i['metadata'])
 
     # check that all variants in my list were found and checked
     assert set(checked_variants.keys()) == set(variants.keys())
+    print(total)
+
+
+def test_ref_dataloader(chr22_example_files, references):
+    dl = RefTSSDataloader(
+        fasta_file=chr22_example_files['fasta'],
+        gtf_file=chr22_example_files['gtf'],
+        seq_length=21,
+        shift=0,
+    )
+    total = 0
+    checked_refs = dict()
+    for i in dl:
+        total += 1
+        metadata = i['metadata']
+        # example: chr22:16364873:G>A_
+        ref_id = f'{metadata["chr"]}:{metadata["transcript_id"]}'
+        ref = references.get(ref_id)
+        if ref is not None:
+            assert one_hot2string(i['sequences']['shift:0'][None, :, :])[0] == ref['seq']
+            checked_refs[ref_id] = 2
+
+    # check that all variants in my list were found and checked
+    assert set(checked_refs.keys()) == set(references.keys())
     print(total)
