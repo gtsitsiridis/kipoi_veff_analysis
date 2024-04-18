@@ -1,6 +1,7 @@
 import pytest
 
-from kipoi_enformer.dataloader import VCFTSSDataloader, RefTSSDataloader, get_tss_from_genome_annotation
+from kipoi_enformer.dataloader import VCFTSSDataloader, RefTSSDataloader
+from kipoi_enformer.utils import get_tss_from_genome_annotation
 from kipoiseq.transforms.functional import one_hot2string
 
 UPSTREAM_TSS = 10
@@ -269,7 +270,7 @@ def test_vcf_dataloader(chr22_example_files, variants):
         variant = variants.get(var_id, None)
         if variant is not None:
             # assert one_hot2string(i['sequences']['shift:0'][None, :, :])[0] == variant['ref_seq']
-            assert one_hot2string(i['sequences']['shift:0'][None, :, :])[0] == variant['alt_seq']
+            assert one_hot2string(i['sequences'])[0] == variant['alt_seq']
             checked_variants[var_id] = 2
 
     # check that all variants in my list were found and checked
@@ -293,7 +294,7 @@ def test_ref_dataloader(chr22_example_files, references):
         ref_id = f'{metadata["chr"]}:{metadata["transcript_id"]}'
         ref = references.get(ref_id)
         if ref is not None:
-            assert one_hot2string(i['sequences']['shift:0'][None, :, :])[0] == ref['seq']
+            assert one_hot2string(i['sequences'])[0] == ref['seq']
             checked_refs[ref_id] = 2
 
     # check that all variants in my list were found and checked
