@@ -13,9 +13,9 @@ def setup_logger():
 
 @pytest.fixture
 def chr22_example_files():
-    base = Path("assets/example_files/chr22")
+    base = Path("assets/example_files")
     return {
-        'fasta': base / "seq.chr22.fa",
-        'gtf': base / "annot.chr22.gtf",
-        'vcf': base / "promoter_variants.chr22.vcf",
+        'fasta': base / "seq.fa",
+        'gtf': base / "annot.gtf",
+        'vcf': base / "vcf" / "promoter_var_1.vcf",
     }

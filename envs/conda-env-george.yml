@@ -22,4 +22,7 @@ dependencies:
   - ipywidgets=7.7.2
   - scikit-learn=1.4.1.post1
   - polars=0.20.19
+  - snakemake=7.32.4
+  - jupyterlab=4.1.6
+  - jupytext=1.16.1
   - pip:

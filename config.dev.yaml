@@ -1,0 +1,15 @@
+vcf_list:
+  - vcf_dev:
+      input_dir: assets/example_files/vcf
+      variant_upstream_tss: 500
+      variant_downstream_tss: 100
+
+genome:
+  gtf_file: assets/example_files/annot.gtf
+  fasta_file: assets/example_files/seq.fa
+
+enformer:
+  shift: 43
+  batch_size: 5
+  tissue_mapper_file: assets/gtex_enformer_lm_models_pseudocount1.pkl
+  tissue_mapper_tracks: assets/cage_nonuniversal_enformer_tracks.yaml
