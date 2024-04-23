@@ -13,6 +13,7 @@ import math
 import yaml
 import pickle
 import polars as pl
+import multiprocessing as mp
 
 __all__ = ['Enformer', 'EnformerTissueMapper', 'calculate_veff']
 
@@ -137,13 +138,15 @@ class EnformerTissueMapper:
         with open(tracks_path, 'rb') as f:
             self.tracks_dict = yaml.safe_load(f)
 
-    def predict(self, prediction_path: str | pathlib.Path, output_path: str | pathlib.Path, num_bins: int = 3):
+    def predict(self, prediction_path: str | pathlib.Path, output_path: str | pathlib.Path, num_bins: int = 2,
+                num_workers: int = 4):
         """
         Load the predictions from the parquet file lazily.
         For each record, calculate the average predictions over the bins centered at the tss bin.
         For each tissue in the tissue_matcher_lm_dict, predict a tissue-specific expression score.
         Finally, save the expression scores in a new parquet file.
 
+        :param num_workers:
         :param prediction_path: The parquet file that contains the enformer predictions.
         :param batch_size: The number of records to read and write at once.
         :param output_path: The parquet file that will contain the tissue-specific expression scores.
@@ -169,40 +172,45 @@ class EnformerTissueMapper:
         base_dir = pathlib.Path(output_path)
         base_dir.mkdir(parents=False, exist_ok=False)
         logger.debug(f'Iterating over the parquet files in {prediction_path}')
+        pool_obj = mp.Pool(num_workers)
         batch_counter = 0
         for pred_file in tqdm(prediction_dataset.files):
-            with pq.ParquetWriter(base_dir / pathlib.Path(pred_file).name, output_schema) as writer:
-                batch_counter += 1
-                batch_agg_pred, batch_meta = self._aggregate_batch(pl.read_parquet(pred_file),
-                                                                   Enformer.PRED_SEQUENCE_LENGTH,
-                                                                   Enformer.BIN_SIZE, num_bins, shifts, tracks)
-                logger.debug('Running model on the batch...')
-                record_batch = self._predict_batch(batch_agg_pred, batch_meta)
-                logger.debug('Writing to file')
-                writer.write(record_batch)
-
+            batch_counter += 1
+            tissue_map = EnformerTissueMapperJob(self.tissue_matcher_lm_dict, pl.read_parquet(pred_file),
+                                                 Enformer.PRED_SEQUENCE_LENGTH, Enformer.BIN_SIZE, num_bins, shifts,
+                                                 tracks)
+            pool_obj.apply_async(tissue_map, args=(base_dir / f'part{batch_counter}.parquet', output_schema))
+        pool_obj.close()
+        pool_obj.join()
         # sanity check
         assert batch_counter == len(prediction_dataset.files)
 
-    @staticmethod
-    def _aggregate_batch(frame, pred_seq_length, bin_size, num_bins, shifts, tracks):
-        """
-        Aggregate the predictions for a record.
-        :param frame:
-        :param pred_seq_length:
-        :param bin_size:
-        :param num_bins:
-        :param tracks:
-        :return:
-        """
-        logger.debug('Aggregating the predictions for a batch')
 
-        pred = np.stack(frame['tracks'].to_list())
+class EnformerTissueMapperJob:
+
+    def __init__(self, tissue_matcher_lm_dict, frame, pred_seq_length, bin_size, num_bins, shifts, tracks):
+        self.tissue_matcher_lm_dict = tissue_matcher_lm_dict
+        self.frame = frame
+        self.pred_seq_length = pred_seq_length
+        self.bin_size = bin_size
+        self.num_bins = num_bins
+        self.shifts = shifts
+        self.tracks = tracks
+
+    def _aggregate(self):
+        logger.debug('Aggregating the predictions for a batch')
+        bin_size = self.bin_size
+        num_bins = self.num_bins
+        shifts = self.shifts
+        tracks = self.tracks
+        frame = self.frame
+
+        pred = np.stack(self.frame['tracks'].to_list())
         agg_pred = []
         for shift_i, shift in enumerate(shifts):
             # estimate the tss bin
             # todo verify this calculation
-            tss_bin = (pred_seq_length // 2 + 1 - shift) // bin_size
+            tss_bin = (self.pred_seq_length // 2 + 1 - shift) // bin_size
             # get num_bins - 1 neighboring bins centered at tss bin
             bins = [tss_bin + i for i in range(-math.floor(num_bins / 2), math.ceil(num_bins / 2))]
             assert len(bins) == num_bins
@@ -218,22 +226,24 @@ class EnformerTissueMapper:
         metadata = frame.select([k for k in frame.columns if k != 'tracks']).to_dict(as_series=False)
         return agg_pred, metadata
 
-    def _predict_batch(self, batch_agg_pred, batch_meta):
+    def _predict(self, batch_agg_pred, batch_meta):
         """
         Map the enformer predictions to the GTEx tissues using the linear models.
         :param batch_agg_pred: The averaged predictions.
         :param batch_meta: The metadata for each record.
         :return:
         """
+
+        tissue_matcher_lm_dict = self.tissue_matcher_lm_dict
         batch_agg_pred = np.log10(batch_agg_pred + 1)
         tissue_scores = defaultdict()
-        for tissue, lm in self.tissue_matcher_lm_dict.items():
+        for tissue, lm in tissue_matcher_lm_dict.items():
             tissue_scores[tissue] = lm.predict(batch_agg_pred)
 
         scores = []
         tissues = []
         meta = defaultdict(list)
-        for tissue in self.tissue_matcher_lm_dict.keys():
+        for tissue in tissue_matcher_lm_dict.keys():
             tissues.extend([tissue] * len(batch_agg_pred))
             scores.extend(tissue_scores[tissue].tolist())
             for k, v in batch_meta.items():
@@ -247,8 +257,16 @@ class EnformerTissueMapper:
         # write to parquet
         return pa.RecordBatch.from_arrays(values, names=names)
 
+    def __call__(self, output_path, output_schema):
+        with pq.ParquetWriter(output_path, output_schema) as writer:
+            agg_pred, metadata = self._aggregate()
+            logger.debug('Running model on the batch...')
+            record_batch = self._predict(agg_pred, metadata)
+            logger.debug('Writing to file')
+            writer.write(record_batch)
 
-def calculate_veff(ref_path, alt_path, output_path):
+
+def calculate_veff(ref_path, alt_path, output_path, num_workers=4):
     logger.info('Reading the reference file into memory')
     ref_table = pq.ParquetDataset(ref_path).read()
     ref_metadata = ref_table.schema.metadata
@@ -260,16 +278,25 @@ def calculate_veff(ref_path, alt_path, output_path):
     base_path = pathlib.Path(output_path)
     base_path.mkdir(parents=False, exist_ok=False)
     alt_dataset = pq.ParquetDataset(alt_path)
+
+    pool_obj = mp.Pool(num_workers)
     for alt_file in alt_dataset.files:
-        alt_df = pl.read_parquet(alt_file).rename({'score': 'alt_score'})
-        alt_metadata = alt_dataset.schema.metadata
+        pool_obj.apply_async(_veff, args=(alt_file, alt_dataset, ref_df, ref_metadata, base_path))
+    pool_obj.close()
+    pool_obj.join()
 
-        assert alt_metadata[b'allele_type'] == b'ALT', 'The allele type of the alternate parquet file is not ALT'
-        alt_metadata = {k: v for k, v in alt_metadata.items() if k != b'allele_type'}
-        assert ref_metadata == alt_metadata, 'The metadata of the two parquet files do not match'
 
-        joined_df = alt_df.join(ref_df, how='left', on=[x for x in ref_df.columns if x != 'ref_score'])
-        joined_df = joined_df.with_columns((pl.col('alt_score') - pl.col('ref_score')).alias('delta_score'))
-        joined_df = joined_df.to_arrow()
-        joined_df = joined_df.replace_schema_metadata(alt_metadata)
-        pq.write_table(joined_df, base_path / pathlib.Path(alt_file).name)
+def _veff(alt_file: str, alt_dataset: pq.ParquetDataset, ref_df: pl.DataFrame,
+          ref_metadata: dict, base_path: pathlib.Path):
+    alt_df = pl.read_parquet(alt_file).rename({'score': 'alt_score'})
+    alt_metadata = alt_dataset.schema.metadata
+
+    assert alt_metadata[b'allele_type'] == b'ALT', 'The allele type of the alternate parquet file is not ALT'
+    alt_metadata = {k: v for k, v in alt_metadata.items() if k != b'allele_type'}
+    assert ref_metadata == alt_metadata, 'The metadata of the two parquet files do not match'
+
+    joined_df = alt_df.join(ref_df, how='left', on=[x for x in ref_df.columns if x != 'ref_score'])
+    joined_df = joined_df.with_columns((pl.col('alt_score') - pl.col('ref_score')).alias('delta_score'))
+    joined_df = joined_df.to_arrow()
+    joined_df = joined_df.replace_schema_metadata(alt_metadata)
+    pq.write_table(joined_df, base_path / pathlib.Path(alt_file).name)
