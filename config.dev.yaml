@@ -2,7 +2,7 @@ output_dir: output/exp1
 
 vcfs:
   gtex_v8_old_dna:
-    dir: assets/example_files/vcf
+    path: assets/example_files/vcf
     variant_upstream_tss: 500
     variant_downstream_tss: 100
 
@@ -17,3 +17,6 @@ enformer:
   tissue_matcher:
     tracks_path: assets/cage_nonuniversal_enformer_tracks.yaml
     model_path: assets/gtex_enformer_lm_models_pseudocount1.pkl
+    num_workers: 2
+  veff:
+    num_workers: 2

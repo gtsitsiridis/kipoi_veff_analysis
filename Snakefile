@@ -11,6 +11,8 @@ output_dir = pathlib.Path(config["output_dir"])
 (output_dir / 'enformer/tissue/veff').mkdir(parents=False,exist_ok=True)
 
 rule enformer_reference:
+    resources:
+        gpu=1
     output:
         prediction_dir=directory(f'{output_dir}/enformer/raw/ref/reference.parquet',)
     input:
@@ -21,12 +23,14 @@ rule enformer_reference:
 
 
 rule enformer_vcf:
+    resources:
+        gpu=1
     output:
         prediction_dir=directory(f'{output_dir}/enformer/raw/alt/' + '{vcf_name}/{vcf_id}.parquet')
     input:
         gtf_file=config["genome"]["gtf_file"],
         fasta_file=config["genome"]["fasta_file"],
-        vcf_file=lambda wildcards: f'{config["vcfs"][wildcards.vcf_name]["dir"]}/{wildcards.vcf_id}.vcf'
+        vcf_file=lambda wildcards: f'{config["vcfs"][wildcards.vcf_name]["path"]}/{wildcards.vcf_id}.vcf'
     wildcard_constraints:
         vcf_name="[^/]+",
         vcf_id="[^/]+",
@@ -55,18 +59,18 @@ rule veff:
         'scripts/veff.py'
 
 
-def vcf_files():
+def enformer_vcf_files():
     files = []
     for vcf_name, vcf in config["vcfs"].items():
-        for vcf_file in pathlib.Path(vcf["dir"]).glob('*.vcf'):
+        for vcf_file in pathlib.Path(vcf["path"]).glob('*.vcf'):
             files.extend(expand(rules.enformer_vcf.output,vcf_name=vcf_name,vcf_id=vcf_file.stem))
     return files
 
 
-def raw_alt_files():
+def alt_tissue_mapper_files():
     files = []
     for vcf_name, vcf in config["vcfs"].items():
-        for vcf_file in pathlib.Path(vcf["dir"]).glob('*.vcf'):
+        for vcf_file in pathlib.Path(vcf["path"]).glob('*.vcf'):
             files.extend(expand(rules.tissue_mapper.output,path=f'alt/{vcf_name}/{vcf_file.stem}'))
     return files
 
@@ -74,7 +78,7 @@ def raw_alt_files():
 def veff_files():
     files = []
     for vcf_name, vcf in config["vcfs"].items():
-        for vcf_file in pathlib.Path(vcf["dir"]).glob('*.vcf'):
+        for vcf_file in pathlib.Path(vcf["path"]).glob('*.vcf'):
             files.extend(expand(rules.veff.output,alt_path=f'{vcf_name}/{vcf_file.stem}'))
     return files
 
@@ -82,8 +86,15 @@ def veff_files():
 rule all:
     default_target: True
     input:
-        expand(rules.tissue_mapper.output,path='ref/reference'),
         rules.enformer_reference.output,
-        vcf_files(),
-        raw_alt_files(),
-        veff_files(),
+        enformer_vcf_files(),
+
+        # expand(rules.tissue_mapper.output, path='ref/reference'),
+        # alt_tissue_mapper_files(),
+        # veff_files(),
+
+
+        # todo figure out resources
+        # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]"
+        # N_CORES=4096 MEM_MB=8192000 N_JOBS=200 N_GPUS=128
+        # run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs
