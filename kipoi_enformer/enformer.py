@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow_hub as hub
 import tensorflow as tf
 from .dataloader import TSSDataloader
+from .utils import RandomModel
 from kipoi_enformer.logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -31,14 +32,15 @@ class Enformer:
     # ─────┆═════┆════════════════════════┆═════┆─────
     SEEN_SEQUENCE_LENGTH = NUM_SEEN_BINS * BIN_SIZE
 
-    def __init__(self, model: str | tf.keras.Model = MODEL_PATH):
+    def __init__(self, is_test: bool = False):
         """
-        :param model: path to model or tf.keras.Model
+        :param is_test: If True, load a random model for testing purposes.
         """
-        if isinstance(model, str):
-            self._model = hub.load(model).model
+        if not is_test:
+            logger.info(f'Loading model from {MODEL_PATH}')
+            self._model = hub.load(MODEL_PATH).model
         else:
-            self._model = model
+            self._model = RandomModel()
 
     def predict(self, dataloader: TSSDataloader, batch_size: int, filepath: str | pathlib.Path):
         """
@@ -48,7 +50,6 @@ class Enformer:
         :param batch_size:
         :return: filepath to the parquet dataset
         """
-
         logger.debug('Predicting on dataloader')
         assert batch_size > 0
 
@@ -58,8 +59,10 @@ class Enformer:
 
         batch_counter = 0
         total_batches = math.ceil(len(dataloader) / batch_size)
-        with pq.ParquetWriter(filepath, schema) as writer:
-            for batch in tqdm(dataloader.batch_iter(batch_size=batch_size), total=total_batches):
+        base_dir = pathlib.Path(filepath)
+        base_dir.mkdir(parents=False, exist_ok=False)
+        for batch in tqdm(dataloader.batch_iter(batch_size=batch_size), total=total_batches):
+            with pq.ParquetWriter(base_dir / f'part{batch_counter}.parquet', schema) as writer:
                 batch_counter += 1
                 batch = self._to_pyarrow(self._process_batch(batch))
                 writer.write_batch(batch)
@@ -134,8 +137,7 @@ class EnformerTissueMapper:
         with open(tracks_path, 'rb') as f:
             self.tracks_dict = yaml.safe_load(f)
 
-    def predict(self, prediction_path: str | pathlib.Path, output_path: str | pathlib.Path, num_bins: int = 3,
-                batch_size: int = 1):
+    def predict(self, prediction_path: str | pathlib.Path, output_path: str | pathlib.Path, num_bins: int = 3):
         """
         Load the predictions from the parquet file lazily.
         For each record, calculate the average predictions over the bins centered at the tss bin.
@@ -151,7 +153,8 @@ class EnformerTissueMapper:
         if self.tissue_matcher_lm_dict is None:
             raise ValueError('The tissue_matcher_lm_dict is not provided. Please train the linear models first.')
 
-        prediction_schema = pq.read_metadata(prediction_path).schema.to_arrow_schema()
+        prediction_dataset = pq.ParquetDataset(prediction_path)
+        prediction_schema = prediction_dataset.schema
         output_schema = prediction_schema.remove(prediction_schema.get_field_index('tracks'))
         output_schema = pa.unify_schemas([output_schema, pa.schema([
             pa.field('tissue', pa.string()),
@@ -161,38 +164,25 @@ class EnformerTissueMapper:
         metadata['nbins'] = str(num_bins)
         output_schema = output_schema.with_metadata(metadata)
         shifts = [int(x) for x in metadata[b'shifts'].split(b';')]
+        tracks = list(self.tracks_dict.values())
 
-        with pq.ParquetWriter(output_path, output_schema) as writer:
-            num_rows = pq.read_metadata(prediction_path).num_rows
-            total_batches = math.ceil(num_rows / batch_size)
-            batch_counter = 0
-            logger.debug(f'Iterating over the batches in the parquet file {prediction_path}')
-            for batch_agg_pred, batch_meta in tqdm(
-                    self._batch_iterator(pl.read_parquet(prediction_path), shifts, num_bins, batch_size=batch_size),
-                    total=total_batches):
+        base_dir = pathlib.Path(output_path)
+        base_dir.mkdir(parents=False, exist_ok=False)
+        logger.debug(f'Iterating over the parquet files in {prediction_path}')
+        batch_counter = 0
+        for pred_file in tqdm(prediction_dataset.files):
+            with pq.ParquetWriter(base_dir / pathlib.Path(pred_file).name, output_schema) as writer:
                 batch_counter += 1
+                batch_agg_pred, batch_meta = self._aggregate_batch(pl.read_parquet(pred_file),
+                                                                   Enformer.PRED_SEQUENCE_LENGTH,
+                                                                   Enformer.BIN_SIZE, num_bins, shifts, tracks)
                 logger.debug('Running model on the batch...')
                 record_batch = self._predict_batch(batch_agg_pred, batch_meta)
                 logger.debug('Writing to file')
                 writer.write(record_batch)
 
-            # sanity check
-            assert batch_counter == total_batches
-
-    def _batch_iterator(self, df: pl.DataFrame, shifts: list[int], num_bins: int = 3, batch_size: int = 1):
-        """
-        Load the predictions from the parquet file lazily.
-        :param prediction_path: The parquet file that contains the enformer predictions.
-        :param num_bins: The number of bins to average over for each record.
-        :param batch_size: The number of records to load at once.
-        :return:
-        """
-        bin_size = Enformer.BIN_SIZE
-        pred_seq_length = Enformer.PRED_SEQUENCE_LENGTH
-        tracks = list(self.tracks_dict.values())
-        for frame in df.iter_slices(n_rows=batch_size):
-            yield self._aggregate_batch(frame, pred_seq_length,
-                                        bin_size, num_bins, shifts, tracks)
+        # sanity check
+        assert batch_counter == len(prediction_dataset.files)
 
     @staticmethod
     def _aggregate_batch(frame, pred_seq_length, bin_size, num_bins, shifts, tracks):
@@ -259,19 +249,27 @@ class EnformerTissueMapper:
 
 
 def calculate_veff(ref_path, alt_path, output_path):
-    ref_df = pl.read_parquet(ref_path).rename({'score': 'ref_score'})
-    alt_df = pl.read_parquet(alt_path).rename({'score': 'alt_score'})
-    ref_metadata = pq.read_metadata(ref_path).schema.to_arrow_schema().metadata
-    alt_metadata = pq.read_metadata(alt_path).schema.to_arrow_schema().metadata
-
+    logger.info('Reading the reference file into memory')
+    ref_table = pq.ParquetDataset(ref_path).read()
+    ref_metadata = ref_table.schema.metadata
     assert ref_metadata[b'allele_type'] == b'REF', 'The allele type of the reference parquet file is not REF'
-    assert alt_metadata[b'allele_type'] == b'ALT', 'The allele type of the alternate parquet file is not ALT'
     ref_metadata = {k: v for k, v in ref_metadata.items() if k != b'allele_type'}
-    alt_metadata = {k: v for k, v in alt_metadata.items() if k != b'allele_type'}
-    assert ref_metadata == alt_metadata, 'The metadata of the two parquet files do not match'
+    ref_df = pl.DataFrame(ref_table).rename({'score': 'ref_score'})
 
-    joined_df = alt_df.join(ref_df, how='left', on=[x for x in ref_df.columns if x != 'ref_score'])
-    joined_df = joined_df.with_columns((pl.col('alt_score') - pl.col('ref_score')).alias('delta_score'))
-    joined_df = joined_df.to_arrow()
-    joined_df = joined_df.replace_schema_metadata(alt_metadata)
-    pq.write_table(joined_df, output_path)
+    logger.info('Reading the alternate parquet dataset in batches')
+    base_path = pathlib.Path(output_path)
+    base_path.mkdir(parents=False, exist_ok=False)
+    alt_dataset = pq.ParquetDataset(alt_path)
+    for alt_file in alt_dataset.files:
+        alt_df = pl.read_parquet(alt_file).rename({'score': 'alt_score'})
+        alt_metadata = alt_dataset.schema.metadata
+
+        assert alt_metadata[b'allele_type'] == b'ALT', 'The allele type of the alternate parquet file is not ALT'
+        alt_metadata = {k: v for k, v in alt_metadata.items() if k != b'allele_type'}
+        assert ref_metadata == alt_metadata, 'The metadata of the two parquet files do not match'
+
+        joined_df = alt_df.join(ref_df, how='left', on=[x for x in ref_df.columns if x != 'ref_score'])
+        joined_df = joined_df.with_columns((pl.col('alt_score') - pl.col('ref_score')).alias('delta_score'))
+        joined_df = joined_df.to_arrow()
+        joined_df = joined_df.replace_schema_metadata(alt_metadata)
+        pq.write_table(joined_df, base_path / pathlib.Path(alt_file).name)

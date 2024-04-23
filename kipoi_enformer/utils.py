@@ -2,6 +2,7 @@ from kipoiseq import Interval
 import math
 import pandas as pd
 import pyranges as pr
+import tensorflow as tf
 
 
 def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_negative_strand: bool) -> (int, int):
@@ -67,3 +68,14 @@ def construct_enformer_interval(chrom, strand, tss, seq_length):
     assert (tss - enformer_interval.start) == seq_length // 2, \
         f"tss must be in the middle of the enformer_interval but got {tss - enformer_interval.start}"
     return enformer_interval
+
+
+class RandomModel(tf.keras.Model):
+    """
+    A random model for testing purposes.
+    """
+
+    def predict_on_batch(self, input_tensor):
+        return {'human': tf.abs(tf.random.normal((input_tensor.shape[0], 896, 5313))),
+                'mouse': tf.abs(tf.random.normal((input_tensor.shape[0], 896, 1643))),
+                }

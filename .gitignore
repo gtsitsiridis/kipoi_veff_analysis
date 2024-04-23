@@ -108,3 +108,4 @@ slurm*out
 # intellij
 .idea
 
+assets/tfhub_cache/**
