@@ -58,7 +58,7 @@ rule all:
     default_target: True
     input:
         expand(rules.enformer.output,allele='ref',name='reference'),
-        # expand(rules.enformer.output,allele='alt',name=vcf_names())
+        expand(rules.enformer.output,allele='alt',name=vcf_names())
 
     # expand(rules.tissue_mapper.output,path='ref/reference'),
     # alt_tissue_mapper_files(),
