@@ -197,7 +197,8 @@ def references():
 
 
 def test_get_tss_from_genome_annotation(chr22_example_files):
-    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=False, canonical_only=False)
+    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], chromosome='chr22', protein_coding_only=False,
+                                         canonical_only=False)
 
     # check the number of transcripts
     # grep -v '^#' annot.chr22.gtf | cut -f 3 | grep transcript | wc -l
@@ -236,16 +237,20 @@ def test_genome_annotation_protein_canonical(chr22_example_files):
     # Ground truth bash:
     # grep -E '^\S+\s+\S+\s+transcript' annot.chr22.gtf | grep -E 'tag\s+"Ensembl_canonical"' |
     # grep -E 'transcript_type\s+"protein_coding"' | wc -l
-
-    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=False, canonical_only=False)
-    assert len(roi) == 5279
-    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=True, canonical_only=False)
-    assert len(roi) == 3623
-    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=False, canonical_only=True)
-    assert len(roi) == 1212
+    chromosome = 'chr22'
     # not all genes have a canonical transcript if the genome annotation is not current (e.g. GRCh37 is not current)
-    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], protein_coding_only=True, canonical_only=True)
+    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], chromosome=chromosome, protein_coding_only=True,
+                                         canonical_only=True)
     assert len(roi) == 441
+    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], chromosome=chromosome, protein_coding_only=False,
+                                         canonical_only=False)
+    assert len(roi) == 5279
+    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], chromosome=chromosome, protein_coding_only=True,
+                                         canonical_only=False)
+    assert len(roi) == 3623
+    roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], chromosome=chromosome, protein_coding_only=False,
+                                         canonical_only=True)
+    assert len(roi) == 1212
 
 
 def test_vcf_dataloader(chr22_example_files, variants):
@@ -257,6 +262,7 @@ def test_vcf_dataloader(chr22_example_files, variants):
         variant_upstream_tss=10,
         seq_length=21,
         shift=0,
+        chromosome='chr1',
     )
     total = 0
     checked_variants = dict()
@@ -284,6 +290,7 @@ def test_ref_dataloader(chr22_example_files, references):
         gtf_file=chr22_example_files['gtf'],
         seq_length=21,
         shift=0,
+        chromosome='chr1',
     )
     total = 0
     checked_refs = dict()

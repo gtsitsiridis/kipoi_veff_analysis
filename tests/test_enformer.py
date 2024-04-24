@@ -51,6 +51,7 @@ def run_enformer(dl: TSSDataloader, output_path, size, batch_size):
 def test_enformer(chr22_example_files, output_dir: Path, size, batch_size, allele_type: str):
     args = {
         'fasta_file': chr22_example_files['fasta'],
+        'chromosome': 'chr22',
         'gtf_file': chr22_example_files['gtf'],
         'shift': 43,
         'seq_length': 393_216,

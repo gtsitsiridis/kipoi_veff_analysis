@@ -22,18 +22,20 @@ def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_ne
     return tss, tss + 1
 
 
-def get_tss_from_genome_annotation(gtf_file: str, protein_coding_only: bool = False, canonical_only: bool = False):
+def get_tss_from_genome_annotation(gtf_file: str, chromosome: str, protein_coding_only: bool = False, canonical_only: bool = False):
     """
     Get TSS from genome annotation
     :return: genome_annotation with additional columns tss (0-based), transcript_start (0-based), transcript_end (1-based)
     """
     genome_annotation = pr.read_gtf(gtf_file, as_df=True, duplicate_attr=True)
-    roi = genome_annotation.query("`Feature` == 'transcript'")
+    roi = genome_annotation.query("`Feature` == 'transcript' & `Chromosome` == @chromosome")
     if protein_coding_only:
         roi = roi.query("`gene_type` == 'protein_coding'")
     if canonical_only:
         # check if Ensembl_canonical is in the set of tags
         roi = roi[roi['tag'].apply(lambda x: False if pd.isna(x) else ('Ensembl_canonical' in x.split(',')))]
+    if len(roi) == 0:
+        return None
 
     roi = roi.assign(
         transcript_start=roi["Start"],

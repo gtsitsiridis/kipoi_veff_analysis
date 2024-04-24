@@ -6,6 +6,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
+  - python=3.10
   - cyvcf2=0.30.28
   - kipoiseq=0.7.1
   - numpy=1.26.4

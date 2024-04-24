@@ -1,4 +1,4 @@
-output_dir: output/exp1
+output_dir: /s/project/promoter_prediction/enformer/output
 
 vcfs:
   gtex_v8_old_dna:
@@ -8,7 +8,7 @@ vcfs:
 
 genome:
   gtf_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/gencode.v40lift37.annotation.gtf.gz
-  fasta_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/gencode.v40lift37.annotation.gtf.gz
+  fasta_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/GRCh37.primary_assembly.genome.fa
 
 enformer:
   shift: 43
