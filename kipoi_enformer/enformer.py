@@ -37,7 +37,7 @@ class Enformer:
         :param is_random: If True, load a random model for testing purposes.
         """
         if not is_random:
-            logger.info(f'Loading model from {MODEL_PATH}')
+            logger.debug(f'Loading model from {MODEL_PATH}')
             self._model = hub.load(MODEL_PATH).model
         else:
             self._model = RandomModel()
