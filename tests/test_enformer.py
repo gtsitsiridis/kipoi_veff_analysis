@@ -31,7 +31,7 @@ def enformer_tracks_path():
 
 
 def run_enformer(dl: TSSDataloader, output_path, size, batch_size):
-    enformer = Enformer(is_test=True)
+    enformer = Enformer(is_random=True)
 
     enformer.predict(dl, batch_size=batch_size, filepath=output_path)
     table = pq.read_table(output_path)

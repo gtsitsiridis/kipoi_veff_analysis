@@ -18,7 +18,7 @@ if config.get('debug', False):
 else:
     logger = setup_logger()
 
-is_test = config['enformer'].get('is_test', False)
+test_config = config.get('test', None)
 
 # preload gtf file to save time
 logger.info('Loading GTF file')
@@ -26,7 +26,7 @@ gtf = pr.read_gtf(input_['gtf_file'], as_df=True, duplicate_attr=True)
 
 args = {'fasta_file': input_['fasta_file'],
         'shift': config['enformer']['shift'], 'protein_coding_only': True,
-        'canonical_only': True, 'size': 5 if is_test else None}
+        'canonical_only': True, 'size': None if test_config is None else test_config['dataloader_size']}
 
 if input_.get('vcf_file', None):
     allele = constants.AlleleType.ALT
@@ -47,5 +47,5 @@ for chromosome in constants.Chromosome:
     chromosome = chromosome.value
     output_path = base_path / chromosome
     dl = TSSDataloader.from_allele_type(allele, **args, chromosome=chromosome, gtf=gtf.copy())
-    enformer = Enformer(is_test=is_test)
+    enformer = Enformer(is_random=False if test_config is None else test_config['is_random_enformer'])
     enformer.predict(dl, batch_size=config['enformer']['batch_size'], filepath=output_path)

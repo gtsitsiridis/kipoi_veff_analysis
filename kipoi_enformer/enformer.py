@@ -32,11 +32,11 @@ class Enformer:
     # ─────┆═════┆════════════════════════┆═════┆─────
     SEEN_SEQUENCE_LENGTH = NUM_SEEN_BINS * BIN_SIZE
 
-    def __init__(self, is_test: bool = False):
+    def __init__(self, is_random: bool = False):
         """
-        :param is_test: If True, load a random model for testing purposes.
+        :param is_random: If True, load a random model for testing purposes.
         """
-        if not is_test:
+        if not is_random:
             logger.info(f'Loading model from {MODEL_PATH}')
             self._model = hub.load(MODEL_PATH).model
         else:

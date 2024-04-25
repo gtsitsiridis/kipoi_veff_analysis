@@ -1,9 +1,9 @@
-output_dir: output/smk
+output_dir: /data/nasif12/home_if12/tsi/output/enformer
 debug: true
 
 test:
   dataloader_size: 5
-  is_random_enformer: true
+  is_random_enformer: false
 
 vcf:
   path: assets/example_files/vcf
