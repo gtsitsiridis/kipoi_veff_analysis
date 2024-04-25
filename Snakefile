@@ -3,12 +3,7 @@ import pathlib
 assert len(config) > 0, "The config file has not been defined or is empty"
 
 output_dir = pathlib.Path(config["output_dir"])
-(output_dir / 'raw/ref').mkdir(parents=True,exist_ok=True)
-(output_dir / 'raw/alt').mkdir(parents=False,exist_ok=True)
-(output_dir / 'tissue/ref').mkdir(parents=True,exist_ok=True)
-(output_dir / 'tissue/alt').mkdir(parents=False,exist_ok=True)
-(output_dir / 'tissue/veff').mkdir(parents=False,exist_ok=True)
-
+output_dir.mkdir(parents=True,exist_ok=True)
 
 def vcf_file(wildcards):
     return str(pathlib.Path(config['vcf']["path"]) / f'{wildcards.vcf_name}.vcf.gz')

@@ -13,6 +13,9 @@ input_ = snakemake.input
 output = snakemake.output
 wildcards = snakemake.wildcards
 
+output_dir = pathlib.Path(config["output_dir"]) / 'raw'
+output_dir.mkdir(parents=False, exist_ok=True)
+
 if config.get('debug', False):
     logger = setup_logger(logging.DEBUG)
 else:
@@ -29,6 +32,7 @@ args = {'fasta_file': input_['fasta_file'],
         'canonical_only': True, 'size': None if test_config is None else test_config['dataloader_size']}
 
 if input_.get('vcf_file', None):
+    (output_dir / 'alt').mkdir(parents=False, exist_ok=True)
     allele = constants.AlleleType.ALT
     vcf = config['vcf']
     vcf_file = input_['vcf_file']
@@ -38,6 +42,7 @@ if input_.get('vcf_file', None):
     logger.info('Allele type: %s', allele)
     logger.info('Using VCF file: %s', vcf_file)
 else:
+    (output_dir / 'ref').mkdir(parents=False, exist_ok=True)
     allele = constants.AlleleType.REF
     logger.info('Allele type: %s', allele)
 
