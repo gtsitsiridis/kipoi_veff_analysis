@@ -2,17 +2,20 @@ output_dir: /data/nasif12/home_if12/tsi/output/enformer
 debug: true
 
 test:
-  dataloader_size: 5
+  dataloader_size: 10
   is_random_enformer: false
 
 vcf:
-  path: assets/example_files/vcf
+  path: /s/project/rep/processed/training_results_v14/gtex_v8_old_dna/distinct_variants.valid_snp_indel.vcf/
   variant_upstream_tss: 500
   variant_downstream_tss: 100
 
 genome:
-  gtf_file: assets/example_files/annot.gtf.gz
-  fasta_file: assets/example_files/seq.fa
+  gtf_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/gencode.v40lift37.annotation.gtf.gz
+  fasta_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/GRCh37.primary_assembly.genome.fa
+  chromosomes:
+    - chr21
+    - chr22
 
 enformer:
   shift: 43

@@ -48,7 +48,7 @@ else:
 
 base_path = pathlib.Path(output['prediction_dir'])
 base_path.mkdir(parents=False, exist_ok=True)
-for chromosome in constants.Chromosome:
+for chromosome in config['genome']['chromosomes']:
     logger.info('Predicting for chromosome: %s', chromosome)
     chromosome = chromosome.value
     output_path = base_path / chromosome

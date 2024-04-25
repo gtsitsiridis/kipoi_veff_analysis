@@ -13,6 +13,10 @@ vcf:
 genome:
   gtf_file: assets/example_files/annot.gtf.gz
   fasta_file: assets/example_files/seq.fa
+  chromosomes:
+    - chr20
+    - chr21
+    - chr22
 
 enformer:
   shift: 43

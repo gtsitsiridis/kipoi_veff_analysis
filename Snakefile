@@ -12,7 +12,9 @@ def vcf_file(wildcards):
 rule enformer_ref:
     resources:
         gpu=1,
-        ntasks=1
+        ntasks=1,
+        # todo figure out resources
+        # mem_mb= lambda wildcards,attempt,threads: (4000 * threads) * attempt
     output:
         prediction_dir=directory(f'{output_dir}/raw/ref/reference.parquet',)
     input:
