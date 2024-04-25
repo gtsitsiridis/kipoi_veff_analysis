@@ -136,31 +136,35 @@ class RefTSSDataloader(TSSDataloader):
 
     def _sample_gen(self):
         for _, row in self._genome_annotation.iterrows():
-            chromosome = row['Chromosome']
-            strand = row.get('Strand', '.')
-            tss = row['tss']
-            enformer_interval = construct_enformer_interval(chromosome, strand, tss, self._seq_length)
-            sequences = []
-            # shift intervals and extract sequences
-            for shift in self._shifts:
-                shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
-                assert shifted_enformer_interval.width() == self._seq_length, \
-                    f"enformer_interval width must be {self._seq_length} but got {enformer_interval.width()}"
-                sequences.append(one_hot_dna(self._reference_sequence.extract(shifted_enformer_interval)))
+            try:
+                chromosome = row['Chromosome']
+                strand = row.get('Strand', '.')
+                tss = row['tss']
+                enformer_interval = construct_enformer_interval(chromosome, strand, tss, self._seq_length)
+                sequences = []
+                # shift intervals and extract sequences
+                for shift in self._shifts:
+                    shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
+                    assert shifted_enformer_interval.width() == self._seq_length, \
+                        f"enformer_interval width must be {self._seq_length} but got {enformer_interval.width()}"
+                    sequences.append(one_hot_dna(self._reference_sequence.extract(shifted_enformer_interval)))
 
-            metadata = {
-                "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
-                "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
-                "tss": tss,  # 0-based position of the TSS
-                "chr": chromosome,
-                "strand": strand,
-                "gene_id": row['gene_id'],
-                "transcript_id": row['transcript_id'],
-                "transcript_start": row['transcript_start'],  # 0-based
-                "transcript_end": row['transcript_end'],  # 1-based
-            }
+                metadata = {
+                    "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
+                    "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
+                    "tss": tss,  # 0-based position of the TSS
+                    "chr": chromosome,
+                    "strand": strand,
+                    "gene_id": row['gene_id'],
+                    "transcript_id": row['transcript_id'],
+                    "transcript_start": row['transcript_start'],  # 0-based
+                    "transcript_end": row['transcript_end'],  # 1-based
+                }
 
-            yield metadata, np.stack(sequences)
+                yield metadata, np.stack(sequences)
+            except Exception as e:
+                logger.error(f"Error processing row: {row}")
+                raise e
 
     def __len__(self):
         if self._genome_annotation is None:
