@@ -64,7 +64,7 @@ class Enformer:
             return
 
         base_dir = pathlib.Path(filepath)
-        base_dir.mkdir(parents=True, exist_ok=False)
+        base_dir.mkdir(parents=False, exist_ok=False)
         for batch in tqdm(dataloader.batch_iter(batch_size=batch_size), total=total_batches):
             with pq.ParquetWriter(base_dir / f'part{batch_counter}.parquet', schema) as writer:
                 batch_counter += 1

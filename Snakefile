@@ -14,7 +14,7 @@ rule enformer_ref:
         gpu=1,
         ntasks=1
     output:
-        prediction_dir=directory(f'{output_dir}/enformer/raw/ref/reference.parquet',)
+        prediction_dir=directory(f'{output_dir}/raw/ref/reference.parquet',)
     input:
         gtf_file=config["genome"]["gtf_file"],
         gtf_file_index=config["genome"]["gtf_file"] + '.tbi',
@@ -28,7 +28,7 @@ rule enformer_alt:
         gpu=1,
         ntasks=1
     output:
-        prediction_dir=directory(f'{output_dir}/enformer/raw/alt/' + '{vcf_name}.parquet',)
+        prediction_dir=directory(f'{output_dir}/raw/alt/' + '{vcf_name}.parquet',)
     input:
         gtf_file=config["genome"]["gtf_file"],
         gtf_file_index=config["genome"]["gtf_file"] + '.tbi',
@@ -41,9 +41,9 @@ rule enformer_alt:
 
 rule tissue_mapper:
     output:
-        prediction_dir=directory(f'{output_dir}/enformer/tissue/' + '{path}.parquet',)
+        prediction_dir=directory(f'{output_dir}/tissue/' + '{path}.parquet',)
     input:
-        enformer_dir=directory(f'{output_dir}/enformer/raw/' + '{path}.parquet',),
+        enformer_dir=directory(f'{output_dir}/raw/' + '{path}.parquet',),
         tracks_path=config['enformer']['tissue_matcher']['tracks_path'],
         tissue_matcher_path=config['enformer']['tissue_matcher']['model_path'],
     script:

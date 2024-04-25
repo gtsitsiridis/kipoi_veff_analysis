@@ -47,6 +47,7 @@ else:
     logger.info('Allele type: %s', allele)
 
 base_path = pathlib.Path(output['prediction_dir'])
+base_path.mkdir(parents=False, exist_ok=True)
 for chromosome in constants.Chromosome:
     logger.info('Predicting for chromosome: %s', chromosome)
     chromosome = chromosome.value
