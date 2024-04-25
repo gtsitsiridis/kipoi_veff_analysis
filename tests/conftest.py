@@ -17,5 +17,5 @@ def chr22_example_files():
     return {
         'fasta': base / "seq.fa",
         'gtf': base / "annot.gtf.gz",
-        'vcf': base / "vcf" / "promoter_var_1.vcf.gz",
+        'vcf': base / "vcf" / "chr22_var.vcf.gz",
     }

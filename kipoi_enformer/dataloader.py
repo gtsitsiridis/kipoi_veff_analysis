@@ -1,5 +1,7 @@
+import pathlib
 from abc import ABC, abstractmethod
 
+import pandas as pd
 from kipoi.data import SampleGenerator
 from kipoiseq import Interval, Variant
 from kipoiseq.extractors import VariantSeqExtractor, SingleVariantMatcher, FastaStringExtractor
@@ -20,14 +22,14 @@ SEQUENCE_LENGTH = 393_216
 
 
 class TSSDataloader(SampleGenerator, ABC):
-    def __init__(self, allele_type: AlleleType, fasta_file, gtf_file, chromosome: str,
+    def __init__(self, allele_type: AlleleType, fasta_file, gtf: pd.DataFrame | str, chromosome: str,
                  seq_length: int = SEQUENCE_LENGTH,
                  shift: int = 43, size: int = None, canonical_only: bool = False, protein_coding_only: bool = False,
                  *args, **kwargs):
         """
 
         :param fasta_file: Fasta file with the reference genome
-        :param gtf_file: GTF file with genome annotation
+        :param gtf: GTF file with genome annotation
         :param seq_length: The length of the sequence to return. This should be the length of the Enformer input sequence.
         :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
         :param size: The number of samples to return. If None, all samples are returned.
@@ -50,7 +52,7 @@ class TSSDataloader(SampleGenerator, ABC):
         self._seq_length = seq_length
         self.chromosome = chromosome
         logger.debug(f"Loading genome annotation for chromosome {chromosome}")
-        self._genome_annotation = get_tss_from_genome_annotation(gtf_file, chromosome=self.chromosome,
+        self._genome_annotation = get_tss_from_genome_annotation(gtf, chromosome=self.chromosome,
                                                                  canonical_only=canonical_only,
                                                                  protein_coding_only=protein_coding_only)
         self._shifts = (0,) if shift == 0 else (-shift, 0, shift)
@@ -112,12 +114,13 @@ class TSSDataloader(SampleGenerator, ABC):
 
 
 class RefTSSDataloader(TSSDataloader):
-    def __init__(self, fasta_file, gtf_file, chromosome: str, seq_length: int = SEQUENCE_LENGTH, shift: int = 43,
+    def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str, seq_length: int = SEQUENCE_LENGTH,
+                 shift: int = 43,
                  size: int = None, canonical_only: bool = False, protein_coding_only: bool = False, *args, **kwargs):
         """
 
         :param fasta_file: Fasta file with the reference genome
-        :param gtf_file: GTF file with genome annotation
+        :param gtf: GTF file with genome annotation
         :param chromosome: The chromosome to filter for
         :param seq_length: The length of the sequence to return. This should be the length of the Enformer input sequence.
         :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
@@ -126,7 +129,7 @@ class RefTSSDataloader(TSSDataloader):
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
         """
 
-        super().__init__(AlleleType.REF, chromosome=chromosome, fasta_file=fasta_file, gtf_file=gtf_file,
+        super().__init__(AlleleType.REF, chromosome=chromosome, fasta_file=fasta_file, gtf=gtf,
                          seq_length=seq_length, shift=shift, size=size, canonical_only=canonical_only,
                          protein_coding_only=protein_coding_only, *args, **kwargs)
         logger.debug(f"Dataloader is ready for chromosome {chromosome}")
@@ -185,13 +188,14 @@ class RefTSSDataloader(TSSDataloader):
 
 
 class VCFTSSDataloader(TSSDataloader):
-    def __init__(self, fasta_file, gtf_file, vcf_file, chromosome: str, vcf_lazy=True, variant_upstream_tss: int = 10,
+    def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, chromosome: str, vcf_lazy=True,
+                 variant_upstream_tss: int = 10,
                  variant_downstream_tss: int = 10, seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None,
                  canonical_only: bool = False, protein_coding_only: bool = False, *args, **kwargs):
         """
 
         :param fasta_file: Fasta file with the reference genome
-        :param gtf_file: GTF file with genome annotation
+        :param gtf: GTF file with genome annotation
         :param chromosome: The chromosome to filter for
         :param vcf_file: VCF file with variants
         :param vcf_lazy: If True, the VCF file is read lazily
@@ -204,7 +208,7 @@ class VCFTSSDataloader(TSSDataloader):
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
         """
 
-        super().__init__(AlleleType.ALT, fasta_file=fasta_file, gtf_file=gtf_file, chromosome=chromosome,
+        super().__init__(AlleleType.ALT, fasta_file=fasta_file, gtf=gtf, chromosome=chromosome,
                          seq_length=seq_length, shift=shift, size=size, canonical_only=canonical_only,
                          protein_coding_only=protein_coding_only, *args,
                          **kwargs)

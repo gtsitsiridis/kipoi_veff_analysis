@@ -1,3 +1,4 @@
+import pathlib
 from kipoiseq import Interval
 import math
 import pandas as pd
@@ -22,12 +23,17 @@ def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_ne
     return tss, tss + 1
 
 
-def get_tss_from_genome_annotation(gtf_file: str, chromosome: str, protein_coding_only: bool = False, canonical_only: bool = False):
+def get_tss_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str,
+                                   protein_coding_only: bool = False, canonical_only: bool = False):
     """
     Get TSS from genome annotation
     :return: genome_annotation with additional columns tss (0-based), transcript_start (0-based), transcript_end (1-based)
     """
-    genome_annotation = pr.read_gtf(gtf_file, as_df=True, duplicate_attr=True)
+    if not isinstance(gtf, pd.DataFrame):
+        genome_annotation = pr.read_gtf(gtf, as_df=True, duplicate_attr=True)
+    else:
+        genome_annotation = gtf.copy()
+
     roi = genome_annotation.query("`Feature` == 'transcript' & `Chromosome` == @chromosome")
     if protein_coding_only:
         roi = roi.query("`gene_type` == 'protein_coding'")
@@ -78,6 +84,7 @@ class RandomModel(tf.keras.Model):
     """
 
     def predict_on_batch(self, input_tensor):
+        tf.random.set_seed(42)
         return {'human': tf.abs(tf.random.normal((input_tensor.shape[0], 896, 5313))),
                 'mouse': tf.abs(tf.random.normal((input_tensor.shape[0], 896, 1643))),
                 }

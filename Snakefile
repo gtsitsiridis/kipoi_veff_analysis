@@ -1,6 +1,6 @@
 import pathlib
 
-configfile: "config.dev.yaml"
+assert len(config) > 0, "The config file has not been defined or is empty"
 
 output_dir = pathlib.Path(config["output_dir"])
 (output_dir / 'enformer/raw/ref').mkdir(parents=True,exist_ok=True)
@@ -10,15 +10,37 @@ output_dir = pathlib.Path(config["output_dir"])
 (output_dir / 'enformer/tissue/veff').mkdir(parents=False,exist_ok=True)
 
 
-rule enformer:
+def vcf_file(wildcards):
+    return str(pathlib.Path(config['vcf']["path"]) / f'{wildcards.vcf_name}.vcf.gz')
+
+
+rule enformer_ref:
     resources:
         gpu=1,
         ntasks=1
     output:
-        prediction_dir=directory(f'{output_dir}/enformer/raw/' + '{allele}/{name}.parquet',)
+        prediction_dir=directory(f'{output_dir}/enformer/raw/ref/reference.parquet',)
     input:
         gtf_file=config["genome"]["gtf_file"],
+        gtf_file_index=config["genome"]["gtf_file"] + '.tbi',
         fasta_file=config["genome"]["fasta_file"],
+        fasta_file_index=config["genome"]["fasta_file"] + '.fai',
+    script:
+        'scripts/enformer.py'
+
+rule enformer_alt:
+    resources:
+        gpu=1,
+        ntasks=1
+    output:
+        prediction_dir=directory(f'{output_dir}/enformer/raw/alt/' + '{vcf_name}.parquet',)
+    input:
+        gtf_file=config["genome"]["gtf_file"],
+        gtf_file_index=config["genome"]["gtf_file"] + '.tbi',
+        fasta_file=config["genome"]["fasta_file"],
+        fasta_file_index=config["genome"]["fasta_file"] + '.fai',
+        vcf_file=vcf_file,
+        vcf_file_index=lambda wildcards: vcf_file(wildcards) + '.tbi',
     script:
         'scripts/enformer.py'
 
@@ -57,8 +79,8 @@ def vcf_names():
 rule all:
     default_target: True
     input:
-        expand(rules.enformer.output,allele='ref',name='reference'),
-        expand(rules.enformer.output,allele='alt',name=vcf_names())
+        rules.enformer_ref.output,
+        expand(rules.enformer_alt.output,vcf_name=vcf_names())
 
     # expand(rules.tissue_mapper.output,path='ref/reference'),
     # alt_tissue_mapper_files(),
@@ -67,5 +89,5 @@ rule all:
 
     # todo figure out resources
     # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]"
-    # N_CORES=4096 MEM_MB=8192000 N_JOBS=200 N_GPUS=128
+    # N_CORES=2 MEM_MB=8192000 N_JOBS=200 N_GPUS=2
     # run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs

@@ -1,13 +1,14 @@
 output_dir: output/exp1
+debug: true
 
 vcf:
-  path: assets/example_files1/vcf
+  path: assets/example_files/vcf
   variant_upstream_tss: 500
   variant_downstream_tss: 100
 
 genome:
-  gtf_file: assets/example_files1/annot.gtf.gz
-  fasta_file: assets/example_files1/seq.fa
+  gtf_file: assets/example_files/annot.gtf.gz
+  fasta_file: assets/example_files/seq.fa
 
 enformer:
   shift: 43

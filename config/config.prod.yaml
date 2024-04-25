@@ -13,7 +13,6 @@ genome:
 enformer:
   shift: 43
   batch_size: 5
-  is_test: false
   tissue_matcher:
     tracks_path: assets/cage_nonuniversal_enformer_tracks.yaml
     model_path: assets/gtex_enformer_lm_models_pseudocount1.pkl

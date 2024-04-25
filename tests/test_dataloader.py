@@ -256,13 +256,13 @@ def test_genome_annotation_protein_canonical(chr22_example_files):
 def test_vcf_dataloader(chr22_example_files, variants):
     dl = VCFTSSDataloader(
         fasta_file=chr22_example_files['fasta'],
-        gtf_file=chr22_example_files['gtf'],
+        gtf=chr22_example_files['gtf'],
         vcf_file=chr22_example_files['vcf'],
         variant_downstream_tss=10,
         variant_upstream_tss=10,
         seq_length=21,
         shift=0,
-        chromosome='chr1',
+        chromosome='chr22',
     )
     total = 0
     checked_variants = dict()
@@ -287,10 +287,10 @@ def test_vcf_dataloader(chr22_example_files, variants):
 def test_ref_dataloader(chr22_example_files, references):
     dl = RefTSSDataloader(
         fasta_file=chr22_example_files['fasta'],
-        gtf_file=chr22_example_files['gtf'],
+        gtf=chr22_example_files['gtf'],
         seq_length=21,
         shift=0,
-        chromosome='chr1',
+        chromosome='chr22',
     )
     total = 0
     checked_refs = dict()

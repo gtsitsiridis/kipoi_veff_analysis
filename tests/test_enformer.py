@@ -52,7 +52,7 @@ def test_enformer(chr22_example_files, output_dir: Path, size, batch_size, allel
     args = {
         'fasta_file': chr22_example_files['fasta'],
         'chromosome': 'chr22',
-        'gtf_file': chr22_example_files['gtf'],
+        'gtf': chr22_example_files['gtf'],
         'shift': 43,
         'seq_length': 393_216,
         'size': size

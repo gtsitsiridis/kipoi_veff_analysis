@@ -109,3 +109,6 @@ slurm*out
 .idea
 
 assets/tfhub_cache/**
+
+# snakemake tests
+.tests
