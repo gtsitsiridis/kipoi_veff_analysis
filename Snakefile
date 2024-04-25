@@ -3,11 +3,11 @@ import pathlib
 assert len(config) > 0, "The config file has not been defined or is empty"
 
 output_dir = pathlib.Path(config["output_dir"])
-(output_dir / 'enformer/raw/ref').mkdir(parents=True,exist_ok=True)
-(output_dir / 'enformer/raw/alt').mkdir(parents=False,exist_ok=True)
-(output_dir / 'enformer/tissue/ref').mkdir(parents=True,exist_ok=True)
-(output_dir / 'enformer/tissue/alt').mkdir(parents=False,exist_ok=True)
-(output_dir / 'enformer/tissue/veff').mkdir(parents=False,exist_ok=True)
+(output_dir / 'raw/ref').mkdir(parents=True,exist_ok=True)
+(output_dir / 'raw/alt').mkdir(parents=False,exist_ok=True)
+(output_dir / 'tissue/ref').mkdir(parents=True,exist_ok=True)
+(output_dir / 'tissue/alt').mkdir(parents=False,exist_ok=True)
+(output_dir / 'tissue/veff').mkdir(parents=False,exist_ok=True)
 
 
 def vcf_file(wildcards):
@@ -80,14 +80,12 @@ rule all:
     default_target: True
     input:
         rules.enformer_ref.output,
-        expand(rules.enformer_alt.output,vcf_name=vcf_names())
-
-    # expand(rules.tissue_mapper.output,path='ref/reference'),
-    # alt_tissue_mapper_files(),
-    # veff_files(),
+        # expand(rules.enformer_alt.output,vcf_name=vcf_names())
 
 
     # todo figure out resources
+    # around 5GB per job
+
     # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]"
     # N_CORES=2 MEM_MB=8192000 N_JOBS=200 N_GPUS=2
     # run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs
