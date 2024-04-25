@@ -7,7 +7,8 @@ from pathlib import Path
 @pytest.fixture(autouse=True)
 def setup_logger():
     # Use `-p no:logging -s` in Pycharm's additional arguments to view logs
-    logging.basicConfig()
+    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
     logger.setLevel(logging.DEBUG)
 
 
