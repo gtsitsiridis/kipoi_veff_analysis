@@ -4,8 +4,8 @@ from kipoi_enformer.enformer import Enformer
 from kipoi_enformer.dataloader import TSSDataloader
 from kipoi_enformer.logger import setup_logger
 from kipoi_enformer import constants
-import pyranges as pr
 import logging
+import pandas as pd
 
 # SNAKEMAKE SCRIPT
 config = snakemake.config
@@ -25,9 +25,7 @@ test_config = config.get('test', None)
 
 args = {'fasta_file': input_['fasta_file'],
         'shift': config['enformer']['shift'], 'protein_coding_only': True,
-        'canonical_only': True, 'size': None if test_config is None else test_config['dataloader_size'],
-        'gtf': input_['gtf_file']}
-
+        'canonical_only': True, 'size': None if test_config is None else test_config['dataloader_size']}
 
 # Check if VCF file is provided
 # If VCF file is provided, predict for ALT allele
@@ -51,10 +49,17 @@ else:
 output_path = pathlib.Path(output['prediction_dir'])
 if wildcards.get('chromosome', None):
     chromosome = wildcards['chromosome']
-    args.update({'chromosome': chromosome})
+
+    # load genome annotation by chromosome
+    with pd.HDFStore(input_['gtf_chrom_store']) as store:
+        logger.info('Reading GTF chrom-store: %s', input_['gtf_chrom_store'])
+        gtf = store.get(chromosome)
+
+    args.update({'chromosome': chromosome, 'gtf': gtf})
     output_path.parent.mkdir(parents=False, exist_ok=True)
     logger.info('Predicting for chromosome: %s', chromosome)
 else:
+    args.update({'gtf': input_['gtf_file']})
     logger.info('Predicting for all chromosomes')
 
 dl = TSSDataloader.from_allele_type(allele, **args, )

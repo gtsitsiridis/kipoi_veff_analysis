@@ -4,11 +4,20 @@ assert len(config) > 0, "The config file has not been defined or is empty"
 
 output_dir = pathlib.Path(config["output_dir"])
 output_dir.mkdir(parents=True,exist_ok=True)
-
+(output_dir / 'temp').mkdir(exist_ok=True)
 
 def vcf_file(wildcards):
     return str(pathlib.Path(config['vcf']["path"]) / f'{wildcards.vcf_name}.vcf.gz')
 
+
+rule gtf_chrom_store:
+    output:
+        temp(f'{output_dir}/temp/gtf_chrom_store.h5')
+    input:
+        gtf_file=config["genome"]["gtf_file"],
+        gtf_file_index=config["genome"]["gtf_file"] + '.tbi',
+    script:
+        'scripts/gtf_chrom_store.py'
 
 rule enformer_ref:
     resources:
@@ -19,8 +28,7 @@ rule enformer_ref:
     output:
         prediction_dir=directory(f'{output_dir}/raw/ref/reference.parquet/' + 'chrom={chromosome}',)
     input:
-        gtf_file=config["genome"]["gtf_file"],
-        gtf_file_index=config["genome"]["gtf_file"] + '.tbi',
+        gtf_chrom_store=rules.gtf_chrom_store.output[0],
         fasta_file=config["genome"]["fasta_file"],
         fasta_file_index=config["genome"]["fasta_file"] + '.fai',
     script:

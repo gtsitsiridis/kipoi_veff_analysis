@@ -19,5 +19,6 @@ dependencies:
   - scikit-learn>=1.4.1.post1
   - polars>=0.20.19
   - snakemake>=7.32.4
+  - pytables>=3.9.2
   - pip
   - pip:

@@ -1,0 +1,21 @@
+import pyranges as pr
+import pandas as pd
+import logging
+from kipoi_enformer.logger import setup_logger
+
+# SNAKEMAKE SCRIPT
+config = snakemake.config
+input_ = snakemake.input
+output = snakemake.output
+wildcards = snakemake.wildcards
+
+if config.get('debug', False):
+    logger = setup_logger(logging.DEBUG)
+else:
+    logger = setup_logger()
+
+with pd.HDFStore(output[0]) as store:
+    logger.info('Reading GTF file: %s', input_['gtf_file'])
+    gtf = pr.read_gtf(input_['gtf_file'], as_df=True, duplicate_attr=True)
+    for chrom, df in gtf.groupby('Chromosome'):
+        store.put(chrom, df, format='table')
