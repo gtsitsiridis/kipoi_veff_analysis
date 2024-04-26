@@ -17,5 +17,5 @@ else:
 with pd.HDFStore(output[0]) as store:
     logger.info('Reading GTF file: %s', input_['gtf_file'])
     gtf = pr.read_gtf(input_['gtf_file'], as_df=True, duplicate_attr=True)
-    for chrom, df in gtf.groupby('Chromosome'):
-        store.put(chrom, df, format='table')
+    for chrom in config['genome']['chromosomes']:
+        store.put(chrom, gtf.query('`Chromosome` == @chrom'), format='table')
