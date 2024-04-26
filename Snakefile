@@ -23,8 +23,7 @@ rule enformer_ref:
     resources:
         gpu=1,
         ntasks=1,
-    # todo figure out resources
-    # mem_mb= lambda wildcards,attempt,threads: (4000 * threads) * attempt
+        mem_mb= lambda wildcards,attempt,threads: 12000 + (1000 * attempt)
     output:
         prediction_dir=directory(f'{output_dir}/raw/ref/reference.parquet/' + 'chrom={chromosome}',)
     input:
@@ -101,5 +100,5 @@ rule all:
         # around 11GB per job
 
         # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]"
-        # N_CORES=2 MEM_MB=8192000 N_JOBS=200 N_GPUS=2
+        # N_CORES=256 MEM_MB=1000000 N_JOBS=200 N_GPUS=12
         # run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs
