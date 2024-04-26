@@ -15,7 +15,7 @@ if config.get('debug', False):
 else:
     logger = setup_logger()
 
-with pd.HDFStore(output[0]) as store:
+with pd.HDFStore(output[0], mode='w') as store:
     logger.info('Reading GTF file: %s', input_['gtf_file'])
     gtf = pr.read_gtf(input_['gtf_file'], as_df=True, duplicate_attr=True)
     for chrom in tqdm(config['genome']['chromosomes']):

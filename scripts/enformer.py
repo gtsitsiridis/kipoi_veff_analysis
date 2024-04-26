@@ -51,7 +51,7 @@ if wildcards.get('chromosome', None):
     chromosome = wildcards['chromosome']
 
     # load genome annotation by chromosome
-    with pd.HDFStore(input_['gtf_chrom_store']) as store:
+    with pd.HDFStore(input_['gtf_chrom_store'], mode='r') as store:
         logger.info('Reading GTF chrom-store: %s', input_['gtf_chrom_store'])
         gtf = store.get(chromosome)
 
