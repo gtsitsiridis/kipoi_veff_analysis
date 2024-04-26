@@ -101,7 +101,7 @@ def extract_sequences_around_tss(shifts, chromosome, strand, tss, seq_length,
         five_end_pad = 0
         if shifted_enformer_interval.start < 0:
             five_end_pad = abs(shifted_enformer_interval.start)
-            shifted_enformer_interval.truncate()
+            shifted_enformer_interval = shifted_enformer_interval.truncate()
 
         if variant_extractor is not None:
             if reference_extractor is not None:
