@@ -23,7 +23,7 @@ def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_ne
     return tss, tss + 1
 
 
-def get_tss_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str,
+def get_tss_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | None = None,
                                    protein_coding_only: bool = False, canonical_only: bool = False):
     """
     Get TSS from genome annotation
@@ -34,7 +34,9 @@ def get_tss_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str,
     else:
         genome_annotation = gtf.copy()
 
-    roi = genome_annotation.query("`Feature` == 'transcript' & `Chromosome` == @chromosome")
+    if chromosome is not None:
+        genome_annotation = genome_annotation.query("`Chromosome` == @chromosome'")
+    roi = genome_annotation.query("`Feature` == 'transcript'")
     if protein_coding_only:
         roi = roi.query("`gene_type` == 'protein_coding'")
     if canonical_only:

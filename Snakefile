@@ -5,6 +5,7 @@ assert len(config) > 0, "The config file has not been defined or is empty"
 output_dir = pathlib.Path(config["output_dir"])
 output_dir.mkdir(parents=True,exist_ok=True)
 
+
 def vcf_file(wildcards):
     return str(pathlib.Path(config['vcf']["path"]) / f'{wildcards.vcf_name}.vcf.gz')
 
@@ -13,10 +14,10 @@ rule enformer_ref:
     resources:
         gpu=1,
         ntasks=1,
-        # todo figure out resources
-        # mem_mb= lambda wildcards,attempt,threads: (4000 * threads) * attempt
+    # todo figure out resources
+    # mem_mb= lambda wildcards,attempt,threads: (4000 * threads) * attempt
     output:
-        prediction_dir=directory(f'{output_dir}/raw/ref/reference.parquet',)
+        prediction_dir=directory(f'{output_dir}/raw/ref/reference.parquet/{chromosome}',)
     input:
         gtf_file=config["genome"]["gtf_file"],
         gtf_file_index=config["genome"]["gtf_file"] + '.tbi',
@@ -76,13 +77,13 @@ def vcf_names():
 rule all:
     default_target: True
     input:
-        rules.enformer_ref.output,
+        expand(rules.enformer_ref.output,chromosome=config['genome']['chromosomes']),
         # expand(rules.enformer_alt.output,vcf_name=vcf_names())
 
 
-    # todo figure out resources
-    # around 5GB per job
+        # todo figure out resources
+        # around 11GB per job
 
-    # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]"
-    # N_CORES=2 MEM_MB=8192000 N_JOBS=200 N_GPUS=2
-    # run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs
+        # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]"
+        # N_CORES=2 MEM_MB=8192000 N_JOBS=200 N_GPUS=2
+        # run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs

@@ -22,14 +22,15 @@ SEQUENCE_LENGTH = 393_216
 
 
 class TSSDataloader(SampleGenerator, ABC):
-    def __init__(self, allele_type: AlleleType, fasta_file, gtf: pd.DataFrame | str, chromosome: str,
+    def __init__(self, allele_type: AlleleType, fasta_file, gtf: pd.DataFrame | str, chromosome: str | None = None,
                  seq_length: int = SEQUENCE_LENGTH,
                  shift: int = 43, size: int = None, canonical_only: bool = False, protein_coding_only: bool = False,
                  *args, **kwargs):
         """
 
         :param fasta_file: Fasta file with the reference genome
-        :param gtf: GTF file with genome annotation
+        :param gtf: GTF file with genome annotation or DataFrame with genome annotation
+        :param chromosome: The chromosome to filter for. If None, all chromosomes are used.
         :param seq_length: The length of the sequence to return. This should be the length of the Enformer input sequence.
         :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
         :param size: The number of samples to return. If None, all samples are returned.
@@ -114,13 +115,13 @@ class TSSDataloader(SampleGenerator, ABC):
 
 
 class RefTSSDataloader(TSSDataloader):
-    def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str, seq_length: int = SEQUENCE_LENGTH,
-                 shift: int = 43,
-                 size: int = None, canonical_only: bool = False, protein_coding_only: bool = False, *args, **kwargs):
+    def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str | None = None,
+                 seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
+                 protein_coding_only: bool = False, *args, **kwargs):
         """
 
         :param fasta_file: Fasta file with the reference genome
-        :param gtf: GTF file with genome annotation
+        :param gtf: GTF file with genome annotation or DataFrame with genome annotation
         :param chromosome: The chromosome to filter for
         :param seq_length: The length of the sequence to return. This should be the length of the Enformer input sequence.
         :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
@@ -163,6 +164,7 @@ class RefTSSDataloader(TSSDataloader):
 
                 yield metadata, np.stack(sequences)
             except Exception as e:
+                # todo do the same for vcf dataloader
                 logger.error(f"Error processing row: {row}")
                 raise e
 
@@ -192,14 +194,14 @@ class RefTSSDataloader(TSSDataloader):
 
 
 class VCFTSSDataloader(TSSDataloader):
-    def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, chromosome: str, vcf_lazy=True,
-                 variant_upstream_tss: int = 10,
-                 variant_downstream_tss: int = 10, seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None,
-                 canonical_only: bool = False, protein_coding_only: bool = False, *args, **kwargs):
+    def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, chromosome: str | None = None, vcf_lazy=True,
+                 variant_upstream_tss: int = 10, variant_downstream_tss: int = 10, seq_length: int = SEQUENCE_LENGTH,
+                 shift: int = 43, size: int = None, canonical_only: bool = False, protein_coding_only: bool = False,
+                 *args, **kwargs):
         """
 
         :param fasta_file: Fasta file with the reference genome
-        :param gtf: GTF file with genome annotation
+        :param gtf: GTF file with genome annotation or DataFrame with genome annotation
         :param chromosome: The chromosome to filter for
         :param vcf_file: VCF file with variants
         :param vcf_lazy: If True, the VCF file is read lazily

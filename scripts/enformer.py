@@ -23,14 +23,15 @@ else:
 
 test_config = config.get('test', None)
 
-# preload gtf file to save time
-logger.info('Loading GTF file')
-gtf = pr.read_gtf(input_['gtf_file'], as_df=True, duplicate_attr=True)
-
 args = {'fasta_file': input_['fasta_file'],
         'shift': config['enformer']['shift'], 'protein_coding_only': True,
-        'canonical_only': True, 'size': None if test_config is None else test_config['dataloader_size']}
+        'canonical_only': True, 'size': None if test_config is None else test_config['dataloader_size'],
+        'gtf': input_['gtf_file']}
 
+
+# Check if VCF file is provided
+# If VCF file is provided, predict for ALT allele
+# If VCF file is not provided, predict for REF allele
 if input_.get('vcf_file', None):
     (output_dir / 'alt').mkdir(parents=False, exist_ok=True)
     allele = constants.AlleleType.ALT
@@ -46,11 +47,16 @@ else:
     allele = constants.AlleleType.REF
     logger.info('Allele type: %s', allele)
 
-base_path = pathlib.Path(output['prediction_dir'])
-base_path.mkdir(parents=False, exist_ok=True)
-for chromosome in config['genome']['chromosomes']:
+# Extract chromosome from wildcards, if available
+output_path = pathlib.Path(output['prediction_dir'])
+if wildcards.get('chromosome', None):
+    chromosome = wildcards['chromosome']
+    args.update({'chromosome': chromosome})
+    output_path.parent.mkdir(parents=False, exist_ok=True)
     logger.info('Predicting for chromosome: %s', chromosome)
-    output_path = base_path / chromosome
-    dl = TSSDataloader.from_allele_type(allele, **args, chromosome=chromosome, gtf=gtf.copy())
-    enformer = Enformer(is_random=False if test_config is None else test_config['is_random_enformer'])
-    enformer.predict(dl, batch_size=config['enformer']['batch_size'], filepath=output_path)
+else:
+    logger.info('Predicting for all chromosomes')
+
+dl = TSSDataloader.from_allele_type(allele, **args, )
+enformer = Enformer(is_random=False if test_config is None else test_config['is_random_enformer'])
+enformer.predict(dl, batch_size=config['enformer']['batch_size'], filepath=output_path)
