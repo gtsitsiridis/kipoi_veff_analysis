@@ -12,7 +12,7 @@ def vcf_file(wildcards):
 
 rule gtf_chrom_store:
     resources:
-        mem_mb=lambda wildcards, attempt, threads: 12000 + (1000 * attempt)
+        mem_mb=lambda wildcards, attempt, threads: 20000 + (1000 * attempt)
     output:
         temp(f'{output_dir}/temp/gtf_chrom_store.h5')
     input:
