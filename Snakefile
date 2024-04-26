@@ -11,6 +11,8 @@ def vcf_file(wildcards):
 
 
 rule gtf_chrom_store:
+    resources:
+        mem_mb=lambda wildcards, attempt, threads: 12000 + (1000 * attempt)
     output:
         temp(f'{output_dir}/temp/gtf_chrom_store.h5')
     input:
@@ -99,6 +101,7 @@ rule all:
         # todo figure out resources
         # around 11GB per job
 
-        # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]"
-        # N_CORES=256 MEM_MB=1000000 N_JOBS=200 N_GPUS=12
-        # run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs
+        # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]" \
+        # N_CORES=2 MEM_MB=30000 N_JOBS=23 N_GPUS=2 \
+        # slurm_scripts/run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs \
+        # --configfile config/config.prod.yaml
