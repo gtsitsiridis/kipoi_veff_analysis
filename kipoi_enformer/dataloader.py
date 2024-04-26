@@ -49,13 +49,15 @@ class TSSDataloader(SampleGenerator, ABC):
         self._size = size
         self._seq_length = seq_length
         self.chromosome = chromosome
-        logger.debug(f"Loading genome annotation for chromosome {chromosome}")
+        logger.debug(f"Loading genome annotation")
         self._genome_annotation = get_tss_from_genome_annotation(gtf, chromosome=self.chromosome,
                                                                  canonical_only=canonical_only,
                                                                  protein_coding_only=protein_coding_only)
         self._shifts = (0,) if shift == 0 else (-shift, 0, shift)
         self.metadata = {'shifts': ';'.join([str(x) for x in self._shifts]), 'allele_type': allele_type.value,
                          'seq_length': str(self._seq_length)}
+        if self.chromosome:
+            self.metadata['chromosome'] = self.chromosome
 
     @abstractmethod
     def __len__(self):

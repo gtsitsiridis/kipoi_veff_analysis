@@ -17,7 +17,7 @@ rule enformer_ref:
     # todo figure out resources
     # mem_mb= lambda wildcards,attempt,threads: (4000 * threads) * attempt
     output:
-        prediction_dir=directory(f'{output_dir}/raw/ref/reference.parquet/' + '{chromosome}',)
+        prediction_dir=directory(f'{output_dir}/raw/ref/reference.parquet/' + 'chrom={chromosome}',)
     input:
         gtf_file=config["genome"]["gtf_file"],
         gtf_file_index=config["genome"]["gtf_file"] + '.tbi',
@@ -44,9 +44,9 @@ rule enformer_alt:
 
 rule tissue_mapper:
     output:
-        prediction_dir=directory(f'{output_dir}/tissue/' + '{path}.parquet',)
+        prediction_dir=directory(f'{output_dir}/tissue/' + '{path}',)
     input:
-        enformer_dir=directory(f'{output_dir}/raw/' + '{path}.parquet',),
+        enformer_dir=directory(f'{output_dir}/raw/' + '{path}',),
         tracks_path=config['enformer']['tissue_matcher']['tracks_path'],
         tissue_matcher_path=config['enformer']['tissue_matcher']['model_path'],
     script:
@@ -78,12 +78,20 @@ rule all:
     default_target: True
     input:
         expand(rules.enformer_ref.output,chromosome=config['genome']['chromosomes']),
-        expand(rules.enformer_alt.output,vcf_name=vcf_names())
+        # expand(rules.enformer_alt.output,vcf_name=vcf_names()),
+        # expand(rules.tissue_mapper.output,
+        #     path=expand('ref/reference.parquet/chrom={chromosome}',
+        #         chromosome=config['genome']['chromosomes'])
+        # ),
+        # expand(rules.tissue_mapper.output,
+        #     path=expand('alt/{vcf_name}.parquet',
+        #         vcf_name=vcf_names())
+        # ),
 
 
-    # todo figure out resources
-    # around 11GB per job
+        # todo figure out resources
+        # around 11GB per job
 
-    # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]"
-    # N_CORES=2 MEM_MB=8192000 N_JOBS=200 N_GPUS=2
-    # run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs
+        # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]"
+        # N_CORES=2 MEM_MB=8192000 N_JOBS=200 N_GPUS=2
+        # run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs

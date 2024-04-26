@@ -141,16 +141,14 @@ class EnformerTissueMapper:
         with open(tracks_path, 'rb') as f:
             self.tracks_dict = yaml.safe_load(f)
 
-    def predict(self, prediction_path: str | pathlib.Path, output_path: str | pathlib.Path, num_bins: int = 2):
+    def predict(self, prediction_path: str | pathlib.Path, output_path: str | pathlib.Path, num_bins: int = 3):
         """
         Load the predictions from the parquet file lazily.
         For each record, calculate the average predictions over the bins centered at the tss bin.
         For each tissue in the tissue_matcher_lm_dict, predict a tissue-specific expression score.
         Finally, save the expression scores in a new parquet file.
 
-        :param num_workers:
         :param prediction_path: The parquet file that contains the enformer predictions.
-        :param batch_size: The number of records to read and write at once.
         :param output_path: The parquet file that will contain the tissue-specific expression scores.
         :param num_bins: number of bins to average over for each record
         The average predictions will be calculated at the tss bin of each record.
@@ -178,7 +176,7 @@ class EnformerTissueMapper:
         for pred_file in tqdm(prediction_dataset.files):
             with pq.ParquetWriter(base_dir / pathlib.Path(pred_file).name, output_schema) as writer:
                 batch_counter += 1
-                batch_agg_pred, batch_meta = self._aggregate_batch(pl.read_parquet(pred_file),
+                batch_agg_pred, batch_meta = self._aggregate_batch(pl.read_parquet(pred_file, hive_partitioning=False),
                                                                    Enformer.PRED_SEQUENCE_LENGTH,
                                                                    Enformer.BIN_SIZE, num_bins, shifts, tracks)
                 logger.debug('Running model on the batch...')

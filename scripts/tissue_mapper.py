@@ -11,6 +11,5 @@ wildcards = snakemake.wildcards
 
 tissue_mapper = EnformerTissueMapper(tracks_path=input_['tracks_path'],
                                      tissue_matcher_path=input_['tissue_matcher_path'])
-
-for chr_file in input_['enformer_dir'].glob('*/'):
-    tissue_mapper.predict(chr_file, output_path=output['prediction_dir'] / chr_file.name)
+tissue_mapper.predict(input_['enformer_dir'], output_path=output['prediction_dir'],
+                      num_bins=config['enformer']['tissue_matcher']['nbins'])
