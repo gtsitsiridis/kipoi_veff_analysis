@@ -70,35 +70,39 @@ def construct_enformer_interval(chrom, strand, tss, seq_length):
     # if the sequence length is odd, the tss is in the middle of the sequence
     five_end_len = math.floor(seq_length / 2)
     three_end_len = math.ceil(seq_length / 2)
-    interval_start = tss - five_end_len
 
-    # check if interval_start is negative
-    five_end_padding = 0
-    if interval_start < 0:
-        five_end_padding = abs(interval_start)
-        interval_start = 0
+    # # check if interval_start is negative
+    # five_end_padding = 0
+    # if interval_start < 0:
+    #     five_end_padding = abs(interval_start)
+    #     interval_start = 0
 
     enformer_interval = Interval(chrom=chrom,
-                                 start=interval_start,
+                                 start=tss - five_end_len,
                                  end=tss + three_end_len,
                                  strand=strand)
 
-    assert (enformer_interval.width() + five_end_padding) == seq_length, \
+    assert (enformer_interval.width()) == seq_length, \
         f"enformer_interval width must be {seq_length} but got {enformer_interval.width()}"
-    assert (tss - enformer_interval.start + five_end_padding) == seq_length // 2, \
+    assert (tss - enformer_interval.start) == seq_length // 2, \
         f"tss must be in the middle of the enformer_interval but got {tss - enformer_interval.start}"
-    return enformer_interval, five_end_padding
+    return enformer_interval
 
 
 def extract_sequences_around_tss(shifts, chromosome, strand, tss, seq_length,
                                  reference_extractor: FastaStringExtractor | None = None,
                                  variant_extractor: VariantSeqExtractor | None = None,
                                  variant: Variant | None = None):
-    enformer_interval, five_end_pad = construct_enformer_interval(chromosome, strand, tss, seq_length)
+    enformer_interval = construct_enformer_interval(chromosome, strand, tss, seq_length)
     sequences = []
     # shift intervals and extract sequences
     for shift in shifts:
         shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
+        five_end_pad = 0
+        if shifted_enformer_interval.start < 0:
+            five_end_pad = abs(shifted_enformer_interval.start)
+            shifted_enformer_interval.truncate()
+
         if variant_extractor is not None:
             if reference_extractor is not None:
                 raise ValueError("Either variant or reference extractor must be provided, but not both")
