@@ -1,16 +1,13 @@
-import pathlib
 from abc import ABC, abstractmethod
 
 import pandas as pd
 from kipoi.data import SampleGenerator
-from kipoiseq import Interval, Variant
 from kipoiseq.extractors import VariantSeqExtractor, SingleVariantMatcher, FastaStringExtractor
 import pyranges as pr
 from kipoiseq.extractors import MultiSampleVCF
-from kipoiseq.transforms.functional import one_hot_dna
 import pyarrow as pa
 import numpy as np
-from .utils import get_tss_from_genome_annotation, construct_enformer_interval
+from .utils import get_tss_from_genome_annotation, construct_enformer_interval, extract_sequences_around_tss
 from .constants import AlleleType
 from kipoi_enformer.logger import logger
 
@@ -23,8 +20,8 @@ SEQUENCE_LENGTH = 393_216
 
 class TSSDataloader(SampleGenerator, ABC):
     def __init__(self, allele_type: AlleleType, fasta_file, gtf: pd.DataFrame | str, chromosome: str | None = None,
-                 seq_length: int = SEQUENCE_LENGTH,
-                 shift: int = 43, size: int = None, canonical_only: bool = False, protein_coding_only: bool = False,
+                 seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
+                 protein_coding_only: bool = False,
                  *args, **kwargs):
         """
 
@@ -141,14 +138,10 @@ class RefTSSDataloader(TSSDataloader):
                 chromosome = row['Chromosome']
                 strand = row.get('Strand', '.')
                 tss = row['tss']
-                enformer_interval = construct_enformer_interval(chromosome, strand, tss, self._seq_length)
-                sequences = []
-                # shift intervals and extract sequences
-                for shift in self._shifts:
-                    shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
-                    assert shifted_enformer_interval.width() == self._seq_length, \
-                        f"enformer_interval width must be {self._seq_length} but got {enformer_interval.width()}"
-                    sequences.append(one_hot_dna(self._reference_sequence.extract(shifted_enformer_interval)))
+
+                sequences, enformer_interval = extract_sequences_around_tss(self._shifts, chromosome, strand, tss,
+                                                                            self._seq_length,
+                                                                            reference_extractor=self._reference_sequence)
 
                 metadata = {
                     "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
@@ -232,18 +225,13 @@ class VCFTSSDataloader(TSSDataloader):
         for interval, variant in self._get_single_variant_matcher(self.vcf_lazy):
             attrs = interval.attrs
             tss = attrs['tss']
+            chromosome = interval.chrom
+            strand = interval.strand
 
-            enformer_interval = construct_enformer_interval(interval.chrom, interval.strand, tss, self._seq_length)
-            sequences = []
-            # shift intervals and extract sequences
-            for shift in self._shifts:
-                shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
-                assert shifted_enformer_interval.width() == self._seq_length, \
-                    f"enformer_interval width must be {self._seq_length} but got {enformer_interval.width()}"
-
-                sequences.append(self._extract_seq(tss=tss, interval=shifted_enformer_interval,
-                                                   variant=variant))
-
+            sequences, enformer_interval = extract_sequences_around_tss(self._shifts, chromosome, strand, tss,
+                                                                        self._seq_length,
+                                                                        variant_extractor=self._variant_seq_extractor,
+                                                                        variant=variant)
             metadata = {
                 "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
                 "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
@@ -260,25 +248,6 @@ class VCFTSSDataloader(TSSDataloader):
                 "alt": variant.alt,
             }
             yield metadata, np.stack(sequences),
-
-    def _extract_seq(self, tss: int, interval: Interval, variant: Variant):
-        assert interval.width() == self._seq_length, f"interval width must be {self._seq_length} but got {interval.width()}"
-
-        # Note: If the tss is within the variant's interval
-        # ====|----------Variant----------|=======
-        # ===========|TSS|===================
-        # We take as the new tss the first base downstream the variant
-        # For an explanation on how this works, look at the function
-        # VariantSeqExtractor.extract(self, interval, variants, anchor, fixed_len=True, **kwargs)
-
-        # the tss/anchor is going to be in the middle of the sequence for both alleles
-        alt_seq = self.variant_seq_extractor.extract(
-            interval,
-            [variant],
-            anchor=tss
-        )
-
-        return one_hot_dna(alt_seq)
 
     def __len__(self):
         if self._genome_annotation is None:
