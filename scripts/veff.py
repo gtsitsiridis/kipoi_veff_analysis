@@ -9,5 +9,8 @@ config = snakemake.config
 input_ = snakemake.input
 output = snakemake.output
 wildcards = snakemake.wildcards
+params = snakemake.params
+
+print(params['ref_tissue_pred'])
 
 calculate_veff(input_['ref_tissue_pred'], input_['alt_tissue_pred'], output['veff'])

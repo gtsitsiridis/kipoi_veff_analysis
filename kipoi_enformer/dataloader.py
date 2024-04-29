@@ -56,8 +56,6 @@ class TSSDataloader(SampleGenerator, ABC):
         self._shifts = (0,) if shift == 0 else (-shift, 0, shift)
         self.metadata = {'shifts': ';'.join([str(x) for x in self._shifts]), 'allele_type': allele_type.value,
                          'seq_length': str(self._seq_length)}
-        if self.chromosome:
-            self.metadata['chromosome'] = self.chromosome
 
     @abstractmethod
     def __len__(self):
@@ -114,11 +112,10 @@ class TSSDataloader(SampleGenerator, ABC):
 
 
 class RefTSSDataloader(TSSDataloader):
-    def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str | None = None,
+    def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str,
                  seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
                  protein_coding_only: bool = False, *args, **kwargs):
         """
-
         :param fasta_file: Fasta file with the reference genome
         :param gtf: GTF file with genome annotation or DataFrame with genome annotation
         :param chromosome: The chromosome to filter for
@@ -128,7 +125,7 @@ class RefTSSDataloader(TSSDataloader):
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
         """
-
+        assert chromosome is not None, 'A chromosome should be provided'
         super().__init__(AlleleType.REF, chromosome=chromosome, fasta_file=fasta_file, gtf=gtf,
                          seq_length=seq_length, shift=shift, size=size, canonical_only=canonical_only,
                          protein_coding_only=protein_coding_only, *args, **kwargs)
@@ -149,7 +146,6 @@ class RefTSSDataloader(TSSDataloader):
                     "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
                     "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
                     "tss": tss,  # 0-based position of the TSS
-                    "chr": chromosome,
                     "strand": strand,
                     "gene_id": row['gene_id'],
                     "transcript_id": row['transcript_id'],
@@ -174,22 +170,21 @@ class RefTSSDataloader(TSSDataloader):
         Get the pyarrow schema for the metadata.
         :return: PyArrow schema for the metadata
         """
-        return pa.schema(
-            [
-                ('enformer_start', pa.int64()),
-                ('enformer_end', pa.int64()),
-                ('tss', pa.int64()),
-                ('chr', pa.string()),
-                ('strand', pa.string()),
-                ('gene_id', pa.string()),
-                ('transcript_id', pa.string()),
-                ('transcript_start', pa.int64()),
-                ('transcript_end', pa.int64()),
-            ], metadata=self.metadata)
+        columns = [
+            ('enformer_start', pa.int64()),
+            ('enformer_end', pa.int64()),
+            ('tss', pa.int64()),
+            ('strand', pa.string()),
+            ('gene_id', pa.string()),
+            ('transcript_id', pa.string()),
+            ('transcript_start', pa.int64()),
+            ('transcript_end', pa.int64()),]
+
+        return pa.schema(columns, metadata=self.metadata)
 
 
 class VCFTSSDataloader(TSSDataloader):
-    def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, chromosome: str | None = None, vcf_lazy=True,
+    def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, vcf_lazy=True,
                  variant_upstream_tss: int = 10, variant_downstream_tss: int = 10, seq_length: int = SEQUENCE_LENGTH,
                  shift: int = 43, size: int = None, canonical_only: bool = False, protein_coding_only: bool = False,
                  *args, **kwargs):
@@ -197,7 +192,6 @@ class VCFTSSDataloader(TSSDataloader):
 
         :param fasta_file: Fasta file with the reference genome
         :param gtf: GTF file with genome annotation or DataFrame with genome annotation
-        :param chromosome: The chromosome to filter for
         :param vcf_file: VCF file with variants
         :param vcf_lazy: If True, the VCF file is read lazily
         :param variant_upstream_tss: The number of bases upstream the TSS to look for variants
@@ -209,7 +203,7 @@ class VCFTSSDataloader(TSSDataloader):
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
         """
 
-        super().__init__(AlleleType.ALT, fasta_file=fasta_file, gtf=gtf, chromosome=chromosome,
+        super().__init__(AlleleType.ALT, fasta_file=fasta_file, gtf=gtf, chromosome=None,
                          seq_length=seq_length, shift=shift, size=size, canonical_only=canonical_only,
                          protein_coding_only=protein_coding_only, *args,
                          **kwargs)
@@ -221,7 +215,7 @@ class VCFTSSDataloader(TSSDataloader):
         self.vcf_lazy = vcf_lazy
         self.variant_upstream_tss = variant_upstream_tss
         self.variant_downstream_tss = variant_downstream_tss
-        logger.debug(f"Dataloader is ready for chromosome {chromosome}")
+        logger.debug(f"Dataloader is ready")
 
     def _sample_gen(self):
         for interval, variant in self._get_single_variant_matcher(self.vcf_lazy):
@@ -238,7 +232,7 @@ class VCFTSSDataloader(TSSDataloader):
                 "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
                 "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
                 "tss": tss,  # 0-based position of the TSS
-                "chr": interval.chrom,
+                "chrom": interval.chrom,
                 "strand": interval.strand,
                 "gene_id": attrs['gene_id'],
                 "transcript_id": attrs['transcript_id'],
@@ -289,7 +283,7 @@ class VCFTSSDataloader(TSSDataloader):
                 ('enformer_start', pa.int64()),
                 ('enformer_end', pa.int64()),
                 ('tss', pa.int64()),
-                ('chr', pa.string()),
+                ('chrom', pa.string()),
                 ('strand', pa.string()),
                 ('gene_id', pa.string()),
                 ('transcript_id', pa.string()),

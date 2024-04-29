@@ -63,10 +63,8 @@ class Enformer:
             logger.info('The dataloader is empty. No predictions to make.')
             return
 
-        base_dir = pathlib.Path(filepath)
-        base_dir.mkdir(parents=False, exist_ok=False)
-        for batch in tqdm(dataloader.batch_iter(batch_size=batch_size), total=total_batches):
-            with pq.ParquetWriter(base_dir / f'part{batch_counter}.parquet', schema) as writer:
+        with pq.ParquetWriter(filepath, schema) as writer:
+            for batch in tqdm(dataloader.batch_iter(batch_size=batch_size), total=total_batches):
                 batch_counter += 1
                 batch = self._to_pyarrow(self._process_batch(batch))
                 writer.write_batch(batch)
@@ -156,8 +154,8 @@ class EnformerTissueMapper:
         if self.tissue_matcher_lm_dict is None:
             raise ValueError('The tissue_matcher_lm_dict is not provided. Please train the linear models first.')
 
-        prediction_dataset = pq.ParquetDataset(prediction_path)
-        prediction_schema = prediction_dataset.schema
+        prediction_file = pq.ParquetFile(prediction_path)
+        prediction_schema = prediction_file.schema.to_arrow_schema()
         output_schema = prediction_schema.remove(prediction_schema.get_field_index('tracks'))
         output_schema = pa.unify_schemas([output_schema, pa.schema([
             pa.field('tissue', pa.string()),
@@ -169,23 +167,16 @@ class EnformerTissueMapper:
         shifts = [int(x) for x in metadata[b'shifts'].split(b';')]
         tracks = list(self.tracks_dict.values())
 
-        base_dir = pathlib.Path(output_path)
-        base_dir.mkdir(parents=True, exist_ok=False)
         logger.debug(f'Iterating over the parquet files in {prediction_path}')
-        batch_counter = 0
-        for pred_file in tqdm(prediction_dataset.files):
-            with pq.ParquetWriter(base_dir / pathlib.Path(pred_file).name, output_schema) as writer:
-                batch_counter += 1
-                batch_agg_pred, batch_meta = self._aggregate_batch(pl.read_parquet(pred_file, hive_partitioning=False),
+        with pq.ParquetWriter(output_path, output_schema) as writer:
+            for batch in tqdm(prediction_file.iter_batches(), total=prediction_file.num_row_groups):
+                batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(batch),
                                                                    Enformer.PRED_SEQUENCE_LENGTH,
                                                                    Enformer.BIN_SIZE, num_bins, shifts, tracks)
                 logger.debug('Running model on the batch...')
                 record_batch = self._predict_batch(batch_agg_pred, batch_meta)
                 logger.debug('Writing to file')
                 writer.write(record_batch)
-
-        # sanity check
-        assert batch_counter == len(prediction_dataset.files)
 
     @staticmethod
     def _aggregate_batch(frame, pred_seq_length, bin_size, num_bins, shifts, tracks):
@@ -252,29 +243,32 @@ class EnformerTissueMapper:
 
 
 def calculate_veff(ref_path, alt_path, output_path):
-    logger.info('Reading the reference file into memory')
-    ref_table = pq.ParquetDataset(ref_path).read()
-    ref_metadata = ref_table.schema.metadata
-    assert ref_metadata[b'allele_type'] == b'REF', 'The allele type of the reference parquet file is not REF'
-    ref_metadata = {k: v for k, v in ref_metadata.items() if k != b'allele_type'}
-    ref_df = pl.DataFrame(ref_table).rename({'score': 'ref_score'})
+    """
+    Given a file containing enformer scores for alternative alleles,
+     1) load the corresponding reference chromosomes into memory,
+     2) iterate over the alternative allele in batches,
+     3) join the reference and alternative scores on the chromosome and position,
+     and 4) calculate the variant effect by subtracting the reference scores from the alternate scores.
 
-    logger.info('Reading the alternate parquet dataset in batches')
-    base_path = pathlib.Path(output_path)
-    base_path.mkdir(parents=False, exist_ok=False)
-    alt_dataset = pq.ParquetDataset(alt_path)
-    for alt_file in alt_dataset.files:
-        logger.debug(f'Calculating the variant effect for {alt_file}')
-        alt_df = pl.read_parquet(alt_file)
-        alt_df = alt_df.rename({'score': 'alt_score'})
-        alt_metadata = alt_dataset.schema.metadata
-        assert alt_metadata[b'allele_type'] == b'ALT', 'The allele type of the alternate parquet file is not ALT'
-        alt_metadata = {k: v for k, v in alt_metadata.items() if k != b'allele_type'}
-        assert ref_metadata == alt_metadata, 'The metadata of the two parquet files do not match'
-        joined_df = alt_df.join(ref_df, how='left', on=[x for x in ref_df.columns if x != 'ref_score'])
-        joined_df = joined_df.with_columns((pl.col('alt_score') - pl.col('ref_score')).alias('delta_score'))
-        joined_df = joined_df.to_arrow()
-        joined_df = joined_df.replace_schema_metadata(alt_metadata)
-        logger.debug(f'Writing the variant effect to {base_path / pathlib.Path(alt_file).name}')
-        pq.write_table(joined_df, base_path / pathlib.Path(alt_file).name)
-        logger.debug(f'Finished calculating the variant effect for {alt_file}')
+    :param ref_path: The parquet files that contains the reference scores
+    :param alt_path: The parquet file that contains the alternate scores
+    :param output_path:
+    :return:
+    """
+
+    logger.debug(f'Calculating the variant effect for {alt_path}')
+
+    ref_df = pl.scan_parquet(ref_path).rename({'score': 'ref_score'})
+    alt_df = pl.scan_parquet(alt_path).rename({'score': 'alt_score'})
+    alt_metadata = pq.ParquetFile(alt_path).schema_arrow.metadata
+    del alt_metadata[b'allele_type']
+
+    on = ['tss', 'chrom', 'strand', 'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
+          'enformer_start', 'enformer_end']
+
+    joined_df = alt_df.join(ref_df, how='left', on=on)
+    joined_df = joined_df.with_columns((pl.col('alt_score') - pl.col('ref_score')).alias('delta_score'))
+    joined_df = joined_df.collect().to_arrow()
+    joined_df = joined_df.replace_schema_metadata(alt_metadata)
+    logger.debug(f'Writing the variant effect to {output_path}')
+    pq.write_table(joined_df, output_path)
