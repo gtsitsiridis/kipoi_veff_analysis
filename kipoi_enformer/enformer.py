@@ -169,8 +169,8 @@ class EnformerTissueMapper:
 
         logger.debug(f'Iterating over the parquet files in {prediction_path}')
         with pq.ParquetWriter(output_path, output_schema) as writer:
-            for batch in tqdm(prediction_file.iter_batches(), total=prediction_file.num_row_groups):
-                batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(batch),
+            for i in tqdm(range(prediction_file.num_row_groups)):
+                batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(prediction_file.read_row_group(i)),
                                                                    Enformer.PRED_SEQUENCE_LENGTH,
                                                                    Enformer.BIN_SIZE, num_bins, shifts, tracks)
                 logger.debug('Running model on the batch...')
