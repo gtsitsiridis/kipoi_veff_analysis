@@ -15,7 +15,6 @@ rule gtf_chrom_store:
         temp(f'{output_dir}/temp/gtf_chrom_store.h5')
     input:
         gtf_file=config["genome"]["gtf_file"],
-        gtf_file_index=config["genome"]["gtf_file"] + '.tbi',
     script:
         'scripts/gtf_chrom_store.py'
 
@@ -29,7 +28,6 @@ rule enformer_ref:
     input:
         gtf_chrom_store=rules.gtf_chrom_store.output[0],
         fasta_file=config["genome"]["fasta_file"],
-        fasta_file_index=config["genome"]["fasta_file"] + '.fai',
     params:
         type='ref'
     script:
@@ -44,11 +42,8 @@ rule enformer_alt:
         prediction_path=f'{output_dir}/raw/alt/' + '{vcf_name}.parquet',
     input:
         gtf_file=config["genome"]["gtf_file"],
-        gtf_file_index=config["genome"]["gtf_file"] + '.tbi',
         fasta_file=config["genome"]["fasta_file"],
-        fasta_file_index=config["genome"]["fasta_file"] + '.fai',
         vcf_file=vcf_file,
-        vcf_file_index=lambda wildcards: vcf_file(wildcards) + '.tbi',
     wildcard_constraints:
         vcf_name='.*\.vcf\.gz'
     params:
