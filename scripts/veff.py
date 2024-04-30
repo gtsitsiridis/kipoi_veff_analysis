@@ -11,4 +11,9 @@ output = snakemake.output
 wildcards = snakemake.wildcards
 params = snakemake.params
 
+if config.get('debug', False):
+    logger = setup_logger(logging.DEBUG)
+else:
+    logger = setup_logger()
+
 calculate_veff(params['ref_tissue_pred_dir'] + '/**/data.parquet', input_['alt_tissue_pred'], output['veff'])

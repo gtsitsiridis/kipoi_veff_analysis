@@ -43,13 +43,13 @@ def run_enformer(dl: TSSDataloader, output_path, size, batch_size):
     assert x.shape == (size, 3, 896, 5313)
 
 
-def get_enformer_path(output_dir: Path, size: int, allele_type: AlleleType):
+def get_enformer_path(output_dir: Path, size: int, allele_type: AlleleType, rm=False):
     if allele_type == AlleleType.REF:
         path = output_dir / f'enformer_{size}/raw/ref.parquet/chrom=chr22/data.parquet'
     else:
         path = output_dir / f'enformer_{size}/raw/alt.parquet'
 
-    if path.exists():
+    if rm and path.exists():
         if path.is_dir():
             rmtree(path)
         else:
@@ -59,13 +59,13 @@ def get_enformer_path(output_dir: Path, size: int, allele_type: AlleleType):
     return path
 
 
-def get_tissue_path(output_dir: Path, size: int, allele_type: AlleleType):
+def get_tissue_path(output_dir: Path, size: int, allele_type: AlleleType, rm=False):
     if allele_type == AlleleType.REF:
         path = output_dir / f'enformer_{size}/tissue/ref.parquet/chrom=chr22/data.parquet'
     else:
         path = output_dir / f'enformer_{size}/tissue/alt.parquet'
 
-    if path.exists():
+    if rm and path.exists():
         if path.is_dir():
             rmtree(path)
         else:
@@ -89,7 +89,7 @@ def test_enformer_ref(chr22_example_files, output_dir: Path, size, batch_size):
         'chromosome': 'chr22'
     }
 
-    enformer_filepath = get_enformer_path(output_dir, size, AlleleType.REF)
+    enformer_filepath = get_enformer_path(output_dir, size, AlleleType.REF, rm=True)
     dl = RefTSSDataloader(**args)
     run_enformer(dl, enformer_filepath, size, batch_size=batch_size)
 
@@ -110,7 +110,7 @@ def test_enformer_alt(chr22_example_files, output_dir: Path, size, batch_size):
         'variant_upstream_tss': 500,
     }
 
-    enformer_filepath = get_enformer_path(output_dir, size, AlleleType.ALT)
+    enformer_filepath = get_enformer_path(output_dir, size, AlleleType.ALT, rm=True)
     dl = VCFTSSDataloader(**args)
     run_enformer(dl, enformer_filepath, size, batch_size=batch_size)
 
@@ -152,8 +152,7 @@ def test_enformer_tissue_mapper(allele_type: str, chr22_example_files, output_di
 
 def test_calculate_veff(chr22_example_files, output_dir: Path,
                         enformer_tracks_path: Path, gtex_tissue_matcher_path: Path, size=10):
-    ref_filepath = get_enformer_path(output_dir, size, AlleleType.REF)
-    alt_filepath = get_enformer_path(output_dir, size, AlleleType.ALT)
+    ref_filepath = get_tissue_path(output_dir, size, AlleleType.REF)
     if ref_filepath.exists():
         logger.debug(f'Using existing file: {ref_filepath}')
     else:
@@ -161,7 +160,7 @@ def test_calculate_veff(chr22_example_files, output_dir: Path,
         test_enformer_tissue_mapper('REF', chr22_example_files, output_dir,
                                     enformer_tracks_path, gtex_tissue_matcher_path, size=size)
 
-    alt_filepath = output_dir / f'enformer_{size}_tissue_alt.parquet'
+    alt_filepath = get_tissue_path(output_dir, size, AlleleType.ALT)
     if alt_filepath.exists():
         logger.debug(f'Using existing file: {alt_filepath}')
     else:
@@ -169,7 +168,7 @@ def test_calculate_veff(chr22_example_files, output_dir: Path,
         test_enformer_tissue_mapper('ALT', chr22_example_files, output_dir,
                                     enformer_tracks_path, gtex_tissue_matcher_path, size=size)
 
-    output_path = output_dir / f'enformer_{size}_veff.parquet'
+    output_path = output_dir / f'enformer_{size}/tissue/veff.parquet'
     if output_path.exists():
         output_path.unlink()
-    calculate_veff(ref_filepath / '**/data.parquet', alt_filepath, output_path)
+    calculate_veff(ref_filepath, alt_filepath, output_path)
