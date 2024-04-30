@@ -74,7 +74,7 @@ rule veff:
     priority: 4
     resources:
         ntasks=1,
-        mem_mb=lambda wildcards, attempt, threads: 2000 + (1000 * attempt)
+        mem_mb=lambda wildcards, attempt, threads: 1000 + (500 * attempt)
     output:
         veff=f'{output_dir}/tissue/veff/' + '{vcf_name}.parquet',
     input:
