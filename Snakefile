@@ -75,8 +75,7 @@ rule veff:
     output:
         veff=f'{output_dir}/tissue/veff/' + '{vcf_name}.parquet',
     input:
-        ref_tissue_pred=expand(f'{output_dir}/tissue/ref/reference.parquet/' + 'chrom={chromosome}/data.parquet',
-            chromosome=config['genome']['chromosomes']),
+        ref_tissue_pred=expand(rules.enformer_ref.output,chromosome=config['genome']['chromosomes']),
         alt_tissue_pred=f'{output_dir}/tissue/alt/' + '{vcf_name}.parquet',
     params:
         ref_tissue_pred_dir = f'{output_dir}/tissue/ref/reference.parquet'
@@ -95,15 +94,6 @@ rule all:
     default_target: True
     input:
         expand(rules.enformer_ref.output,chromosome=config['genome']['chromosomes']),
-        # expand(rules.enformer_alt.output,vcf_name=vcf_names()),
-        # expand(rules.tissue_mapper.output,
-        #     path=expand('ref/reference.parquet/chrom={chromosome}/data.parquet',
-        #         chromosome=config['genome']['chromosomes'])
-        # ),
-        # expand(rules.tissue_mapper.output,
-        #     path=expand('alt/{vcf_name}.parquet',
-        #         vcf_name=vcf_names())
-        # ),
         # expand(rules.veff.output, vcf_name=vcf_names())
 
 
