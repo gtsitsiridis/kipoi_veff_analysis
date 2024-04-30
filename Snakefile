@@ -95,16 +95,16 @@ rule all:
     default_target: True
     input:
         expand(rules.enformer_ref.output,chromosome=config['genome']['chromosomes']),
-        expand(rules.enformer_alt.output,vcf_name=vcf_names()),
-        expand(rules.tissue_mapper.output,
-            path=expand('ref/reference.parquet/chrom={chromosome}/data.parquet',
-                chromosome=config['genome']['chromosomes'])
-        ),
-        expand(rules.tissue_mapper.output,
-            path=expand('alt/{vcf_name}.parquet',
-                vcf_name=vcf_names())
-        ),
-        expand(rules.veff.output, vcf_name=vcf_names())
+        # expand(rules.enformer_alt.output,vcf_name=vcf_names()),
+        # expand(rules.tissue_mapper.output,
+        #     path=expand('ref/reference.parquet/chrom={chromosome}/data.parquet',
+        #         chromosome=config['genome']['chromosomes'])
+        # ),
+        # expand(rules.tissue_mapper.output,
+        #     path=expand('alt/{vcf_name}.parquet',
+        #         vcf_name=vcf_names())
+        # ),
+        # expand(rules.veff.output, vcf_name=vcf_names())
 
 
         # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]" \
