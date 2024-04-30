@@ -1,5 +1,6 @@
 from kipoi_enformer.enformer import EnformerTissueMapper
 from kipoi_enformer.logger import setup_logger
+import logging
 
 # SNAKEMAKE SCRIPT
 config = snakemake.config
