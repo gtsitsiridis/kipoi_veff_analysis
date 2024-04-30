@@ -7,7 +7,7 @@ import pyranges as pr
 from kipoiseq.extractors import MultiSampleVCF
 import pyarrow as pa
 import numpy as np
-from .utils import get_tss_from_genome_annotation, construct_enformer_interval, extract_sequences_around_tss
+from .utils import get_tss_from_genome_annotation, extract_sequences_around_tss
 from .constants import AlleleType
 from kipoi_enformer.logger import logger
 
@@ -43,7 +43,6 @@ class TSSDataloader(SampleGenerator, ABC):
         if not self._reference_sequence.use_strand:
             raise ValueError(
                 "Reference sequence fetcher does not use strand but this is needed to obtain correct sequences!")
-        self._variant_seq_extractor = VariantSeqExtractor(reference_sequence=self._reference_sequence)
         self._canonical_only = canonical_only
         self._protein_coding_only = protein_coding_only
         self._size = size
@@ -140,11 +139,11 @@ class RefTSSDataloader(TSSDataloader):
 
                 sequences, enformer_interval = extract_sequences_around_tss(self._shifts, chromosome, strand, tss,
                                                                             self._seq_length,
-                                                                            reference_extractor=self._reference_sequence)
+                                                                            ref_seq_extractor=self._reference_sequence)
 
                 metadata = {
                     "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
-                    "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
+                    "enformer_end": enformer_interval.end + 1,  # 1-based stop of the enformer input sequence
                     "tss": tss,  # 0-based position of the TSS
                     "strand": strand,
                     "gene_id": row['gene_id'],
@@ -177,7 +176,7 @@ class RefTSSDataloader(TSSDataloader):
             ('gene_id', pa.string()),
             ('transcript_id', pa.string()),
             ('transcript_start', pa.int64()),
-            ('transcript_end', pa.int64()),]
+            ('transcript_end', pa.int64()), ]
 
         return pa.schema(columns, metadata=self.metadata)
 
@@ -209,7 +208,7 @@ class VCFTSSDataloader(TSSDataloader):
         assert shift < variant_downstream_tss + variant_upstream_tss + 1, \
             f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {variant_downstream_tss + variant_upstream_tss + 1}"
 
-        self.variant_seq_extractor = VariantSeqExtractor(reference_sequence=self._reference_sequence)
+        self._variant_seq_extractor = VariantSeqExtractor(reference_sequence=self._reference_sequence)
         self.vcf_file = vcf_file
         self.vcf_lazy = vcf_lazy
         self.variant_upstream_tss = variant_upstream_tss
@@ -226,11 +225,12 @@ class VCFTSSDataloader(TSSDataloader):
 
                 sequences, enformer_interval = extract_sequences_around_tss(self._shifts, chromosome, strand, tss,
                                                                             self._seq_length,
+                                                                            ref_seq_extractor=self._reference_sequence,
                                                                             variant_extractor=self._variant_seq_extractor,
                                                                             variant=variant)
                 metadata = {
                     "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
-                    "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
+                    "enformer_end": enformer_interval.end + 1,  # 1-based stop of the enformer input sequence
                     "tss": tss,  # 0-based position of the TSS
                     "chrom": interval.chrom,
                     "strand": interval.strand,

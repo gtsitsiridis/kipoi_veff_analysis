@@ -262,7 +262,6 @@ def test_vcf_dataloader(chr22_example_files, variants):
         variant_upstream_tss=10,
         seq_length=21,
         shift=0,
-        chromosome='chr22',
     )
     total = 0
     checked_variants = dict()
@@ -270,7 +269,7 @@ def test_vcf_dataloader(chr22_example_files, variants):
         total += 1
         metadata = i['metadata']
         # example: chr22:16364873:G>A_
-        var_id = (f'{metadata["chr"]}:{metadata["variant_start"] + 1}:'
+        var_id = (f'{metadata["chrom"]}:{metadata["variant_start"] + 1}:'
                   f'{metadata["ref"]}>{metadata["alt"]}:'
                   f'{metadata["transcript_id"]}')
         variant = variants.get(var_id, None)
@@ -298,7 +297,7 @@ def test_ref_dataloader(chr22_example_files, references):
         total += 1
         metadata = i['metadata']
         # example: chr22:16364873:G>A_
-        ref_id = f'{metadata["chr"]}:{metadata["transcript_id"]}'
+        ref_id = f'chr22:{metadata["transcript_id"]}'
         ref = references.get(ref_id)
         if ref is not None:
             assert one_hot2string(i['sequences'])[0] == ref['seq']
@@ -307,3 +306,17 @@ def test_ref_dataloader(chr22_example_files, references):
     # check that all variants in my list were found and checked
     assert set(checked_refs.keys()) == set(references.keys())
     print(total)
+
+
+def test_vcf_dataloader_tmp():
+    dl = VCFTSSDataloader(
+        fasta_file='tmp/seq.fa',
+        gtf='tmp/annot.gtf',
+        vcf_file='tmp/tmp1.vcf',
+        variant_downstream_tss=100,
+        variant_upstream_tss=500,
+        seq_length=393_216,
+        shift=43,
+    )
+    for i in dl:
+        print(i['metadata'])

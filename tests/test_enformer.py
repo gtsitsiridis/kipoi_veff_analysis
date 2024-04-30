@@ -1,7 +1,6 @@
 import pytest
 
-from kipoi_enformer.dataloader import TSSDataloader
-import tensorflow as tf
+from kipoi_enformer.dataloader import TSSDataloader, RefTSSDataloader, VCFTSSDataloader
 from kipoi_enformer.enformer import Enformer, EnformerTissueMapper, calculate_veff
 from pathlib import Path
 import pyarrow.parquet as pq
@@ -44,40 +43,83 @@ def run_enformer(dl: TSSDataloader, output_path, size, batch_size):
     assert x.shape == (size, 3, 896, 5313)
 
 
-@pytest.mark.parametrize("size, batch_size, allele_type", [
-    (3, 1, 'REF'), (5, 3, 'REF'), (10, 5, 'REF'),
-    (3, 1, 'ALT'), (5, 3, 'ALT'), (10, 5, 'ALT')
+def get_enformer_path(output_dir: Path, size: int, allele_type: AlleleType):
+    if allele_type == AlleleType.REF:
+        path = output_dir / f'enformer_{size}/raw/ref.parquet/chrom=chr22/data.parquet'
+    else:
+        path = output_dir / f'enformer_{size}/raw/alt.parquet'
+
+    if path.exists():
+        if path.is_dir():
+            rmtree(path)
+        else:
+            path.unlink()
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def get_tissue_path(output_dir: Path, size: int, allele_type: AlleleType):
+    if allele_type == AlleleType.REF:
+        path = output_dir / f'enformer_{size}/tissue/ref.parquet/chrom=chr22/data.parquet'
+    else:
+        path = output_dir / f'enformer_{size}/tissue/alt.parquet'
+
+    if path.exists():
+        if path.is_dir():
+            rmtree(path)
+        else:
+            path.unlink()
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+@pytest.mark.parametrize("size, batch_size", [
+    (3, 1), (5, 3), (10, 5),
+    (3, 1), (5, 3), (10, 5)
 ])
-def test_enformer(chr22_example_files, output_dir: Path, size, batch_size, allele_type: str):
+def test_enformer_ref(chr22_example_files, output_dir: Path, size, batch_size):
     args = {
         'fasta_file': chr22_example_files['fasta'],
         'gtf': chr22_example_files['gtf'],
         'shift': 43,
         'seq_length': 393_216,
-        'size': size
+        'size': size,
+        'chromosome': 'chr22'
     }
 
-    enformer_filepath = output_dir / f'enformer_{size}_raw_{allele_type.lower()}.parquet'
-
-    if allele_type == 'ALT':
-        args.update({'vcf_file': chr22_example_files['vcf'],
-                     'variant_downstream_tss': 500,
-                     'variant_upstream_tss': 500, })
-    elif allele_type == 'REF':
-        args.update({'chromosome': 'chr22'})
-        enformer_filepath = enformer_filepath / 'chrom=chr22' / 'data.parquet'
-        enformer_filepath.parent.mkdir(parents=True, exist_ok=True)
-    else:
-        raise ValueError('invalid allele_type provided')
-
-    dl = TSSDataloader.from_allele_type(AlleleType[allele_type], **args)
-
-    if enformer_filepath.exists():
-        if enformer_filepath.is_dir():
-            rmtree(enformer_filepath)
-        else:
-            enformer_filepath.unlink()
+    enformer_filepath = get_enformer_path(output_dir, size, AlleleType.REF)
+    dl = RefTSSDataloader(**args)
     run_enformer(dl, enformer_filepath, size, batch_size=batch_size)
+
+
+@pytest.mark.parametrize("size, batch_size", [
+    (3, 1), (5, 3), (10, 5),
+    (3, 1), (5, 3), (10, 5)
+])
+def test_enformer_alt(chr22_example_files, output_dir: Path, size, batch_size):
+    args = {
+        'fasta_file': chr22_example_files['fasta'],
+        'gtf': chr22_example_files['gtf'],
+        'shift': 43,
+        'seq_length': 393_216,
+        'size': size,
+        'vcf_file': chr22_example_files['vcf'],
+        'variant_downstream_tss': 500,
+        'variant_upstream_tss': 500,
+    }
+
+    enformer_filepath = get_enformer_path(output_dir, size, AlleleType.ALT)
+    dl = VCFTSSDataloader(**args)
+    run_enformer(dl, enformer_filepath, size, batch_size=batch_size)
+
+
+def test_enformer(allele_type, chr22_example_files, output_dir: Path, size, batch_size):
+    if allele_type == 'REF':
+        test_enformer_ref(chr22_example_files, output_dir, size, batch_size)
+    elif allele_type == 'ALT':
+        test_enformer_alt(chr22_example_files, output_dir, size, batch_size)
 
 
 @pytest.mark.parametrize("allele_type", [
@@ -85,30 +127,16 @@ def test_enformer(chr22_example_files, output_dir: Path, size, batch_size, allel
 ])
 def test_enformer_tissue_mapper(allele_type: str, chr22_example_files, output_dir: Path,
                                 enformer_tracks_path: Path, gtex_tissue_matcher_path: Path, size=10, batch_size=5):
-    enformer_filepath = output_dir / f'enformer_{size}_raw_{allele_type.lower()}.parquet'
+    enformer_filepath = get_enformer_path(output_dir, size, AlleleType[allele_type])
     if not enformer_filepath.exists():
         logger.debug(f'Creating file: {enformer_filepath}')
-        test_enformer(chr22_example_files, output_dir, size, batch_size, allele_type)
+        test_enformer(allele_type, chr22_example_files, output_dir, size, batch_size)
     else:
         logger.debug(f'Using existing file: {enformer_filepath}')
 
     tissue_mapper = EnformerTissueMapper(tracks_path=enformer_tracks_path,
                                          tissue_matcher_path=gtex_tissue_matcher_path)
-
-    enformer_tissue_filepath = output_dir / f'enformer_{size}_tissue_{allele_type.lower()}.parquet'
-    if enformer_tissue_filepath.exists():
-        if enformer_tissue_filepath.is_dir():
-            rmtree(enformer_tissue_filepath)
-        else:
-            enformer_tissue_filepath.unlink()
-
-    logger.debug(f'Creating file: {enformer_tissue_filepath}')
-
-    if allele_type == 'REF':
-        enformer_filepath = enformer_filepath / 'chrom=chr22' / 'data.parquet'
-        enformer_tissue_filepath = enformer_tissue_filepath / 'chrom=chr22' / 'data.parquet'
-        enformer_tissue_filepath.parent.mkdir(parents=True, exist_ok=True)
-
+    enformer_tissue_filepath = get_tissue_path(output_dir, size, AlleleType[allele_type])
     tissue_mapper.predict(enformer_filepath, output_path=enformer_tissue_filepath)
 
     with open(gtex_tissue_matcher_path, 'rb') as f:
@@ -124,7 +152,8 @@ def test_enformer_tissue_mapper(allele_type: str, chr22_example_files, output_di
 
 def test_calculate_veff(chr22_example_files, output_dir: Path,
                         enformer_tracks_path: Path, gtex_tissue_matcher_path: Path, size=10):
-    ref_filepath = output_dir / f'enformer_{size}_tissue_ref.parquet'
+    ref_filepath = get_enformer_path(output_dir, size, AlleleType.REF)
+    alt_filepath = get_enformer_path(output_dir, size, AlleleType.ALT)
     if ref_filepath.exists():
         logger.debug(f'Using existing file: {ref_filepath}')
     else:

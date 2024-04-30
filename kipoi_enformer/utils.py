@@ -64,19 +64,12 @@ def get_tss_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | No
 
 def construct_enformer_interval(chrom, strand, tss, seq_length):
     # enformer input interval without shift
-    # the tss is in the middle of the enformer input sequence
-    # if the sequence length is even, the tss is closer to the end of the sequence by 1 base,
-    # because the end is 1 based
+    # if the sequence length is even, the tss is closer to the end of the sequence
     # if the sequence length is odd, the tss is in the middle of the sequence
     five_end_len = math.floor(seq_length / 2)
     three_end_len = math.ceil(seq_length / 2)
 
-    # # check if interval_start is negative
-    # five_end_padding = 0
-    # if interval_start < 0:
-    #     five_end_padding = abs(interval_start)
-    #     interval_start = 0
-
+    # WARNING: kipoiseq.Interval has a 0-based end!
     enformer_interval = Interval(chrom=chrom,
                                  start=tss - five_end_len,
                                  end=tss + three_end_len,
@@ -90,43 +83,45 @@ def construct_enformer_interval(chrom, strand, tss, seq_length):
 
 
 def extract_sequences_around_tss(shifts, chromosome, strand, tss, seq_length,
-                                 reference_extractor: FastaStringExtractor | None = None,
+                                 ref_seq_extractor: FastaStringExtractor,
                                  variant_extractor: VariantSeqExtractor | None = None,
                                  variant: Variant | None = None):
+    assert variant_extractor is None or (variant is not None and variant_extractor is not None), \
+        "variant_extractor must be provided if variant is not None"
+    chrom_len = len(ref_seq_extractor.fasta.records[chromosome])
+
+    # WARNING: kipoiseq.Interval has a 0-based end!
     enformer_interval = construct_enformer_interval(chromosome, strand, tss, seq_length)
     sequences = []
     # shift intervals and extract sequences
     for shift in shifts:
         shifted_enformer_interval = enformer_interval.shift(shift, use_strand=False)
         five_end_pad = 0
+        three_end_pad = 0
         if shifted_enformer_interval.start < 0:
             five_end_pad = abs(shifted_enformer_interval.start)
-            shifted_enformer_interval = shifted_enformer_interval.truncate()
+        if shifted_enformer_interval.end >= chrom_len:
+            three_end_pad = shifted_enformer_interval.end - chrom_len + 1
+        if five_end_pad > 0 or three_end_pad > 0:
+            shifted_enformer_interval = shifted_enformer_interval.truncate(chrom_len)
 
-        if variant_extractor is not None:
-            if reference_extractor is not None:
-                raise ValueError("Either variant or reference extractor must be provided, but not both")
-            if variant is None:
-                raise ValueError("Variant must be provided when variant_extractor is provided")
+        if variant is not None:
             seq = variant_extractor.extract(
                 shifted_enformer_interval,
                 [variant],
                 anchor=tss
             )
-        elif reference_extractor is not None:
-            seq = reference_extractor.extract(shifted_enformer_interval)
         else:
-            raise ValueError("Either variant or reference extractor must be provided")
+            seq = ref_seq_extractor.extract(shifted_enformer_interval)
 
         if five_end_pad > 0:
             seq = 'N' * five_end_pad + seq
 
-        # pad three prime end if necessary
-        if len(seq) < seq_length:
-            seq = seq + 'N' * (seq_length - len(seq))
+        if three_end_pad > 0:
+            seq = seq + 'N' * three_end_pad
 
         assert len(seq) == seq_length, \
-            f"enformer_interval width must be {seq_length} but got {enformer_interval.width()}"
+            f"enformer_interval width must be {seq_length} but got {len(seq)}"
 
         sequences.append(one_hot_dna(seq))
     return sequences, enformer_interval
