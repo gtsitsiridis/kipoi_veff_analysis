@@ -20,5 +20,7 @@ dependencies:
   - polars>=0.20.19
   - snakemake>=7.32.4
   - pytables>=3.9.2
+  - seaborn>=0.13.2
+  - matplotlib>=3.8.4
   - pip
   - pip:

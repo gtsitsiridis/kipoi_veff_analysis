@@ -10,6 +10,7 @@ def vcf_file(wildcards):
 
 
 rule gtf_chrom_store:
+    priority: 5
     resources:
         mem_mb=lambda wildcards, attempt, threads: 20000 + (1000 * attempt)
     output:
@@ -20,6 +21,7 @@ rule gtf_chrom_store:
         'scripts/gtf_chrom_store.py'
 
 rule enformer_ref:
+    priority: 5
     resources:
         gpu=1,
         ntasks=1,
@@ -35,6 +37,7 @@ rule enformer_ref:
         'scripts/enformer.py'
 
 rule enformer_alt:
+    priority: 2
     resources:
         gpu=1,
         ntasks=1,
@@ -53,6 +56,7 @@ rule enformer_alt:
         'scripts/enformer.py'
 
 rule tissue_mapper:
+    priority: 3
     resources:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
@@ -67,6 +71,7 @@ rule tissue_mapper:
 
 
 rule veff:
+    priority: 4
     resources:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 2000 + (1000 * attempt)
@@ -92,7 +97,8 @@ def vcf_names():
 rule all:
     default_target: True
     input:
-        expand(rules.enformer_ref.output,chromosome=config['genome']['chromosomes']),
+        expand(rules.veff.output, vcf_name=vcf_names())
+        # expand(rules.enformer_ref.output,chromosome=config['genome']['chromosomes']),
         # expand(rules.veff.output, vcf_name=vcf_names())
 
 

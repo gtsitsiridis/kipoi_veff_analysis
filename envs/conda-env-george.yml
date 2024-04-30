@@ -27,4 +27,6 @@ dependencies:
   - jupyterlab=4.1.6
   - jupytext=1.16.1
   - pytables=3.9.2
+  - seaborn=0.13.2
+  - matplotlib=3.8.4
   - pip:
