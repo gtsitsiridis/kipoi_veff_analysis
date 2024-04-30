@@ -4,6 +4,7 @@ assert len(config) > 0, "The config file has not been defined or is empty"
 
 output_dir = pathlib.Path(config["output_dir"])
 
+
 def vcf_file(wildcards):
     return str(pathlib.Path(config['vcf']["path"]) / f'{wildcards.vcf_name}')
 
@@ -52,6 +53,9 @@ rule enformer_alt:
         'scripts/enformer.py'
 
 rule tissue_mapper:
+    resources:
+        ntasks=1,
+        mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
     output:
         prediction_path=f'{output_dir}/tissue/' + '{path}',
     input:
@@ -62,15 +66,18 @@ rule tissue_mapper:
         'scripts/tissue_mapper.py'
 
 
-
 rule veff:
+    resources:
+        ntasks=1,
+        mem_mb=lambda wildcards, attempt, threads: 2000 + (1000 * attempt)
     output:
         veff=f'{output_dir}/tissue/veff/' + '{vcf_name}.parquet',
     input:
-        ref_tissue_pred=expand(rules.enformer_ref.output,chromosome=config['genome']['chromosomes']),
+        ref_tissue_pred=expand(f'{output_dir}/tissue/ref/reference.parquet/' + 'chrom={chromosome}/data.parquet',
+            chromosome=config['genome']['chromosomes']),
         alt_tissue_pred=f'{output_dir}/tissue/alt/' + '{vcf_name}.parquet',
     params:
-        ref_tissue_pred_dir = f'{output_dir}/tissue/ref/reference.parquet'
+        ref_tissue_pred_dir=f'{output_dir}/tissue/ref/reference.parquet'
     wildcard_constraints:
         vcf_name='.*\.vcf\.gz'
     script:

@@ -264,7 +264,7 @@ def calculate_veff(ref_path, alt_path, output_path):
     del alt_metadata[b'allele_type']
 
     on = ['tss', 'chrom', 'strand', 'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
-          'enformer_start', 'enformer_end']
+          'enformer_start', 'enformer_end', 'tissue']
 
     joined_df = alt_df.join(ref_df, how='left', on=on)
     joined_df = joined_df.with_columns((pl.col('alt_score') - pl.col('ref_score')).alias('delta_score'))
