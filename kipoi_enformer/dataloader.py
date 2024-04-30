@@ -155,7 +155,6 @@ class RefTSSDataloader(TSSDataloader):
 
                 yield metadata, np.stack(sequences)
             except Exception as e:
-                # todo do the same for vcf dataloader
                 logger.error(f"Error processing row: {row}")
                 raise e
 
@@ -219,31 +218,37 @@ class VCFTSSDataloader(TSSDataloader):
 
     def _sample_gen(self):
         for interval, variant in self._get_single_variant_matcher(self.vcf_lazy):
-            attrs = interval.attrs
-            tss = attrs['tss']
-            chromosome = interval.chrom
-            strand = interval.strand
+            try:
+                attrs = interval.attrs
+                tss = attrs['tss']
+                chromosome = interval.chrom
+                strand = interval.strand
 
-            sequences, enformer_interval = extract_sequences_around_tss(self._shifts, chromosome, strand, tss,
-                                                                        self._seq_length,
-                                                                        variant_extractor=self._variant_seq_extractor,
-                                                                        variant=variant)
-            metadata = {
-                "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
-                "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
-                "tss": tss,  # 0-based position of the TSS
-                "chrom": interval.chrom,
-                "strand": interval.strand,
-                "gene_id": attrs['gene_id'],
-                "transcript_id": attrs['transcript_id'],
-                "transcript_start": attrs['transcript_start'],  # 0-based
-                "transcript_end": attrs['transcript_end'],  # 1-based
-                "variant_start": variant.start,  # 0-based
-                "variant_end": variant.end,  # 1-based
-                "ref": variant.ref,
-                "alt": variant.alt,
-            }
-            yield metadata, np.stack(sequences),
+                sequences, enformer_interval = extract_sequences_around_tss(self._shifts, chromosome, strand, tss,
+                                                                            self._seq_length,
+                                                                            variant_extractor=self._variant_seq_extractor,
+                                                                            variant=variant)
+                metadata = {
+                    "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
+                    "enformer_end": enformer_interval.end,  # 1-based stop of the enformer input sequence
+                    "tss": tss,  # 0-based position of the TSS
+                    "chrom": interval.chrom,
+                    "strand": interval.strand,
+                    "gene_id": attrs['gene_id'],
+                    "transcript_id": attrs['transcript_id'],
+                    "transcript_start": attrs['transcript_start'],  # 0-based
+                    "transcript_end": attrs['transcript_end'],  # 1-based
+                    "variant_start": variant.start,  # 0-based
+                    "variant_end": variant.end,  # 1-based
+                    "ref": variant.ref,
+                    "alt": variant.alt,
+                }
+                yield metadata, np.stack(sequences)
+            except Exception as e:
+                logger.error(f"Error processing variant-interval")
+                logger.error(f"Interval: {interval}")
+                logger.error(f"Variant: {variant}")
+                raise e
 
     def __len__(self):
         if self._genome_annotation is None:
