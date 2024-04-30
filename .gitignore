@@ -112,3 +112,4 @@ assets/tfhub_cache/**
 
 # snakemake tests
 .tests
+logs
