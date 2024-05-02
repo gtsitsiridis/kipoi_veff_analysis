@@ -9,7 +9,7 @@ dependencies:
   - pandas>=2.2.1
   - pyranges>=0.0.129
   - pytest>=8.1.1
-  - kipoiseq>=0.7.1
+#  - kipoiseq>=0.7.1
   - cyvcf2>=0.30.28
   - tensorflow-hub>=0.16.1
   - tensorflow>=2.15.0
@@ -24,3 +24,4 @@ dependencies:
   - matplotlib>=3.8.4
   - pip
   - pip:
+      - "git+https://github.com/gtsitsiridis/kipoiseq.git@master"

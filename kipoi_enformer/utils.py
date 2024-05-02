@@ -5,7 +5,6 @@ import tensorflow as tf
 from kipoiseq.extractors import VariantSeqExtractor, FastaStringExtractor
 from kipoiseq import Interval, Variant
 from kipoiseq.transforms.functional import one_hot_dna
-from .vcf_seq import extract_variant
 
 
 def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_negative_strand: bool) -> (int, int):
@@ -107,11 +106,12 @@ def extract_sequences_around_tss(shifts, chromosome, strand, tss, seq_length,
             shifted_enformer_interval = shifted_enformer_interval.truncate(chrom_len)
 
         if variant is not None:
-            seq = extract_variant(variant_extractor,
-                                  shifted_enformer_interval,
-                                  [variant],
-                                  anchor=tss
-                                  )
+            seq = variant_extractor.extract(shifted_enformer_interval,
+                                            [variant],
+                                            anchor=tss,
+                                            fixed_length=True,
+                                            is_padding=True
+                                            )
         else:
             seq = ref_seq_extractor.extract(shifted_enformer_interval)
 

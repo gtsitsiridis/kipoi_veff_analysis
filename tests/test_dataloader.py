@@ -306,17 +306,3 @@ def test_ref_dataloader(chr22_example_files, references):
     # check that all variants in my list were found and checked
     assert set(checked_refs.keys()) == set(references.keys())
     print(total)
-
-
-def test_vcf_dataloader_tmp():
-    dl = VCFTSSDataloader(
-        fasta_file='tmp/seq.fa',
-        gtf='tmp/annot.gtf',
-        vcf_file='tmp/tmp1.vcf',
-        variant_downstream_tss=100,
-        variant_upstream_tss=500,
-        seq_length=393_216,
-        shift=43,
-    )
-    for i in dl:
-        print(i['metadata'])
