@@ -51,6 +51,8 @@ def extract_variant(variant_extractor: VariantSeqExtractor, interval, variants, 
     # 3. Extend start and end position for deletions
     istart, iend = variant_extractor._updated_interval(
         interval, upstream_variants, downstream_variants)
+    istart = max(istart, 0)
+    iend = min(iend, len(variant_extractor.ref_seq_extractor.fasta.records[interval.chrom]) - 1)
 
     # 4. Iterate from the anchor point outwards. At each
     # register the interval from which to take the reference sequence
@@ -71,7 +73,7 @@ def extract_variant(variant_extractor: VariantSeqExtractor, interval, variants, 
     down_str = down_sb.concat()
     up_str = up_sb.concat()
 
-    down_str, up_str = variant_extractor._cut_to_fix_len(
+    down_str, up_str = cut_to_fix_len(
         down_str, up_str, interval, anchor)
 
     seq = down_str + up_str
@@ -80,3 +82,23 @@ def extract_variant(variant_extractor: VariantSeqExtractor, interval, variants, 
         seq = complement(seq)[::-1]
 
     return seq
+
+
+def cut_to_fix_len(down_str, up_str, interval, anchor):
+    # modified to pad with 'N's if sequence can't extend to the fixed length
+
+    down_len = anchor - interval.start
+    down_diff = len(down_str) - down_len
+    if down_diff > 0:
+        down_str = down_str[-down_len:]
+    elif down_diff < 0:
+        down_str = 'N' * abs(down_diff) + down_str
+
+    up_len = interval.end - anchor
+    up_diff = len(up_str) - up_len
+    if up_diff > 0:
+        up_str = up_str[: up_len]
+    elif up_diff < 0:
+        up_str = up_str + 'N' * abs(up_diff)
+
+    return down_str, up_str
