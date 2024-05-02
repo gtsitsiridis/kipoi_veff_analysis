@@ -256,6 +256,8 @@ def calculate_veff(ref_path, alt_path, output_path):
     :return:
     """
 
+    eps = 1e-6
+
     logger.debug(f'Calculating the variant effect for {alt_path}')
 
     ref_df = pl.scan_parquet(ref_path).rename({'score': 'ref_score'})
@@ -268,6 +270,9 @@ def calculate_veff(ref_path, alt_path, output_path):
 
     joined_df = alt_df.join(ref_df, how='left', on=on)
     joined_df = joined_df.with_columns((pl.col('alt_score') - pl.col('ref_score')).alias('delta_score'))
+    joined_df = joined_df.with_columns(
+        pl.Expr.log((pl.col('alt_score') + eps) / (pl.col('ref_score') + eps), base=2).alias('fold_change')
+    )
     joined_df = joined_df.collect().to_arrow()
     joined_df = joined_df.replace_schema_metadata(alt_metadata)
     logger.debug(f'Writing the variant effect to {output_path}')
