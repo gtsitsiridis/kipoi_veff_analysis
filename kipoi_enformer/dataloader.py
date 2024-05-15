@@ -33,6 +33,7 @@ class TSSDataloader(SampleGenerator, ABC):
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
+        :param gene_id: If provided, only the gene with this ID is extracted from the genome annotation
         """
 
         super().__init__(*args, **kwargs)
@@ -114,7 +115,7 @@ class TSSDataloader(SampleGenerator, ABC):
 class RefTSSDataloader(TSSDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str,
                  seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
-                 protein_coding_only: bool = False, *args, **kwargs):
+                 protein_coding_only: bool = False, gene_id: str | None = None, *args, **kwargs):
         """
         :param fasta_file: Fasta file with the reference genome
         :param gtf: GTF file with genome annotation or DataFrame with genome annotation
@@ -124,11 +125,12 @@ class RefTSSDataloader(TSSDataloader):
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
+        :param gene_id: If provided, only the gene with this ID is extracted from the genome annotation
         """
         assert chromosome is not None, 'A chromosome should be provided'
         super().__init__(AlleleType.REF, chromosome=chromosome, fasta_file=fasta_file, gtf=gtf,
                          seq_length=seq_length, shift=shift, size=size, canonical_only=canonical_only,
-                         protein_coding_only=protein_coding_only, *args, **kwargs)
+                         protein_coding_only=protein_coding_only, gene_id=gene_id, *args, **kwargs)
         logger.debug(f"Dataloader is ready for chromosome {chromosome}")
 
     def _sample_gen(self):
@@ -186,7 +188,7 @@ class VCFTSSDataloader(TSSDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, vcf_lazy=True,
                  variant_upstream_tss: int = 10, variant_downstream_tss: int = 10, seq_length: int = SEQUENCE_LENGTH,
                  shift: int = 43, size: int = None, canonical_only: bool = False, protein_coding_only: bool = False,
-                 *args, **kwargs):
+                 gene_id: str | None = None, *args, **kwargs):
         """
 
         :param fasta_file: Fasta file with the reference genome
@@ -200,12 +202,12 @@ class VCFTSSDataloader(TSSDataloader):
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
+        :param gene_id: If provided, only the gene with this ID is extracted from the genome annotation
         """
 
         super().__init__(AlleleType.ALT, fasta_file=fasta_file, gtf=gtf, chromosome=None,
                          seq_length=seq_length, shift=shift, size=size, canonical_only=canonical_only,
-                         protein_coding_only=protein_coding_only, *args,
-                         **kwargs)
+                         protein_coding_only=protein_coding_only, gene_id=gene_id, *args, **kwargs)
         assert shift < variant_downstream_tss + variant_upstream_tss + 1, \
             f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {variant_downstream_tss + variant_upstream_tss + 1}"
 
