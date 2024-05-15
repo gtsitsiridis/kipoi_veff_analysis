@@ -243,7 +243,7 @@ def test_genome_annotation_protein_canonical(chr22_example_files):
                                          canonical_only=True)
     assert len(roi) == 441
     roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], chromosome=chromosome, protein_coding_only=True,
-                                         canonical_only=True, gene_id='ENSG00000172967.8_5')
+                                         canonical_only=True, gene_id='ENSG00000172967')
     assert roi.gene_id.iloc[0] == 'ENSG00000172967.8_5'
     roi = get_tss_from_genome_annotation(chr22_example_files['gtf'], chromosome=chromosome, protein_coding_only=False,
                                          canonical_only=False)
