@@ -23,5 +23,6 @@ dependencies:
   - seaborn>=0.13.2
   - matplotlib>=3.8.4
   - pip
+  - plotnine>=0.13.6
   - pip:
       - "git+https://github.com/gtsitsiridis/kipoiseq.git@master"
