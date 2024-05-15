@@ -36,7 +36,7 @@ def get_tss_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | No
     else:
         genome_annotation = gtf.copy()
     if gene_id is not None:
-        genome_annotation = genome_annotation.query("`gene_id` == @gene_id")
+        genome_annotation = genome_annotation.query("`gene_id`.str.contains(@gene_id)")
     if chromosome is not None:
         genome_annotation = genome_annotation.query("`Chromosome` == @chromosome")
     roi = genome_annotation.query("`Feature` == 'transcript'")
