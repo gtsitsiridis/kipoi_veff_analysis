@@ -2,7 +2,7 @@ output_dir: /data/nasif12/home_if12/tsi/output/enformer
 debug: true
 
 test:
-  dataloader_size: null
+  dataloader_size: 10
   is_random_enformer: false
 
 vcf:
