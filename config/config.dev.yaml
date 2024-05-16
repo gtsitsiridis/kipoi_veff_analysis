@@ -13,6 +13,8 @@ vcf:
 genome:
   gtf_file: assets/example_files/annot.gtf.gz
   fasta_file: assets/example_files/seq.fa
+  canonical_only: false
+  protein_coding_only: true
   chromosomes:
     - chr21
     - chr22

@@ -13,6 +13,8 @@ vcf:
 genome:
   gtf_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/gencode.v40lift37.annotation.gtf.gz
   fasta_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/GRCh37.primary_assembly.genome.fa
+  canonical_only: false
+  protein_coding_only: true
   chromosomes:
     - chrY
     - chr21

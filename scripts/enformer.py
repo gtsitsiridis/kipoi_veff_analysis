@@ -22,8 +22,8 @@ else:
 test_config = config.get('test', None)
 
 args = {'fasta_file': input_['fasta_file'],
-        'shift': config['enformer']['shift'], 'protein_coding_only': True,
-        'canonical_only': True, 'size': None if test_config is None else test_config['dataloader_size']}
+        'shift': config['enformer']['shift'], 'protein_coding_only': config['genome']['protein_coding_only'],
+        'canonical_only': config['genome']['canonical_only'], 'size': None if test_config is None else test_config['dataloader_size']}
 
 # Check if VCF file is provided
 # If VCF file is provided, predict for ALT allele
