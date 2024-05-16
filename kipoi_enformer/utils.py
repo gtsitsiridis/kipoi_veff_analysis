@@ -112,7 +112,8 @@ def extract_sequences_around_tss(shifts, chromosome, strand, tss, seq_length,
                                             [variant],
                                             anchor=tss,
                                             fixed_length=True,
-                                            is_padding=True
+                                            is_padding=True,
+                                            chrom_len=chrom_len,
                                             )
         else:
             seq = ref_seq_extractor.extract(shifted_enformer_interval)
