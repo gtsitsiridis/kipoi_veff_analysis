@@ -52,4 +52,5 @@ else:
 
 dl = TSSDataloader.from_allele_type(allele, **args, )
 enformer = Enformer(is_random=False if test_config is None else test_config['is_random_enformer'])
-enformer.predict(dl, batch_size=config['enformer']['batch_size'], filepath=pathlib.Path(output['prediction_path']))
+enformer.predict(dl, batch_size=config['enformer']['batch_size'], filepath=pathlib.Path(output['prediction_path']),
+                 num_output_bins=config['enformer']['num_output_bins'])

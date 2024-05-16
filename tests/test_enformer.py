@@ -29,10 +29,10 @@ def enformer_tracks_path():
     return Path('assets/cage_nonuniversal_enformer_tracks.yaml')
 
 
-def run_enformer(dl: TSSDataloader, output_path, size, batch_size):
+def run_enformer(dl: TSSDataloader, output_path, size, batch_size, num_output_bins):
     enformer = Enformer(is_random=True)
 
-    enformer.predict(dl, batch_size=batch_size, filepath=output_path)
+    enformer.predict(dl, batch_size=batch_size, filepath=output_path, num_output_bins=num_output_bins)
     table = pq.read_table(output_path)
     logger.info(table.schema)
 
@@ -40,7 +40,7 @@ def run_enformer(dl: TSSDataloader, output_path, size, batch_size):
 
     x = table['tracks'].to_pylist()
     x = np.array(x)
-    assert x.shape == (size, 3, 896, 5313)
+    assert x.shape == (size, 3, num_output_bins, 5313)
 
 
 def get_enformer_path(output_dir: Path, size: int, allele_type: AlleleType, rm=False):
@@ -75,11 +75,11 @@ def get_tissue_path(output_dir: Path, size: int, allele_type: AlleleType, rm=Fal
     return path
 
 
-@pytest.mark.parametrize("size, batch_size", [
-    (3, 1), (5, 3), (10, 5),
-    (3, 1), (5, 3), (10, 5)
+@pytest.mark.parametrize("size, batch_size, num_output_bins", [
+    (3, 1, 896), (5, 3, 896), (10, 5, 896),
+    (3, 1, 21), (5, 3, 21), (10, 5, 21),
 ])
-def test_enformer_ref(chr22_example_files, output_dir: Path, size, batch_size):
+def test_enformer_ref(chr22_example_files, output_dir: Path, size, batch_size, num_output_bins):
     args = {
         'fasta_file': chr22_example_files['fasta'],
         'gtf': chr22_example_files['gtf'],
@@ -91,14 +91,14 @@ def test_enformer_ref(chr22_example_files, output_dir: Path, size, batch_size):
 
     enformer_filepath = get_enformer_path(output_dir, size, AlleleType.REF, rm=True)
     dl = RefTSSDataloader(**args)
-    run_enformer(dl, enformer_filepath, size, batch_size=batch_size)
+    run_enformer(dl, enformer_filepath, size, batch_size=batch_size, num_output_bins=num_output_bins)
 
 
-@pytest.mark.parametrize("size, batch_size", [
-    (3, 1), (5, 3), (10, 5),
-    (3, 1), (5, 3), (10, 5)
+@pytest.mark.parametrize("size, batch_size, num_output_bins", [
+    (3, 1, 896), (5, 3, 896), (10, 5, 896),
+    (3, 1, 21), (5, 3, 21), (10, 5, 21),
 ])
-def test_enformer_alt(chr22_example_files, output_dir: Path, size, batch_size):
+def test_enformer_alt(chr22_example_files, output_dir: Path, size, batch_size, num_output_bins):
     args = {
         'fasta_file': chr22_example_files['fasta'],
         'gtf': chr22_example_files['gtf'],
@@ -112,25 +112,22 @@ def test_enformer_alt(chr22_example_files, output_dir: Path, size, batch_size):
 
     enformer_filepath = get_enformer_path(output_dir, size, AlleleType.ALT, rm=True)
     dl = VCFTSSDataloader(**args)
-    run_enformer(dl, enformer_filepath, size, batch_size=batch_size)
-
-
-def test_enformer(allele_type, chr22_example_files, output_dir: Path, size, batch_size):
-    if allele_type == 'REF':
-        test_enformer_ref(chr22_example_files, output_dir, size, batch_size)
-    elif allele_type == 'ALT':
-        test_enformer_alt(chr22_example_files, output_dir, size, batch_size)
+    run_enformer(dl, enformer_filepath, size, batch_size=batch_size, num_output_bins=num_output_bins)
 
 
 @pytest.mark.parametrize("allele_type", [
     'REF', 'ALT'
 ])
 def test_enformer_tissue_mapper(allele_type: str, chr22_example_files, output_dir: Path,
-                                enformer_tracks_path: Path, gtex_tissue_matcher_path: Path, size=10, batch_size=5):
+                                enformer_tracks_path: Path, gtex_tissue_matcher_path: Path, size=10, batch_size=5,
+                                num_output_bins=21):
     enformer_filepath = get_enformer_path(output_dir, size, AlleleType[allele_type])
     if not enformer_filepath.exists():
         logger.debug(f'Creating file: {enformer_filepath}')
-        test_enformer(allele_type, chr22_example_files, output_dir, size, batch_size)
+        if allele_type == 'REF':
+            test_enformer_ref(chr22_example_files, output_dir, size, batch_size, num_output_bins)
+        elif allele_type == 'ALT':
+            test_enformer_alt(chr22_example_files, output_dir, size, batch_size, num_output_bins)
     else:
         logger.debug(f'Using existing file: {enformer_filepath}')
 

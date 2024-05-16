@@ -42,9 +42,11 @@ class Enformer:
         else:
             self._model = RandomModel()
 
-    def predict(self, dataloader: TSSDataloader, batch_size: int, filepath: str | pathlib.Path):
+    def predict(self, dataloader: TSSDataloader, batch_size: int, filepath: str | pathlib.Path,
+                num_output_bins=NUM_PREDICTION_BINS):
         """
         Predict on a dataloader and save the results in a parquet file
+        :param num_output_bins: The number of bins to extract from enformer's output
         :param filepath:
         :param dataloader:
         :param batch_size:
@@ -57,6 +59,11 @@ class Enformer:
         schema = dataloader.pyarrow_metadata_schema
         schema = schema.insert(0, pa.field(f'tracks', pa.list_(pa.list_(pa.list_(pa.float32())))))
 
+        shifts = [int(x) for x in schema.metadata[b'shifts'].split(b';')]
+        max_abs_shift = max([abs(shift) for shift in shifts])
+        assert math.ceil(max_abs_shift / self.BIN_SIZE) < num_output_bins <= self.NUM_PREDICTION_BINS, \
+            f'num_output_bins must be fit the maximum shift and be at most {self.NUM_PREDICTION_BINS}'
+
         batch_counter = 0
         total_batches = math.ceil(len(dataloader) / batch_size)
         if total_batches == 0:
@@ -66,13 +73,13 @@ class Enformer:
         with pq.ParquetWriter(filepath, schema) as writer:
             for batch in tqdm(dataloader.batch_iter(batch_size=batch_size), total=total_batches):
                 batch_counter += 1
-                batch = self._to_pyarrow(self._process_batch(batch))
+                batch = self._to_pyarrow(self._process_batch(batch, num_output_bins=num_output_bins))
                 writer.write_batch(batch)
 
         # sanity check for the dataloader
         assert batch_counter == total_batches
 
-    def _process_batch(self, batch):
+    def _process_batch(self, batch, num_output_bins=11):
         """
         Process a batch of data. Run the model and prepare the results dict.
         :param batch: list of data dicts
@@ -90,6 +97,14 @@ class Enformer:
         predictions = self._model.predict_on_batch(input_tensor)['human'].numpy()
         assert predictions.shape == (batch_size * seqs_per_record, 896, 5313)
         predictions = predictions.reshape(batch_size, seqs_per_record, 896, 5313)
+
+        # extract central bins if the number of output bins is different from the number of prediction bins
+        if num_output_bins != self.NUM_PREDICTION_BINS:
+            # calculate TSS bin
+            tss_bin = (self.PRED_SEQUENCE_LENGTH // 2 + 1) // self.BIN_SIZE
+            bins = [tss_bin + i for i in range(-math.floor(num_output_bins / 2), math.ceil(num_output_bins / 2))]
+            assert len(bins) == num_output_bins
+            predictions = predictions[:, :, bins, :]
 
         results = {
             'metadata': batch['metadata'],
@@ -148,7 +163,8 @@ class EnformerTissueMapper:
 
         :param prediction_path: The parquet file that contains the enformer predictions.
         :param output_path: The parquet file that will contain the tissue-specific expression scores.
-        :param num_bins: number of bins to average over for each record
+        :param num_bins: number of bins to average over for each record.
+
         The average predictions will be calculated at the tss bin of each record.
         """
         if self.tissue_matcher_lm_dict is None:
@@ -171,7 +187,6 @@ class EnformerTissueMapper:
         with pq.ParquetWriter(output_path, output_schema) as writer:
             for i in tqdm(range(prediction_file.num_row_groups)):
                 batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(prediction_file.read_row_group(i)),
-                                                                   Enformer.PRED_SEQUENCE_LENGTH,
                                                                    Enformer.BIN_SIZE, num_bins, shifts, tracks)
                 logger.debug('Running model on the batch...')
                 record_batch = self._predict_batch(batch_agg_pred, batch_meta)
@@ -179,11 +194,10 @@ class EnformerTissueMapper:
                 writer.write(record_batch)
 
     @staticmethod
-    def _aggregate_batch(frame, pred_seq_length, bin_size, num_bins, shifts, tracks):
+    def _aggregate_batch(frame, bin_size, num_bins, shifts, tracks):
         """
         Aggregate the predictions for a record.
         :param frame:
-        :param pred_seq_length:
         :param bin_size:
         :param num_bins:
         :param tracks:
@@ -192,6 +206,7 @@ class EnformerTissueMapper:
         logger.debug('Aggregating the predictions for a batch')
 
         pred = np.stack(frame['tracks'].to_list())
+        pred_seq_length = bin_size * pred.shape[2]
         agg_pred = []
         for shift_i, shift in enumerate(shifts):
             # estimate the tss bin
