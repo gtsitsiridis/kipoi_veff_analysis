@@ -7,8 +7,8 @@ test:
 
 vcf:
   path: assets/example_files/vcf
-  variant_upstream_tss: 500
-  variant_downstream_tss: 100
+  variant_upstream_tss: 2000
+  variant_downstream_tss: 500
 
 genome:
   gtf_file: assets/example_files/annot.gtf.gz

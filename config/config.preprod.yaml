@@ -7,8 +7,8 @@ test:
 
 vcf:
   path: /s/project/rep/processed/training_results_v14/gtex_v8_old_dna/distinct_variants.valid_snp_indel.vcf/
-  variant_upstream_tss: 500
-  variant_downstream_tss: 100
+  variant_upstream_tss: 2000
+  variant_downstream_tss: 500
 
 genome:
   gtf_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/gencode.v40lift37.annotation.gtf.gz
