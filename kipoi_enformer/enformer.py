@@ -272,8 +272,6 @@ def calculate_veff(ref_path, alt_path, output_path, is_log_trasformed: bool = Tr
     :return:
     """
 
-    eps = 1e-6
-
     logger.debug(f'Calculating the variant effect for {alt_path}')
 
     ref_df = pl.scan_parquet(ref_path).rename({'score': 'ref_score'})
@@ -287,10 +285,10 @@ def calculate_veff(ref_path, alt_path, output_path, is_log_trasformed: bool = Tr
     joined_df = alt_df.join(ref_df, how='left', on=on)
     joined_df = joined_df.with_columns((pl.col('alt_score') - pl.col('ref_score')).alias('delta_score'))
     if is_log_trasformed:
-        joined_df = joined_df.with_columns((pl.col("alt_score") - pl.col("ref_score") / np.log10(2)).alias('log2fc'))
+        joined_df = joined_df.with_columns(((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
     else:
         joined_df = joined_df.with_columns(
-            pl.Expr.log((pl.col('alt_score') + eps) / (pl.col('ref_score') + eps), base=2).alias('log2fc')
+            pl.Expr.log((pl.col('alt_score') + 1) / (pl.col('ref_score') + 1), base=2).alias('log2fc')
         )
     joined_df = joined_df.collect().to_arrow()
     joined_df = joined_df.replace_schema_metadata(alt_metadata)
