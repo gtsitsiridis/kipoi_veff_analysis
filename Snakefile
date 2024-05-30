@@ -88,6 +88,20 @@ rule veff:
     script:
         'scripts/veff.py'
 
+rule agg_veff:
+    priority: 4
+    resources:
+        ntasks=1,
+        mem_mb=lambda wildcards, attempt, threads: 10000 + (1000 * attempt)
+    output:
+        agg_veff=f'{output_dir}/tissue/agg_veff.parquet/' + 'vcf={vcf_name}/data.parquet',
+    input:
+        veff=rules.veff.output
+    wildcard_constraints:
+        vcf_name='.*\.vcf\.gz'
+    script:
+        'scripts/agg_veff.py'
+
 
 def vcf_names():
     # extract name from vcf file
@@ -97,12 +111,12 @@ def vcf_names():
 rule all:
     default_target: True
     input:
-        expand(rules.veff.output, vcf_name=vcf_names())
-        # expand(rules.enformer_ref.output,chromosome=config['genome']['chromosomes']),
-        # expand(rules.veff.output, vcf_name=vcf_names())
+        expand(rules.agg_veff.output,vcf_name=vcf_names())
+    # expand(rules.enformer_ref.output,chromosome=config['genome']['chromosomes']),
+    # expand(rules.veff.output, vcf_name=vcf_names())
 
 
-        # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]" \
-        # N_CORES=2 MEM_MB=30000 N_JOBS=23 N_GPUS=2 \
-        # slurm_scripts/run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs \
-        # --configfile config/config.prod.yaml
+    # CONDA_OVERRIDE_CUDA="11.8" SBATCH_ARGS="--partition=standard --exclude=ouga[01-04]" \
+    # N_CORES=2 MEM_MB=30000 N_JOBS=23 N_GPUS=2 \
+    # slurm_scripts/run_slurm_jobs.sh --rerun-incomplete --rerun-triggers mtime -k --restart-times 3 --use-conda --show-failed-logs \
+    # --configfile config/config.prod.yaml
