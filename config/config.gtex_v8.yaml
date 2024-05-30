@@ -1,4 +1,4 @@
-output_dir: /s/project/promoter_prediction/enformer/output
+output_dir: /s/project/promoter_prediction/enformer/gtex_v8
 
 vcf:
   path: /s/project/rep/processed/training_results_v14/gtex_v8_old_dna/distinct_variants.valid_snp_indel.vcf/
