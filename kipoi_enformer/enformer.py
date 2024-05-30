@@ -322,17 +322,14 @@ def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Pat
     else:
         # assign equal weight to each transcript, if no isoform proportions are given
         joined_df = veff_ldf.with_columns(
-            (1 / pl.len()).over(['enformer_start', 'enformer_end', 'tss', 'chrom', 'strand',
-                                 'gene_id', 'transcript_start', 'transcript_end',
-                                 'variant_start', 'variant_end', 'ref', 'alt', 'tissue', ]).alias('isoform_proportion'))
+            (1 / pl.len()).over(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']).
+            alias('isoform_proportion'))
 
     def logsumexp_udf(score, weight):
         return logsumexp(score / math.log10(math.e), b=weight) / math.log(10)
 
     joined_df = joined_df. \
-        group_by(['enformer_start', 'enformer_end', 'tss', 'chrom', 'strand',
-                  'gene_id', 'transcript_start', 'transcript_end',
-                  'variant_start', 'variant_end', 'ref', 'alt', 'tissue', ]). \
+        group_by(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']). \
         agg(
         pl.struct(['ref_score', 'isoform_proportion']).
         map_elements(lambda x: logsumexp_udf(x.struct.field('ref_score'), x.struct.field('isoform_proportion')),
