@@ -1,15 +1,15 @@
-output_dir: /s/project/promoter_prediction/enformer/gtex_v8
+output_dir: /s/project/promoter_prediction/enformer/gtex_v8_500_100
 
 vcf:
   path: /s/project/rep/processed/training_results_v14/distinct_variants.valid_snp_indel.vcf.restored/distinct_variants.valid_snp_indel.vcf/
-  variant_upstream_tss: 2000
-  variant_downstream_tss: 500
+  variant_upstream_tss: 500
+  variant_downstream_tss: 100
 
 genome:
   gtf_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/gencode.v40lift37.annotation.gtf.gz
   fasta_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/GRCh37.primary_assembly.genome.fa
-  isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
-  canonical_only: false
+  isoform_file: null
+  canonical_only: true
   protein_coding_only: true
   chromosomes:
     - chr1

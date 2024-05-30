@@ -1,0 +1,47 @@
+output_dir: /s/project/promoter_prediction/enformer/gtex_v8_2000_500
+
+vcf:
+  path: /s/project/rep/processed/training_results_v14/distinct_variants.valid_snp_indel.vcf.restored/distinct_variants.valid_snp_indel.vcf/
+  variant_upstream_tss: 2000
+  variant_downstream_tss: 500
+
+genome:
+  gtf_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/gencode.v40lift37.annotation.gtf.gz
+  fasta_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/GRCh37.primary_assembly.genome.fa
+  isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
+  canonical_only: false
+  protein_coding_only: true
+  chromosomes:
+    - chr1
+    - chr2
+    - chr3
+    - chr4
+    - chr5
+    - chr6
+    - chr7
+    - chr8
+    - chr9
+    - chr10
+    - chr11
+    - chr12
+    - chr13
+    - chr14
+    - chr15
+    - chr16
+    - chr17
+    - chr18
+    - chr19
+    - chr20
+    - chr21
+    - chr22
+    - chrX
+    - chrY
+
+enformer:
+  shift: 43
+  batch_size: 2
+  num_output_bins: 21
+  tissue_matcher:
+    tracks_path: assets/cage_nonuniversal_enformer_tracks.yaml
+    model_path: assets/gtex_enformer_lm_models_pseudocount1.pkl
+    nbins: 3
