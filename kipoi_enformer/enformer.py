@@ -257,7 +257,7 @@ class EnformerTissueMapper:
         return pa.RecordBatch.from_arrays(values, names=names)
 
 
-def calculate_veff(ref_path, alt_path, output_path, is_log_trasformed: bool = True):
+def calculate_veff(ref_path, alt_path, output_path):
     """
     Given a file containing enformer scores for alternative alleles,
      1) load the corresponding reference chromosomes into memory,
@@ -265,7 +265,6 @@ def calculate_veff(ref_path, alt_path, output_path, is_log_trasformed: bool = Tr
      3) join the reference and alternative scores on the chromosome and position,
      and 4) calculate the variant effect by subtracting the reference scores from the alternate scores.
 
-    :param is_log_trasformed:
     :param ref_path: The parquet files that contains the reference scores
     :param alt_path: The parquet file that contains the alternate scores
     :param output_path: Whether the model scores are already log transformed
@@ -283,13 +282,11 @@ def calculate_veff(ref_path, alt_path, output_path, is_log_trasformed: bool = Tr
           'enformer_start', 'enformer_end', 'tissue']
 
     joined_df = alt_df.join(ref_df, how='left', on=on)
-    joined_df = joined_df.with_columns((pl.col('alt_score') - pl.col('ref_score')).alias('delta_score'))
-    if is_log_trasformed:
-        joined_df = joined_df.with_columns(((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
-    else:
-        joined_df = joined_df.with_columns(
-            pl.Expr.log((pl.col('alt_score') + 1) / (pl.col('ref_score') + 1), base=2).alias('log2fc')
-        )
+    joined_df = joined_df.with_columns(((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
+    joined_df = joined_df.select(['enformer_start', 'enformer_end', 'tss', 'chrom', 'strand',
+                                  'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
+                                  'variant_start', 'variant_end', 'ref', 'alt', 'tissue',
+                                  'ref_score', 'alt_score', 'log2fc'])
     joined_df = joined_df.collect().to_arrow()
     joined_df = joined_df.replace_schema_metadata(alt_metadata)
     logger.debug(f'Writing the variant effect to {output_path}')

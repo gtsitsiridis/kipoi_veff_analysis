@@ -27,7 +27,7 @@ rule enformer_ref:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 12000 + (1000 * attempt)
     output:
-        prediction_path=f'{output_dir}/raw/ref/reference.parquet/' + 'chrom={chromosome}/data.parquet',
+        prediction_path=f'{output_dir}/raw/ref.parquet/' + 'chrom={chromosome}/data.parquet',
     input:
         gtf_chrom_store=rules.gtf_chrom_store.output[0],
         fasta_file=config["genome"]["fasta_file"],
@@ -43,7 +43,7 @@ rule enformer_alt:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 12000 + (1000 * attempt)
     output:
-        prediction_path=f'{output_dir}/raw/alt/' + '{vcf_name}.parquet',
+        prediction_path=f'{output_dir}/raw/alt.parquet/' + 'vcf={vcf_name}/data.parquet',
     input:
         gtf_file=config["genome"]["gtf_file"],
         fasta_file=config["genome"]["fasta_file"],
@@ -76,13 +76,13 @@ rule veff:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 8000 + (1000 * attempt)
     output:
-        veff=f'{output_dir}/tissue/veff/' + '{vcf_name}.parquet',
+        veff=f'{output_dir}/tissue/veff.parquet/' + 'vcf={vcf_name}/data.parquet',
     input:
-        ref_tissue_pred=expand(f'{output_dir}/tissue/ref/reference.parquet/' + 'chrom={chromosome}/data.parquet',
+        ref_tissue_pred=expand(f'{output_dir}/tissue/ref.parquet/' + 'chrom={chromosome}/data.parquet',
             chromosome=config['genome']['chromosomes']),
-        alt_tissue_pred=f'{output_dir}/tissue/alt/' + '{vcf_name}.parquet',
+        alt_tissue_pred=f'{output_dir}/tissue/alt.parquet/' + 'vcf={vcf_name}/data.parquet',
     params:
-        ref_tissue_pred_dir=f'{output_dir}/tissue/ref/reference.parquet'
+        ref_tissue_pred_dir=f'{output_dir}/tissue/ref.parquet'
     wildcard_constraints:
         vcf_name='.*\.vcf\.gz'
     script:
