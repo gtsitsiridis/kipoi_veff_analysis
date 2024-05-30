@@ -70,13 +70,13 @@ rule tissue_mapper:
         'scripts/tissue_mapper.py'
 
 
-rule veff:
+rule transcript_veff:
     priority: 4
     resources:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 8000 + (1000 * attempt)
     output:
-        veff=f'{output_dir}/tissue/veff.parquet/' + 'vcf={vcf_name}/data.parquet',
+        transcript_veff=f'{output_dir}/tissue/transcript_veff.parquet/' + 'vcf={vcf_name}/data.parquet',
     input:
         ref_tissue_pred=expand(f'{output_dir}/tissue/ref.parquet/' + 'chrom={chromosome}/data.parquet',
             chromosome=config['genome']['chromosomes']),
@@ -86,21 +86,21 @@ rule veff:
     wildcard_constraints:
         vcf_name='.*\.vcf\.gz'
     script:
-        'scripts/veff.py'
+        'scripts/transcript_veff.py'
 
-rule agg_veff:
+rule gene_veff:
     priority: 4
     resources:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 10000 + (1000 * attempt)
     output:
-        agg_veff=f'{output_dir}/tissue/agg_veff.parquet/' + 'vcf={vcf_name}/data.parquet',
+        gene_veff=f'{output_dir}/tissue/gene_veff.parquet/' + 'vcf={vcf_name}/data.parquet',
     input:
-        veff=rules.veff.output
+        transcript_veff=rules.transcript_veff.output
     wildcard_constraints:
         vcf_name='.*\.vcf\.gz'
     script:
-        'scripts/agg_veff.py'
+        'scripts/gene_veff.py'
 
 
 def vcf_names():
@@ -111,7 +111,7 @@ def vcf_names():
 rule all:
     default_target: True
     input:
-        expand(rules.agg_veff.output,vcf_name=vcf_names())
+        expand(rules.gene_veff.output,vcf_name=vcf_names())
     # expand(rules.enformer_ref.output,chromosome=config['genome']['chromosomes']),
     # expand(rules.veff.output, vcf_name=vcf_names())
 

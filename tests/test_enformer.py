@@ -183,8 +183,11 @@ def test_calculate_veff(chr22_example_files, output_dir: Path,
     calculate_veff(ref_filepath, alt_filepath, output_path)
 
 
+@pytest.mark.parametrize("is_isoform", [
+    True, False
+])
 def test_calculate_agg_veff(chr22_example_files, output_dir: Path,
-                            enformer_tracks_path: Path, gtex_tissue_matcher_path: Path, size=100):
+                            enformer_tracks_path: Path, gtex_tissue_matcher_path: Path, is_isoform, size=100):
     veff_filepath = get_veff_path(output_dir, size)
     if veff_filepath.exists():
         logger.debug(f'Using existing file: {veff_filepath}')
@@ -195,4 +198,5 @@ def test_calculate_agg_veff(chr22_example_files, output_dir: Path,
     output_path = output_dir / f'enformer_{size}/tissue/veff_agg.parquet'
     if output_path.exists():
         output_path.unlink()
-    aggregate_veff(veff_filepath, chr22_example_files['isoform_proportions'], output_path)
+    aggregate_veff(veff_path=veff_filepath, output_path=output_path,
+                   isoforms_path=None if not is_isoform else chr22_example_files['isoform_proportions'])

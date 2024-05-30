@@ -294,9 +294,11 @@ def calculate_veff(ref_path, alt_path, output_path):
     pq.write_table(joined_df, output_path)
 
 
-def aggregate_veff(veff_path: str | pathlib.Path, isoforms_path: str | pathlib.Path, output_path: str | pathlib.Path):
+def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Path,
+                   isoforms_path: str | pathlib.Path | None = None):
     """
-    Given a file containing variant effect scores, aggregate the scores by gene, variant and tissue, given the isoform proportions per tissue.
+    Given a file containing variant effect scores, aggregate the scores by gene, variant and tissue.
+    If the isoform proportions per tissue are given, then calculate the weighted sum. Otherwise, calculate the average.
 
     :param veff_path: The parquet file that contains the variant effect scores
     :param isoforms_path: The file containing the isoform proportions per tissue
@@ -307,14 +309,22 @@ def aggregate_veff(veff_path: str | pathlib.Path, isoforms_path: str | pathlib.P
     veff_metadata = pq.ParquetFile(veff_path).schema_arrow.metadata
 
     veff_ldf = pl.scan_parquet(veff_path).filter(pl.col('log2fc').is_not_null())
-    veff_ldf = veff_ldf.with_columns(pl.col('gene_id').str.replace("([^\.]+)\..+$", "${1}").alias('gene_id'))
-    veff_ldf = veff_ldf.with_columns(pl.col('transcript_id').str.replace("([^\.]+)\..+$", "${1}").alias('transcript_id'))
-    isoform_proportion_ldf = (pl.scan_csv(isoforms_path, separator='\t').
-                              select(['gene', 'transcript', 'tissue', 'median_transcript_proportions']).
-                              rename({'median_transcript_proportions': 'isoform_proportion',
-                                      'gene': 'gene_id', 'transcript': 'transcript_id'}).
-                              filter(~pl.col('isoform_proportion').is_null()))
-    joined_df = veff_ldf.join(isoform_proportion_ldf, on=['gene_id', 'tissue', 'transcript_id'], how='inner')
+    veff_ldf = veff_ldf.with_columns(pl.col('gene_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('gene_id'))
+    veff_ldf = veff_ldf.with_columns(
+        pl.col('transcript_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('transcript_id'))
+    if isoforms_path is not None:
+        isoform_proportion_ldf = (pl.scan_csv(isoforms_path, separator='\t').
+                                  select(['gene', 'transcript', 'tissue', 'median_transcript_proportions']).
+                                  rename({'median_transcript_proportions': 'isoform_proportion',
+                                          'gene': 'gene_id', 'transcript': 'transcript_id'}).
+                                  filter(~pl.col('isoform_proportion').is_null()))
+        joined_df = veff_ldf.join(isoform_proportion_ldf, on=['gene_id', 'tissue', 'transcript_id'], how='inner')
+    else:
+        # assign equal weight to each transcript, if no isoform proportions are given
+        joined_df = veff_ldf.with_columns(
+            (1 / pl.len()).over(['enformer_start', 'enformer_end', 'tss', 'chrom', 'strand',
+                                 'gene_id', 'transcript_start', 'transcript_end',
+                                 'variant_start', 'variant_end', 'ref', 'alt', 'tissue', ]).alias('isoform_proportion'))
 
     def logsumexp_udf(score, weight):
         return logsumexp(score / math.log10(math.e), b=weight) / math.log(10)
