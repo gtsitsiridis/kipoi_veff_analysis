@@ -2,7 +2,7 @@ output_dir: output/smk
 debug: true
 
 test:
-  dataloader_size: 5
+  dataloader_size: 100
   is_random_enformer: true
 
 vcf:

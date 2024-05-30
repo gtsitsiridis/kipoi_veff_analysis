@@ -13,8 +13,9 @@ import math
 import yaml
 import pickle
 import polars as pl
+from scipy.special import logsumexp
 
-__all__ = ['Enformer', 'EnformerTissueMapper', 'calculate_veff']
+__all__ = ['Enformer', 'EnformerTissueMapper', 'calculate_veff', 'aggregate_veff']
 
 # Enformer model URI
 MODEL_PATH = 'https://tfhub.dev/deepmind/enformer/1'
@@ -289,5 +290,52 @@ def calculate_veff(ref_path, alt_path, output_path):
                                   'ref_score', 'alt_score', 'log2fc'])
     joined_df = joined_df.collect().to_arrow()
     joined_df = joined_df.replace_schema_metadata(alt_metadata)
+    logger.debug(f'Writing the variant effect to {output_path}')
+    pq.write_table(joined_df, output_path)
+
+
+def aggregate_veff(veff_path: str | pathlib.Path, isoforms_path: str | pathlib.Path, output_path: str | pathlib.Path):
+    """
+    Given a file containing variant effect scores, aggregate the scores by gene, variant and tissue, given the isoform proportions per tissue.
+
+    :param veff_path: The parquet file that contains the variant effect scores
+    :param isoforms_path: The file containing the isoform proportions per tissue
+    :param output_path: The parquet file that will contain the aggregated scores
+    :return:
+    """
+
+    veff_metadata = pq.ParquetFile(veff_path).schema_arrow.metadata
+
+    veff_ldf = pl.scan_parquet(veff_path).filter(pl.col('log2fc').is_not_null())
+    veff_ldf = veff_ldf.with_columns(pl.col('gene_id').str.replace("([^\.]+)\..+$", "${1}").alias('gene_id'))
+    veff_ldf = veff_ldf.with_columns(pl.col('transcript_id').str.replace("([^\.]+)\..+$", "${1}").alias('transcript_id'))
+    isoform_proportion_ldf = (pl.scan_csv(isoforms_path, separator='\t').
+                              select(['gene', 'transcript', 'tissue', 'median_transcript_proportions']).
+                              rename({'median_transcript_proportions': 'isoform_proportion',
+                                      'gene': 'gene_id', 'transcript': 'transcript_id'}).
+                              filter(~pl.col('isoform_proportion').is_null()))
+    joined_df = veff_ldf.join(isoform_proportion_ldf, on=['gene_id', 'tissue', 'transcript_id'], how='inner')
+
+    def logsumexp_udf(score, weight):
+        return logsumexp(score / math.log10(math.e), b=weight) / math.log(10)
+
+    joined_df = joined_df. \
+        group_by(['enformer_start', 'enformer_end', 'tss', 'chrom', 'strand',
+                  'gene_id', 'transcript_start', 'transcript_end',
+                  'variant_start', 'variant_end', 'ref', 'alt', 'tissue', ]). \
+        agg(
+        pl.struct(['ref_score', 'isoform_proportion']).
+        map_elements(lambda x: logsumexp_udf(x.struct.field('ref_score'), x.struct.field('isoform_proportion')),
+                     return_dtype=pl.Float64()).
+        alias('ref_score'),
+        pl.struct(['alt_score', 'isoform_proportion']).
+        map_elements(lambda x: logsumexp_udf(x.struct.field('alt_score'), x.struct.field('isoform_proportion')),
+                     return_dtype=pl.Float64()).
+        alias('alt_score'),
+    )
+    joined_df = joined_df.with_columns(((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
+    joined_df = joined_df.collect().to_arrow()
+    logger.debug(f'Aggregated table size: {len(joined_df)}')
+    joined_df = joined_df.replace_schema_metadata(veff_metadata)
     logger.debug(f'Writing the variant effect to {output_path}')
     pq.write_table(joined_df, output_path)

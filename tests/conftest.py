@@ -19,4 +19,5 @@ def chr22_example_files():
         'fasta': base / "seq.fa",
         'gtf': base / "annot.gtf.gz",
         'vcf': base / "vcf" / "chr22_var.vcf.gz",
+        'isoform_proportions': base / "isoform_proportions.tsv",
     }

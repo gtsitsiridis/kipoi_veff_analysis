@@ -1,7 +1,7 @@
 import pytest
 
 from kipoi_enformer.dataloader import TSSDataloader, RefTSSDataloader, VCFTSSDataloader
-from kipoi_enformer.enformer import Enformer, EnformerTissueMapper, calculate_veff
+from kipoi_enformer.enformer import Enformer, EnformerTissueMapper, calculate_veff, aggregate_veff
 from pathlib import Path
 import pyarrow.parquet as pq
 from kipoi_enformer.logger import logger
@@ -65,6 +65,18 @@ def get_tissue_path(output_dir: Path, size: int, allele_type: AlleleType, rm=Fal
     else:
         path = output_dir / f'enformer_{size}/tissue/alt.parquet'
 
+    if rm and path.exists():
+        if path.is_dir():
+            rmtree(path)
+        else:
+            path.unlink()
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def get_veff_path(output_dir: Path, size: int, rm=False):
+    path = output_dir / f'enformer_{size}/tissue/veff.parquet'
     if rm and path.exists():
         if path.is_dir():
             rmtree(path)
@@ -169,3 +181,18 @@ def test_calculate_veff(chr22_example_files, output_dir: Path,
     if output_path.exists():
         output_path.unlink()
     calculate_veff(ref_filepath, alt_filepath, output_path)
+
+
+def test_calculate_agg_veff(chr22_example_files, output_dir: Path,
+                            enformer_tracks_path: Path, gtex_tissue_matcher_path: Path, size=100):
+    veff_filepath = get_veff_path(output_dir, size)
+    if veff_filepath.exists():
+        logger.debug(f'Using existing file: {veff_filepath}')
+    else:
+        logger.debug(f'Creating file: {veff_filepath}')
+        test_calculate_veff(chr22_example_files, output_dir, enformer_tracks_path, gtex_tissue_matcher_path, size=size)
+
+    output_path = output_dir / f'enformer_{size}/tissue/veff_agg.parquet'
+    if output_path.exists():
+        output_path.unlink()
+    aggregate_veff(veff_filepath, chr22_example_files['isoform_proportions'], output_path)
