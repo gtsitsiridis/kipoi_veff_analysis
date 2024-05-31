@@ -318,7 +318,8 @@ def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Pat
                                   rename({'median_transcript_proportions': 'isoform_proportion',
                                           'gene': 'gene_id', 'transcript': 'transcript_id'}).
                                   filter(~pl.col('isoform_proportion').is_null()))
-        joined_df = veff_ldf.join(isoform_proportion_ldf, on=['gene_id', 'tissue', 'transcript_id'], how='inner')
+        joined_df = (veff_ldf.join(isoform_proportion_ldf, on=['gene_id', 'tissue', 'transcript_id'], how='left').
+                     with_columns('isoform_proportion').fill_null(0))
     else:
         # assign equal weight to each transcript, if no isoform proportions are given
         joined_df = veff_ldf.with_columns(
@@ -340,7 +341,8 @@ def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Pat
                      return_dtype=pl.Float64()).
         alias('alt_score'),
     )
-    joined_df = joined_df.with_columns(((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
+    joined_df = joined_df.with_columns(((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc')). \
+        fill_nan(0)
     joined_df = joined_df.collect().to_arrow()
     logger.debug(f'Aggregated table size: {len(joined_df)}')
     joined_df = joined_df.replace_schema_metadata(veff_metadata)
