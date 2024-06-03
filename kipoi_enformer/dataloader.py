@@ -115,7 +115,7 @@ class TSSDataloader(SampleGenerator, ABC):
 class RefTSSDataloader(TSSDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str,
                  seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
-                 protein_coding_only: bool = False, gene_id: str | None = None, *args, **kwargs):
+                 protein_coding_only: bool = False, gene_ids: list | None = None, *args, **kwargs):
         """
         :param fasta_file: Fasta file with the reference genome
         :param gtf: GTF file with genome annotation or DataFrame with genome annotation
@@ -130,7 +130,7 @@ class RefTSSDataloader(TSSDataloader):
         assert chromosome is not None, 'A chromosome should be provided'
         super().__init__(AlleleType.REF, chromosome=chromosome, fasta_file=fasta_file, gtf=gtf,
                          seq_length=seq_length, shift=shift, size=size, canonical_only=canonical_only,
-                         protein_coding_only=protein_coding_only, gene_id=gene_id, *args, **kwargs)
+                         protein_coding_only=protein_coding_only, gene_ids=gene_ids, *args, **kwargs)
         logger.debug(f"Dataloader is ready for chromosome {chromosome}")
 
     def _sample_gen(self):
@@ -188,7 +188,7 @@ class VCFTSSDataloader(TSSDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, vcf_lazy=True,
                  variant_upstream_tss: int = 10, variant_downstream_tss: int = 10, seq_length: int = SEQUENCE_LENGTH,
                  shift: int = 43, size: int = None, canonical_only: bool = False, protein_coding_only: bool = False,
-                 gene_id: str | None = None, *args, **kwargs):
+                 gene_ids: list | None = None, *args, **kwargs):
         """
 
         :param fasta_file: Fasta file with the reference genome
@@ -207,7 +207,7 @@ class VCFTSSDataloader(TSSDataloader):
 
         super().__init__(AlleleType.ALT, fasta_file=fasta_file, gtf=gtf, chromosome=None,
                          seq_length=seq_length, shift=shift, size=size, canonical_only=canonical_only,
-                         protein_coding_only=protein_coding_only, gene_id=gene_id, *args, **kwargs)
+                         protein_coding_only=protein_coding_only, gene_ids=gene_ids, *args, **kwargs)
         assert shift < variant_downstream_tss + variant_upstream_tss + 1, \
             f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {variant_downstream_tss + variant_upstream_tss + 1}"
 
