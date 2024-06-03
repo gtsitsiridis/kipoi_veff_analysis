@@ -21,9 +21,12 @@ else:
 
 test_config = config.get('test', None)
 
+gtf = pd.read_parquet(input_['gtf'])
 args = {'fasta_file': input_['fasta_file'],
         'shift': config['enformer']['shift'], 'protein_coding_only': config['genome']['protein_coding_only'],
-        'canonical_only': config['genome']['canonical_only'], 'size': None if test_config is None else test_config['dataloader_size']}
+        'canonical_only': config['genome']['canonical_only'],
+        'size': None if test_config is None else test_config['dataloader_size'],
+        'gtf': gtf}
 
 # Check if VCF file is provided
 # If VCF file is provided, predict for ALT allele
@@ -33,19 +36,14 @@ if params.type == 'vcf':
     vcf = config['vcf']
     vcf_file = input_['vcf_file']
     args.update({'vcf_file': vcf_file, 'variant_upstream_tss': vcf['variant_upstream_tss'],
-                 'variant_downstream_tss': vcf['variant_downstream_tss'], 'vcf_lazy': True,
-                 'gtf': input_['gtf_file']})
+                 'variant_downstream_tss': vcf['variant_downstream_tss'], 'vcf_lazy': True})
     logger.info('Allele type: %s', allele)
     logger.info('Using VCF file: %s', vcf_file)
 elif params.type == 'ref':
     allele = constants.AlleleType.REF
     logger.info('Allele type: %s', allele)
     chromosome = wildcards['chromosome']
-    # load genome annotation by chromosome
-    with pd.HDFStore(input_['gtf_chrom_store'], mode='r') as store:
-        logger.info('Reading GTF chrom-store: %s', input_['gtf_chrom_store'])
-        gtf = store.get(chromosome)
-    args.update({'chromosome': chromosome, 'gtf': gtf})
+    args['chromosome'] = chromosome
     logger.info('Predicting for chromosome: %s', chromosome)
 else:
     raise ValueError('Invalid allele type: %s' % params.type)

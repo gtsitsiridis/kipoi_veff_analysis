@@ -2,7 +2,6 @@ import pyranges as pr
 import pandas as pd
 import logging
 from kipoi_enformer.logger import setup_logger
-from tqdm import tqdm
 
 # SNAKEMAKE SCRIPT
 config = snakemake.config
@@ -15,8 +14,8 @@ if config.get('debug', False):
 else:
     logger = setup_logger()
 
-with pd.HDFStore(output[0], mode='w') as store:
-    logger.info('Reading GTF file: %s', input_['gtf_file'])
-    gtf = pr.read_gtf(input_['gtf_file'], as_df=True, duplicate_attr=True)
-    for chrom in tqdm(config['genome']['chromosomes']):
-        store.put(chrom, gtf.query('`Chromosome` == @chrom'), format='table')
+logger.info('Reading GTF file: %s', input_['gtf_file'])
+gtf = pr.read_gtf(input_['gtf_file'], as_df=True, duplicate_attr=True)
+chromosomes = config['genome']['chromosomes']
+gtf = gtf.query('`Chromosome`.isin(@chromosomes)')
+gtf.to_parquet(output[0])

@@ -9,16 +9,16 @@ def vcf_file(wildcards):
     return str(pathlib.Path(config['vcf']["path"]) / f'{wildcards.vcf_name}')
 
 
-rule gtf_chrom_store:
+rule gtf:
     priority: 5
     resources:
         mem_mb=lambda wildcards, attempt, threads: 20000 + (1000 * attempt)
     output:
-        temp(f'{output_dir}/temp/gtf_chrom_store.h5')
+        temp(f'{output_dir}/temp/gtf.parquet')
     input:
         gtf_file=config["genome"]["gtf_file"],
     script:
-        'scripts/gtf_chrom_store.py'
+        'scripts/gtf.py'
 
 rule enformer_ref:
     priority: 5
@@ -29,7 +29,7 @@ rule enformer_ref:
     output:
         prediction_path=f'{output_dir}/raw/ref.parquet/' + 'chrom={chromosome}/data.parquet',
     input:
-        gtf_chrom_store=rules.gtf_chrom_store.output[0],
+        gtf=rules.gtf.output[0],
         fasta_file=config["genome"]["fasta_file"],
     params:
         type='ref'
@@ -45,7 +45,7 @@ rule enformer_alt:
     output:
         prediction_path=f'{output_dir}/raw/alt.parquet/' + 'vcf={vcf_name}/data.parquet',
     input:
-        gtf_file=config["genome"]["gtf_file"],
+        gtf=rules.gtf.output[0],
         fasta_file=config["genome"]["fasta_file"],
         vcf_file=vcf_file,
     wildcard_constraints:

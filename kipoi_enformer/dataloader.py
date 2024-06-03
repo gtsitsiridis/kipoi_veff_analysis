@@ -21,7 +21,7 @@ SEQUENCE_LENGTH = 393_216
 class TSSDataloader(SampleGenerator, ABC):
     def __init__(self, allele_type: AlleleType, fasta_file, gtf: pd.DataFrame | str, chromosome: str | None = None,
                  seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
-                 protein_coding_only: bool = False, gene_id: str | None = None,
+                 protein_coding_only: bool = False, gene_ids: list | None = None,
                  *args, **kwargs):
         """
 
@@ -33,7 +33,7 @@ class TSSDataloader(SampleGenerator, ABC):
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
-        :param gene_id: If provided, only the gene with this ID is extracted from the genome annotation
+        :param gene_ids: If provided, only the gene with this ID is extracted from the genome annotation
         """
 
         super().__init__(*args, **kwargs)
@@ -53,7 +53,7 @@ class TSSDataloader(SampleGenerator, ABC):
         self._genome_annotation = get_tss_from_genome_annotation(gtf, chromosome=self.chromosome,
                                                                  canonical_only=canonical_only,
                                                                  protein_coding_only=protein_coding_only,
-                                                                 gene_id=gene_id)
+                                                                 gene_ids=gene_ids)
         self._shifts = (0,) if shift == 0 else (-shift, 0, shift)
         self.metadata = {'shifts': ';'.join([str(x) for x in self._shifts]), 'allele_type': allele_type.value,
                          'seq_length': str(self._seq_length)}
