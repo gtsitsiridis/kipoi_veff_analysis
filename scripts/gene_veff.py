@@ -22,4 +22,4 @@ else:
 logger.info('isoforms path: ' + str(isoforms_path))
 
 aggregate_veff(veff_path=str(input_['transcript_veff']), output_path=str(output['gene_veff']),
-               isoforms_path=isoforms_path, mode='mean')
+               isoforms_path=isoforms_path, mode='logsumexp')
