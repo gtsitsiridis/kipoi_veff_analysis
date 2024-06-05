@@ -295,7 +295,7 @@ def calculate_veff(ref_path, alt_path, output_path):
 
 
 def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Path,
-                   isoforms_path: str | pathlib.Path | None = None):
+                   isoforms_path: str | pathlib.Path | None = None, mode='logsumexp'):
     """
     Given a file containing variant effect scores, aggregate the scores by gene, variant and tissue.
     If the isoform proportions per tissue are given, then calculate the weighted sum. Otherwise, calculate the average.
@@ -303,7 +303,8 @@ def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Pat
     :param veff_path: The parquet file that contains the variant effect scores
     :param isoforms_path: The file containing the isoform proportions per tissue
     :param output_path: The parquet file that will contain the aggregated scores
-    :return:
+    :param mode: One of ['logsum', 'mean']. If 'logsum', calculate the logsumexp of the scores.
+    If 'mean', calculate the mean.
     """
 
     veff_metadata = pq.ParquetFile(veff_path).schema_arrow.metadata
@@ -329,20 +330,30 @@ def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Pat
     def logsumexp_udf(score, weight):
         return logsumexp(score / math.log10(math.e), b=weight) / math.log(10)
 
-    joined_df = joined_df. \
-        group_by(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']). \
+    if mode == 'logsumexp':
+        joined_df = joined_df. \
+            group_by(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']). \
+            agg(
+            pl.struct(['ref_score', 'isoform_proportion']).
+            map_elements(lambda x: logsumexp_udf(x.struct.field('ref_score'), x.struct.field('isoform_proportion')),
+                         return_dtype=pl.Float64()).
+            alias('ref_score'),
+            pl.struct(['alt_score', 'isoform_proportion']).
+            map_elements(lambda x: logsumexp_udf(x.struct.field('alt_score'), x.struct.field('isoform_proportion')),
+                         return_dtype=pl.Float64()).
+            alias('alt_score'),
+        )
+        joined_df = joined_df.with_columns(((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc')). \
+            fill_nan(0)
+    elif mode == 'mean':
+        joined_df = (joined_df.
+        group_by(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']).
         agg(
-        pl.struct(['ref_score', 'isoform_proportion']).
-        map_elements(lambda x: logsumexp_udf(x.struct.field('ref_score'), x.struct.field('isoform_proportion')),
-                     return_dtype=pl.Float64()).
-        alias('ref_score'),
-        pl.struct(['alt_score', 'isoform_proportion']).
-        map_elements(lambda x: logsumexp_udf(x.struct.field('alt_score'), x.struct.field('isoform_proportion')),
-                     return_dtype=pl.Float64()).
-        alias('alt_score'),
-    )
-    joined_df = joined_df.with_columns(((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc')). \
-        fill_nan(0)
+            (pl.col('isoform_proportion') * (pl.col('alt_score') - pl.col('ref_score'))).sum().alias('log2fc'),
+        ))
+    else:
+        raise ValueError(f'Unknown mode: {mode}')
+
     joined_df = joined_df.collect().to_arrow()
     logger.debug(f'Aggregated table size: {len(joined_df)}')
     joined_df = joined_df.replace_schema_metadata(veff_metadata)
