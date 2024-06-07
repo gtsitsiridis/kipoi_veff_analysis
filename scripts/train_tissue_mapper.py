@@ -13,7 +13,6 @@ if config.get('debug', False):
 else:
     logger = setup_logger()
 
-tissue_mapper = EnformerTissueMapper(tracks_path=input_['tracks_path'],
-                                     tissue_matcher_path=input_['tissue_matcher_path'])
-tissue_mapper.predict(input_['enformer_path'], output_path=output['prediction_path'],
-                      num_bins=config['enformer']['tissue_matcher']['nbins'])
+tissue_mapper = EnformerTissueMapper(tracks_path=input_['tracks_path'], tissue_mapper_path=None)
+tissue_mapper.train(enformer_scores_path=input_['enformer_path'], expression_path=input_['expression_path'],
+                    output_path=output['tissue_mapper_path'], num_bins=config['enformer']['tissue_mapper']['nbins'])

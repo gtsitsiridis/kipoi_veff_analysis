@@ -20,7 +20,7 @@ def output_dir():
 
 
 @pytest.fixture
-def gtex_tissue_matcher_path():
+def gtex_tissue_mapper_path():
     return Path('assets/gtex_enformer_lm_models_pseudocount1.pkl')
 
 
@@ -130,9 +130,9 @@ def test_enformer_alt(chr22_example_files, output_dir: Path, size, batch_size, n
 @pytest.mark.parametrize("allele_type", [
     'REF', 'ALT'
 ])
-def test_enformer_tissue_mapper(allele_type: str, chr22_example_files, output_dir: Path,
-                                enformer_tracks_path: Path, gtex_tissue_matcher_path: Path, size=10, batch_size=5,
-                                num_output_bins=21):
+def test_predict_tissue_mapper(allele_type: str, chr22_example_files, output_dir: Path,
+                               enformer_tracks_path: Path, gtex_tissue_mapper_path: Path, size=10, batch_size=5,
+                               num_output_bins=21):
     enformer_filepath = get_enformer_path(output_dir, size, AlleleType[allele_type])
     if not enformer_filepath.exists():
         logger.debug(f'Creating file: {enformer_filepath}')
@@ -144,11 +144,11 @@ def test_enformer_tissue_mapper(allele_type: str, chr22_example_files, output_di
         logger.debug(f'Using existing file: {enformer_filepath}')
 
     tissue_mapper = EnformerTissueMapper(tracks_path=enformer_tracks_path,
-                                         tissue_matcher_path=gtex_tissue_matcher_path)
+                                         tissue_mapper_path=gtex_tissue_mapper_path)
     enformer_tissue_filepath = get_tissue_path(output_dir, size, AlleleType[allele_type])
     tissue_mapper.predict(enformer_filepath, output_path=enformer_tissue_filepath)
 
-    with open(gtex_tissue_matcher_path, 'rb') as f:
+    with open(gtex_tissue_mapper_path, 'rb') as f:
         num_tissues = len(pickle.load(f))
 
     tbl = pl.read_parquet(enformer_tissue_filepath)
@@ -160,22 +160,22 @@ def test_enformer_tissue_mapper(allele_type: str, chr22_example_files, output_di
 
 
 def test_calculate_veff(chr22_example_files, output_dir: Path,
-                        enformer_tracks_path: Path, gtex_tissue_matcher_path: Path, size=10):
+                        enformer_tracks_path: Path, gtex_tissue_mapper_path: Path, size=10):
     ref_filepath = get_tissue_path(output_dir, size, AlleleType.REF)
     if ref_filepath.exists():
         logger.debug(f'Using existing file: {ref_filepath}')
     else:
         logger.debug(f'Creating file: {ref_filepath}')
-        test_enformer_tissue_mapper('REF', chr22_example_files, output_dir,
-                                    enformer_tracks_path, gtex_tissue_matcher_path, size=size)
+        test_predict_tissue_mapper('REF', chr22_example_files, output_dir,
+                                   enformer_tracks_path, gtex_tissue_mapper_path, size=size)
 
     alt_filepath = get_tissue_path(output_dir, size, AlleleType.ALT)
     if alt_filepath.exists():
         logger.debug(f'Using existing file: {alt_filepath}')
     else:
         logger.debug(f'Creating file: {alt_filepath}')
-        test_enformer_tissue_mapper('ALT', chr22_example_files, output_dir,
-                                    enformer_tracks_path, gtex_tissue_matcher_path, size=size)
+        test_predict_tissue_mapper('ALT', chr22_example_files, output_dir,
+                                   enformer_tracks_path, gtex_tissue_mapper_path, size=size)
 
     output_path = output_dir / f'enformer_{size}/tissue/veff.parquet'
     if output_path.exists():
@@ -187,16 +187,30 @@ def test_calculate_veff(chr22_example_files, output_dir: Path,
     True, False
 ])
 def test_calculate_agg_veff(chr22_example_files, output_dir: Path,
-                            enformer_tracks_path: Path, gtex_tissue_matcher_path: Path, is_isoform, size=100):
+                            enformer_tracks_path: Path, gtex_tissue_mapper_path: Path, is_isoform, size=100):
     veff_filepath = get_veff_path(output_dir, size)
     if veff_filepath.exists():
         logger.debug(f'Using existing file: {veff_filepath}')
     else:
         logger.debug(f'Creating file: {veff_filepath}')
-        test_calculate_veff(chr22_example_files, output_dir, enformer_tracks_path, gtex_tissue_matcher_path, size=size)
+        test_calculate_veff(chr22_example_files, output_dir, enformer_tracks_path, gtex_tissue_mapper_path, size=size)
 
     output_path = output_dir / f'enformer_{size}/tissue/veff_agg.parquet'
     if output_path.exists():
         output_path.unlink()
     aggregate_veff(veff_path=veff_filepath, output_path=output_path,
                    isoforms_path=None if not is_isoform else chr22_example_files['isoform_proportions'])
+
+
+def test_train_tissue_mapper(chr22_example_files, gtex_tissue_mapper_path, enformer_tracks_path, output_dir, size=10,
+                             batch_size=5, num_output_bins=21):
+    enformer_filepath = get_enformer_path(output_dir, size, AlleleType.REF)
+    if not enformer_filepath.exists():
+        logger.debug(f'Creating file: {enformer_filepath}')
+        test_enformer_ref(chr22_example_files, output_dir, size, batch_size, num_output_bins)
+    else:
+        logger.debug(f'Using existing file: {enformer_filepath}')
+
+    tissue_mapper = EnformerTissueMapper(tracks_path=enformer_tracks_path,
+                                         tissue_mapper_path=gtex_tissue_mapper_path)
+    tissue_mapper.train(enformer_filepath, output_path=output_dir / 'tissue_mapper.pkl', expression_path=chr22_example_files['gtex_expression'])

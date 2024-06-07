@@ -20,4 +20,5 @@ def chr22_example_files():
         'gtf': base / "annot.gtf.gz",
         'vcf': base / "vcf" / "chr22_var.vcf.gz",
         'isoform_proportions': base / "isoform_proportions.tsv",
+        'gtex_expression': base / 'gtex_transcripts_tmps.zarr'
     }

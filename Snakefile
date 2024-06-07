@@ -55,7 +55,22 @@ rule enformer_alt:
     script:
         'scripts/enformer.py'
 
-rule tissue_mapper:
+rule train_tissue_mapper:
+    priority: 3
+    resources:
+        ntasks=1,
+        mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
+    output:
+        tissue_mapper_path=config['enformer']['tissue_mapper']['model_path'],
+    input:
+        enformer_path=f'{output_dir}/raw/' + '{path}',
+        tracks_path=config['enformer']['tissue_mapper']['tracks_path'],
+        # todo
+        expression_path=None
+    script:
+        'scripts/enformer_to_tissue.py'
+
+rule enformer_to_tissue:
     priority: 3
     resources:
         ntasks=1,
@@ -64,11 +79,10 @@ rule tissue_mapper:
         prediction_path=f'{output_dir}/tissue/' + '{path}',
     input:
         enformer_path=f'{output_dir}/raw/' + '{path}',
-        tracks_path=config['enformer']['tissue_matcher']['tracks_path'],
-        tissue_matcher_path=config['enformer']['tissue_matcher']['model_path'],
+        tracks_path=config['enformer']['tissue_mapper']['tracks_path'],
+        tissue_mapper_path=config['enformer']['tissue_mapper']['model_path'],
     script:
-        'scripts/tissue_mapper.py'
-
+        'scripts/enformer_to_tissue.py'
 
 rule transcript_veff:
     priority: 4

@@ -41,7 +41,7 @@ enformer:
   shift: 43
   batch_size: 2
   num_output_bins: 21
-  tissue_matcher:
+  tissue_mapper:
     tracks_path: assets/cage_nonuniversal_enformer_tracks.yaml
     model_path: assets/gtex_enformer_lm_models_pseudocount1.pkl
     nbins: 3
