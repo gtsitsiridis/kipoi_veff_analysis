@@ -9,12 +9,20 @@ def vcf_file(wildcards):
     return str(pathlib.Path(config['vcf']["path"]) / f'{wildcards.vcf_name}')
 
 
+def tissue_mapper_path():
+    config_path = config['enformer']['tissue_mapper'].get('model_path', None)
+    if config_path:
+        return config_path
+    else:
+        return output_dir / 'tissue_mapper.pkl'
+
+
 rule gtf:
     priority: 5
     resources:
         mem_mb=lambda wildcards, attempt, threads: 20000 + (1000 * attempt)
     output:
-        temp(f'{output_dir}/temp/gtf.parquet')
+        temp(output_dir / 'temp/gtf.parquet')
     input:
         gtf_file=config["genome"]["gtf_file"],
     script:
@@ -27,7 +35,7 @@ rule enformer_ref:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 12000 + (1000 * attempt)
     output:
-        prediction_path=f'{output_dir}/raw/ref.parquet/' + 'chrom={chromosome}/data.parquet',
+        prediction_path=output_dir / 'raw/ref.parquet' / 'chrom={chromosome}/data.parquet',
     input:
         gtf=rules.gtf.output[0],
         fasta_file=config["genome"]["fasta_file"],
@@ -43,7 +51,7 @@ rule enformer_alt:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 12000 + (1000 * attempt)
     output:
-        prediction_path=f'{output_dir}/raw/alt.parquet/' + 'vcf={vcf_name}/data.parquet',
+        prediction_path=output_dir / 'raw/alt.parquet' / 'vcf={vcf_name}/data.parquet',
     input:
         gtf=rules.gtf.output[0],
         fasta_file=config["genome"]["fasta_file"],
@@ -61,14 +69,16 @@ rule train_tissue_mapper:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
     output:
-        tissue_mapper_path=config['enformer']['tissue_mapper']['model_path'],
+        tissue_mapper_path=tissue_mapper_path(),
     input:
-        enformer_path=f'{output_dir}/raw/' + '{path}',
+        enformer_paths = expand(output_dir / 'raw/ref.parquet' / 'chrom={chromosome}/data.parquet',
+            chromosome=config['genome']['chromosomes']),
         tracks_path=config['enformer']['tissue_mapper']['tracks_path'],
-        # todo
-        expression_path=None
+        expression_path=config['enformer']['tissue_mapper']['expression_path']
+    params:
+        enformer_path=output_dir / 'raw/ref.parquet'
     script:
-        'scripts/enformer_to_tissue.py'
+        'scripts/train_tissue_mapper.py'
 
 rule enformer_to_tissue:
     priority: 3
@@ -76,11 +86,11 @@ rule enformer_to_tissue:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
     output:
-        prediction_path=f'{output_dir}/tissue/' + '{path}',
+        prediction_path=output_dir / 'tissue' / '{path}',
     input:
-        enformer_path=f'{output_dir}/raw/' + '{path}',
+        enformer_path=output_dir / 'raw' / '{path}',
         tracks_path=config['enformer']['tissue_mapper']['tracks_path'],
-        tissue_mapper_path=config['enformer']['tissue_mapper']['model_path'],
+        tissue_mapper_path=rules.train_tissue_mapper.output
     script:
         'scripts/enformer_to_tissue.py'
 
@@ -90,13 +100,13 @@ rule transcript_veff:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 8000 + (1000 * attempt)
     output:
-        transcript_veff=f'{output_dir}/tissue/transcript_veff.parquet/' + 'vcf={vcf_name}/data.parquet',
+        transcript_veff_path=output_dir / 'tissue/transcript_veff.parquet' / 'vcf={vcf_name}/data.parquet',
     input:
-        ref_tissue_pred=expand(f'{output_dir}/tissue/ref.parquet/' + 'chrom={chromosome}/data.parquet',
+        ref_tissue_pred_paths=expand(output_dir / 'tissue/ref.parquet' / 'chrom={chromosome}/data.parquet',
             chromosome=config['genome']['chromosomes']),
-        alt_tissue_pred=f'{output_dir}/tissue/alt.parquet/' + 'vcf={vcf_name}/data.parquet',
+        alt_tissue_pred_path=output_dir / 'tissue/alt.parquet' / 'vcf={vcf_name}/data.parquet',
     params:
-        ref_tissue_pred_dir=f'{output_dir}/tissue/ref.parquet'
+        ref_tissue_pred_paths=output_dir / 'tissue/ref.parquet/**/data.parquet',
     wildcard_constraints:
         vcf_name='.*\.vcf\.gz'
     script:
@@ -108,9 +118,9 @@ rule gene_veff:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 10000 + (1000 * attempt)
     output:
-        gene_veff=f'{output_dir}/tissue/gene_veff.parquet/' + 'vcf={vcf_name}/data.parquet',
+        gene_veff_path=output_dir / 'tissue/gene_veff.parquet' / 'vcf={vcf_name}/data.parquet',
     input:
-        transcript_veff=rules.transcript_veff.output
+        transcript_veff_path=rules.transcript_veff.output
     wildcard_constraints:
         vcf_name='.*\.vcf\.gz'
     script:

@@ -152,7 +152,7 @@ class EnformerTissueMapper:
         # If tissue_mapper_path is not None, load the linear models
         if tissue_mapper_path is not None:
             with open(tissue_mapper_path, 'rb') as f:
-                self.tissue_mapper_lm_dict = pickle.load(f).items()
+                self.tissue_mapper_lm_dict = pickle.load(f)
 
         with open(tracks_path, 'rb') as f:
             self.tracks_dict = yaml.safe_load(f)
@@ -177,29 +177,34 @@ class EnformerTissueMapper:
         expression_xr = expression_xr.groupby('subtissue').mean('sample')
         transcripts = [x.split('.')[0] for x in expression_xr.transcript.values]
         expression_xr = expression_xr.assign_coords(dict(transcript=transcripts))
-
-        enformer_file = pq.ParquetFile(enformer_scores_path)
-        enformer_schema = enformer_file.schema.to_arrow_schema()
-        shifts = [int(x) for x in enformer_schema.metadata[b'shifts'].split(b';')]
         tracks = list(self.tracks_dict.values())
 
-        logger.debug(f'Iterating over the parquet files in {enformer_scores_path}')
         scores = []
         transcripts = []
-        for i in tqdm(range(enformer_file.num_row_groups)):
-            batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(enformer_file.read_row_group(i)),
-                                                               Enformer.BIN_SIZE, num_bins, shifts, tracks)
-            scores.append(batch_agg_pred)
-            transcripts.append(batch_meta['transcript_id'])
+        enformer_ds = pq.ParquetDataset(enformer_scores_path)
+        for enformer_file in enformer_ds.files:
+            enformer_file = pq.ParquetFile(enformer_file)
+            enformer_schema = enformer_file.schema.to_arrow_schema()
+            shifts = [int(x) for x in enformer_schema.metadata[b'shifts'].split(b';')]
 
+            logger.debug(f'Iterating over the parquet files in {enformer_scores_path}')
+            for i in tqdm(range(enformer_file.num_row_groups)):
+                batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(enformer_file.read_row_group(i)),
+                                                                   Enformer.BIN_SIZE, num_bins, shifts, tracks)
+                scores.append(batch_agg_pred)
+                transcripts.append(batch_meta['transcript_id'])
+
+        logger.info('Collecting results...')
+        # flatten the lists
         transcripts = [item.split('.')[0] for sublist in transcripts for item in sublist]
         enformer_xr = xr.DataArray(data=np.concatenate(scores), dims=['transcript', 'tracks'],
                                    coords=dict(transcript=transcripts, tracks=tracks), name='enformer')
-
+        # merge the two xr data arrays
         xrds = xr.merge([expression_xr, enformer_xr], join='inner')
-
+        # train the linear models
         model_dict = {}
         for subtissue, subtissue_xrds in xrds.groupby('subtissue'):
+            logger.info(f'Training the model for {subtissue}')
             X = subtissue_xrds['enformer'].values
             X = np.log10(1 + X)
             y = subtissue_xrds['tpm'].values
@@ -210,6 +215,7 @@ class EnformerTissueMapper:
 
             # todo show/save stats for each model (e.g. which tracks are more important?)
 
+        logger.info('Saving the models...')
         self.tissue_mapper_lm_dict = model_dict
         with open(output_path, 'wb') as f:
             pickle.dump(model_dict, f, protocol=pickle.HIGHEST_PROTOCOL)

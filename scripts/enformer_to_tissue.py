@@ -14,6 +14,6 @@ else:
     logger = setup_logger()
 
 tissue_mapper = EnformerTissueMapper(tracks_path=input_['tracks_path'],
-                                     tissue_mapper_path=input_['tissue_mapper_path'])
+                                     tissue_mapper_path=str(input_['tissue_mapper_path']))
 tissue_mapper.predict(input_['enformer_path'], output_path=output['prediction_path'],
                       num_bins=config['enformer']['tissue_mapper']['nbins'])

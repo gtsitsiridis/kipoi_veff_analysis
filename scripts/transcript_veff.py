@@ -14,4 +14,4 @@ if config.get('debug', False):
 else:
     logger = setup_logger()
 
-calculate_veff(params['ref_tissue_pred_dir'] + '/**/data.parquet', input_['alt_tissue_pred'], output['transcript_veff'])
+calculate_veff(params['ref_tissue_pred_paths'], input_['alt_tissue_pred_path'], output['transcript_veff_path'])

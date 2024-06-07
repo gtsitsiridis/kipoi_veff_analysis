@@ -26,5 +26,5 @@ enformer:
   num_output_bins: 21
   tissue_mapper:
     tracks_path: assets/cage_nonuniversal_enformer_tracks.yaml
-    model_path: assets/gtex_enformer_lm_models_pseudocount1.pkl
+    expression_path: assets/example_files/gtex_transcripts_tmps.zarr/
     nbins: 3
