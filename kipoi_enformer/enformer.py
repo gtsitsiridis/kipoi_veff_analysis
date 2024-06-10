@@ -159,7 +159,7 @@ class EnformerTissueMapper:
 
     def train(self, enformer_scores_path: str | pathlib.Path, expression_path: str | pathlib.Path,
               output_path: str | pathlib.Path, num_bins: int = 3, model=linear_model.ElasticNetCV(cv=5),
-              batch_read=False):
+              batch_read=True):
         """
         Load the predictions from the parquet file lazily.
         For each record, calculate the average predictions over the bins centered at the tss bin.

@@ -67,7 +67,7 @@ rule train_tissue_mapper:
     priority: 3
     resources:
         ntasks=1,
-        mem_mb=lambda wildcards, attempt, threads: 120000 + (1000 * attempt)
+        mem_mb=lambda wildcards, attempt, threads: 50000 + (10000 * attempt)
     output:
         tissue_mapper_path=tissue_mapper_path(),
     input:
