@@ -211,9 +211,9 @@ class EnformerTissueMapper:
             y = np.log10(1 + y)
             lm_pipe = pipeline.Pipeline([('scaler', preprocessing.StandardScaler()),
                                          ('model', model)])
-            model_dict[subtissue] = lm_pipe.fit(X, y)
-
-            # todo show/save stats for each model (e.g. which tracks are more important?)
+            lm_pipe = lm_pipe.fit(X, y)
+            logger.info('Training score: %f' % lm_pipe.score(X, y))
+            model_dict[subtissue] = lm_pipe
 
         logger.info('Saving the models...')
         self.tissue_mapper_lm_dict = model_dict

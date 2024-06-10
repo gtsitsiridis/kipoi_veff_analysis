@@ -25,6 +25,7 @@ enformer:
   batch_size: 2
   num_output_bins: 21
   tissue_mapper:
-    tracks_path: assets/cage_nonuniversal_enformer_tracks.yaml
+    tracks_path: assets/human_cage_dnase_enformer_tracks.yaml
     expression_path: assets/example_files/gtex_transcripts_tmps.zarr/
+    cv: 2
     nbins: 3

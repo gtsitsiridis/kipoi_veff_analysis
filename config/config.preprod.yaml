@@ -26,5 +26,6 @@ enformer:
   num_output_bins: 21
   tissue_mapper:
     expression_path: /s/project/rep/processed/training_results_v14/general/gtex_transcript_tpms.zarr/
-    tracks_path: assets/cage_nonuniversal_enformer_tracks.yaml
+    tracks_path: assets/human_cage_dnase_enformer_tracks.yaml
+    cv: 5
     nbins: 3

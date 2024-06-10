@@ -1,0 +1,1312 @@
+DNASE:cerebellum male adult (27 years) and male adult (35 years)_0: 0
+DNASE:frontal cortex male adult (27 years) and male adult (35 years)_1: 1
+DNASE:chorion_2: 2
+DNASE:Ishikawa treated with 0.02% dimethyl sulfoxide for 1 hour_3: 3
+DNASE:GM03348_4: 4
+DNASE:GM03348 genetically modified using transduction treated with 3 ug/mL doxycycline for 10 days_5: 5
+DNASE:AG08395_6: 6
+DNASE:AG08396_7: 7
+DNASE:AG20443_8: 8
+DNASE:frontal cortex female adult (67 years) and female adult (80 years)_9: 9
+DNASE:H54_10: 10
+DNASE:GM10248_11: 11
+DNASE:GM12878_12: 12
+DNASE:GM12891_13: 13
+DNASE:GM12892_14: 14
+DNASE:GM18507_15: 15
+DNASE:GM19238_16: 16
+DNASE:GM19239_17: 17
+DNASE:GM19240_18: 18
+DNASE:H1-hESC_19: 19
+DNASE:H7-hESC_20: 20
+DNASE:H9_21: 21
+DNASE:heart male adult (27 years) and male adult (35 years)_22: 22
+DNASE:HEK293T_23: 23
+DNASE:HeLa-S3 treated with interferon alpha for 4 hours_24: 24
+DNASE:HeLa-S3_25: 25
+DNASE:hepatocyte_26: 26
+DNASE:HepG2_27: 27
+DNASE:HTR-8/SVneo_28: 28
+DNASE:endothelial cell of umbilical vein newborn_29: 29
+DNASE:CWRU1 male_30: 30
+DNASE:iPS-NIHi11 male adult (71 year) originated from AG20443_31: 31
+DNASE:iPS-NIHi7 female adult (85 years) originated from AG08395_32: 32
+DNASE:K562 treated with 1 uM vorinostat for 72 hours_33: 33
+DNASE:K562 G2 phase_34: 34
+DNASE:K562 G1 phase_35: 35
+DNASE:LNCaP clone FGC_36: 36
+DNASE:LNCaP clone FGC treated with 1 nM 17B-hydroxy-17-methylestra-4,9,11-trien-3-one for 12 hours_37: 37
+DNASE:MCF-7 originated from MCF-7_38: 38
+DNASE:medulloblastoma_39: 39
+DNASE:epidermal melanocyte_40: 40
+DNASE:CD14-positive monocyte female_41: 41
+DNASE:keratinocyte female_42: 42
+DNASE:osteoblast_43: 43
+DNASE:psoas muscle male adult (27 years) and male adult (35 years)_44: 44
+DNASE:T47D treated with 10 nM 17B-estradiol for 30 minutes_45: 45
+DNASE:urothelium cell line_46: 46
+DNASE:A549_47: 47
+DNASE:AG04449_48: 48
+DNASE:AG04450_49: 49
+DNASE:AG09309_50: 50
+DNASE:AG09319_51: 51
+DNASE:AG10803_52: 52
+DNASE:fibroblast of the aortic adventitia female_53: 53
+DNASE:BE2C_54: 54
+DNASE:BJ_55: 55
+DNASE:HS-27A_56: 56
+DNASE:HS-5_57: 57
+DNASE:stromal cell of bone marrow male_58: 58
+DNASE:Caco-2_59: 59
+DNASE:B cell female adult (43 years)_60: 60
+DNASE:hematopoietic multipotent progenitor cell_61: 61
+DNASE:naive thymus-derived CD4-positive, alpha-beta T cell male adult (26 years)_62: 62
+DNASE:CMK_63: 63
+DNASE:GM04503_64: 64
+DNASE:GM04504_65: 65
+DNASE:GM06990_66: 66
+DNASE:GM12864_67: 67
+DNASE:GM12865_68: 68
+DNASE:GM12878_69: 69
+DNASE:H1-hESC_70: 70
+DNASE:cardiac mesoderm_71: 71
+DNASE:cardiac mesoderm_72: 72
+DNASE:cardiac mesoderm_73: 73
+DNASE:cardiac mesoderm_74: 74
+DNASE:H7-hESC_75: 75
+DNASE:astrocyte of the hippocampus_76: 76
+DNASE:astrocyte of the spinal cord_77: 77
+DNASE:astrocyte of the cerebellum_78: 78
+DNASE:amniotic epithelial cell_79: 79
+DNASE:brain microvascular endothelial cell_80: 80
+DNASE:brain pericyte_81: 81
+DNASE:smooth muscle cell of the brain vasculature female_82: 82
+DNASE:cardiac fibroblast_83: 83
+DNASE:cardiac fibroblast female_84: 84
+DNASE:cardiac muscle cell_85: 85
+DNASE:fibroblast of the conjunctiva_86: 86
+DNASE:choroid plexus epithelial cell_87: 87
+DNASE:HCT116_88: 88
+DNASE:epithelial cell of esophagus_89: 89
+DNASE:HeLa-S3 G1b phase_90: 90
+DNASE:HepG2_91: 91
+DNASE:foreskin fibroblast male newborn_92: 92
+DNASE:HFF-Myc originated from foreskin fibroblast_93: 93
+DNASE:fibroblast of gingiva_94: 94
+DNASE:iris pigment epithelial cell_95: 95
+DNASE:HL-60_96: 96
+DNASE:mammary epithelial cell female_97: 97
+DNASE:fibroblast of mammary gland female_98: 98
+DNASE:dermis blood vessel endothelial cell female adult_99: 99
+DNASE:dermis blood vessel endothelial cell female adult_100: 100
+DNASE:dermis blood vessel endothelial cell male newborn_101: 101
+DNASE:dermis microvascular lymphatic vessel endothelial cell female_102: 102
+DNASE:dermis microvascular lymphatic vessel endothelial cell male_103: 103
+DNASE:dermis blood vessel endothelial cell male newborn_104: 104
+DNASE:lung microvascular endothelial cell female_105: 105
+DNASE:lung microvascular endothelial cell female_106: 106
+DNASE:non-pigmented ciliary epithelial cell_107: 107
+DNASE:pulmonary artery endothelial cell female_108: 108
+DNASE:fibroblast of pulmonary artery_109: 109
+DNASE:fibroblast of peridontal ligament male_110: 110
+DNASE:fibroblast of lung_111: 111
+DNASE:renal cortical epithelial cell_112: 112
+DNASE:kidney epithelial cell_113: 113
+DNASE:glomerular endothelial cell_114: 114
+DNASE:retinal pigment epithelial cell_115: 115
+DNASE:skeletal muscle myoblast_116: 116
+DNASE:myotube originated from skeletal muscle myoblast_117: 117
+DNASE:endothelial cell of umbilical vein newborn_118: 118
+DNASE:fibroblast of villous mesenchyme_119: 119
+DNASE:Jurkat clone E61_120: 120
+DNASE:K562_121: 121
+DNASE:K562_122: 122
+DNASE:K562_123: 123
+DNASE:myocyte originated from LHCN-M2_124: 124
+DNASE:LHCN-M2_125: 125
+DNASE:LNCaP clone FGC_126: 126
+DNASE:M059J_127: 127
+DNASE:MCF-7_128: 128
+DNASE:MCF-7 treated with 100 nM estradiol for 1 hour_129: 129
+DNASE:MCF-7_130: 130
+DNASE:CD14-positive monocyte female_131: 131
+DNASE:NB4_132: 132
+DNASE:astrocyte_133: 133
+DNASE:bronchial epithelial cell female treated with retinoic acid_134: 134
+DNASE:fibroblast of dermis female adult_135: 135
+DNASE:foreskin fibroblast male newborn_136: 136
+DNASE:keratinocyte female_137: 137
+DNASE:fibroblast of lung male adult (45 years)_138: 138
+DNASE:NT2/D1_139: 139
+DNASE:Panc1_140: 140
+DNASE:epithelial cell of prostate_141: 141
+DNASE:RPMI-7951_142: 142
+DNASE:epithelial cell of proximal tubule_143: 143
+DNASE:bronchial epithelial cell_144: 144
+DNASE:SK-N-MC_145: 145
+DNASE:SK-N-SH treated with 6 uM all-trans-retinoic acid for 48 hours_146: 146
+DNASE:skeletal muscle cell_147: 147
+DNASE:T47D_148: 148
+DNASE:T-helper 1 cell_149: 149
+DNASE:T-helper 1 cell female adult (26 years)_150: 150
+DNASE:T-helper 1 cell male adult (33 years)_151: 151
+DNASE:T-helper 17 cell_152: 152
+DNASE:T-helper 2 cell_153: 153
+DNASE:T-helper 2 cell female adult (26 years)_154: 154
+DNASE:T-helper 2 cell male adult (33 years)_155: 155
+DNASE:regulatory T cell female adult (35 years)_156: 156
+DNASE:regulatory T cell male adult (28 years)_157: 157
+DNASE:WERI-Rb-1_158: 158
+DNASE:WI38 genetically modified using stable transfection originated from WI38 treated with 20 nM afimoxifene for 72 hours_159: 159
+DNASE:WI38 genetically modified using stable transfection originated from WI38_160: 160
+DNASE:HT1080_161: 161
+DNASE:SK-MEL-5_162: 162
+DNASE:SJCRH30_163: 163
+DNASE:NCI-H460_164: 164
+DNASE:SK-N-DZ treated with dimethyl sulfoxide for 72 hours_165: 165
+DNASE:GM23338 male adult (53 years) originated from GM23248_166: 166
+DNASE:lung embryo (112 days)_167: 167
+DNASE:SK-MEL-5_168: 168
+DNASE:muscle of back female embryo (113 days)_169: 169
+DNASE:iPS DF 4.7 male newborn_170: 170
+DNASE:right renal cortex interstitium male embryo (105 days)_171: 171
+DNASE:caudate nucleus male adult (78 years)_172: 172
+DNASE:left renal pelvis male embryo (105 days)_173: 173
+DNASE:H9 S1 phase genetically modified using stable transfection_174: 174
+DNASE:right kidney female embryo (87 days)_175: 175
+DNASE:Karpas-422_176: 176
+DNASE:CD8-positive, alpha-beta T cell male adult (21 year)_177: 177
+DNASE:renal cortex interstitium female embryo (96 days)_178: 178
+DNASE:brain female embryo (85 days)_179: 179
+DNASE:muscle of leg male embryo (97 days)_180: 180
+DNASE:muscle of back female embryo (105 days)_181: 181
+DNASE:placenta female embryo (113 days)_182: 182
+DNASE:foreskin keratinocyte male newborn_183: 183
+DNASE:right kidney female embryo (107 days)_184: 184
+DNASE:RCC 7860_185: 185
+DNASE:colon epithelial cell line_186: 186
+DNASE:left renal cortex interstitium male embryo (120 days)_187: 187
+DNASE:T-cell_188: 188
+DNASE:large intestine male embryo (113 days)_189: 189
+DNASE:PC-3_190: 190
+DNASE:muscle of leg male embryo (96 days)_191: 191
+DNASE:adrenal gland embryo (96 days)_192: 192
+DNASE:coronary artery female adult (53 years)_193: 193
+DNASE:stomach female embryo (105 days)_194: 194
+DNASE:muscle of arm female embryo (115 days)_195: 195
+DNASE:heart female embryo (91 day)_196: 196
+DNASE:kidney embryo (80 days)_197: 197
+DNASE:heart left ventricle female adult (53 years)_198: 198
+DNASE:muscle of back female embryo (98 days)_199: 199
+DNASE:lung male embryo (108 days)_200: 200
+DNASE:tibial artery female adult (53 years)_201: 201
+DNASE:adrenal gland male embryo (101 day)_202: 202
+DNASE:kidney female embryo (121 day)_203: 203
+DNASE:stomach female embryo (107 days)_204: 204
+DNASE:small intestine female embryo (110 days)_205: 205
+DNASE:MG63_206: 206
+DNASE:skin of body female embryo (82 days)_207: 207
+DNASE:left renal cortex interstitium male embryo (105 days)_208: 208
+DNASE:stomach male embryo (58 days) and male embryo (76 days)_209: 209
+DNASE:left kidney female embryo (59 days) and male embryo (91 day)_210: 210
+DNASE:hematopoietic multipotent progenitor cell_211: 211
+DNASE:kidney female embryo (120 days)_212: 212
+DNASE:muscle of back female embryo (115 days)_213: 213
+DNASE:hematopoietic multipotent progenitor cell male adult (25 years) treated with erythropoietin for 20 days, hydrocortisone succinate for 20 days, kit ligand for 20 days, interleukin-3 for 20 days_214: 214
+DNASE:small intestine female embryo (120 days)_215: 215
+DNASE:brain embryo (112 days)_216: 216
+DNASE:stomach female embryo (105 days)_217: 217
+DNASE:left kidney female embryo (98 days)_218: 218
+DNASE:trophoblast cell embryo (21 week)_219: 219
+DNASE:common myeloid progenitor, CD34-positive female adult (27 years)_220: 220
+DNASE:eye female embryo (76 days)_221: 221
+DNASE:renal cortex interstitium male embryo (108 days)_222: 222
+DNASE:placenta female embryo (108 days)_223: 223
+DNASE:stomach female adult (53 years)_224: 224
+DNASE:small intestine female embryo (107 days)_225: 225
+DNASE:large intestine female embryo (120 days)_226: 226
+DNASE:kidney glomerular epithelial cell male adult (43 years) and male adult (62 years)_227: 227
+DNASE:renal pelvis female embryo (96 days)_228: 228
+DNASE:lung female embryo (76 days)_229: 229
+DNASE:muscle of back male embryo (104 days)_230: 230
+DNASE:lung female embryo (85 days)_231: 231
+DNASE:spinal cord male embryo (105 days)_232: 232
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 4 days, kit ligand for 4 days, hydrocortisone succinate for 4 days, erythropoietin for 4 days_233: 233
+DNASE:HepG2_234: 234
+DNASE:foreskin fibroblast male newborn_235: 235
+DNASE:omental fat pad female adult (53 years)_236: 236
+DNASE:large intestine female embryo (110 days)_237: 237
+DNASE:heart female embryo (105 days)_238: 238
+DNASE:renal cortex interstitium male embryo (113 days)_239: 239
+DNASE:brain female embryo (96 days)_240: 240
+DNASE:thyroid gland male adult (37 years)_241: 241
+DNASE:liver embryo (59 days) and embryo (80 days)_242: 242
+DNASE:stomach male adult (54 years)_243: 243
+DNASE:thymus male embryo (127 days)_244: 244
+DNASE:upper lobe of left lung male adult (37 years)_245: 245
+DNASE:endodermal cell_246: 246
+DNASE:forelimb muscle female embryo (108 days)_247: 247
+DNASE:CD4-positive, alpha-beta T cell male adult (37 years)_248: 248
+DNASE:muscle of leg male embryo (101 day)_249: 249
+DNASE:gastrocnemius medialis male adult (37 years)_250: 250
+DNASE:gastrocnemius medialis male adult (54 years)_251: 251
+DNASE:stomach male embryo (91 day)_252: 252
+DNASE:muscle of back male embryo (101 day)_253: 253
+DNASE:heart female embryo (117 days)_254: 254
+DNASE:kidney tubule cell female adult (80 years) and male adult (62 years)_255: 255
+DNASE:fibroblast of skin of abdomen male embryo (97 days)_256: 256
+DNASE:pancreas male adult (34 years)_257: 257
+DNASE:trophoblast cell originated from H1-hESC_258: 258
+DNASE:left kidney male embryo (96 days)_259: 259
+DNASE:skin fibroblast male embryo (97 days)_260: 260
+DNASE:brain female embryo (142 days)_261: 261
+DNASE:small intestine male embryo (105 days)_262: 262
+DNASE:heart female embryo (110 days)_263: 263
+DNASE:common myeloid progenitor, CD34-positive female_264: 264
+DNASE:adrenal gland male adult (37 years)_265: 265
+DNASE:muscle of back female embryo (85 days)_266: 266
+DNASE:muscle of leg female embryo (85 days)_267: 267
+DNASE:Peyer's patch male adult (54 years)_268: 268
+DNASE:amniotic stem cell_269: 269
+DNASE:stomach female embryo (98 days)_270: 270
+DNASE:large intestine female embryo (91 day)_271: 271
+DNASE:lung female embryo (120 days)_272: 272
+DNASE:skin fibroblast male embryo (97 days)_273: 273
+DNASE:SW480_274: 274
+DNASE:GM23248_275: 275
+DNASE:muscle of trunk female embryo (120 days)_276: 276
+DNASE:islet precursor cell_277: 277
+DNASE:medulla oblongata male adult (78 years) and male adult (84 years)_278: 278
+DNASE:right lung male embryo (115 days)_279: 279
+DNASE:body of pancreas male adult (54 years)_280: 280
+DNASE:mammary epithelial cell female adult (18 years)_281: 281
+DNASE:gastrocnemius medialis female adult (51 year)_282: 282
+DNASE:uterus female adult (53 years)_283: 283
+DNASE:ELR_284: 284
+DNASE:omental fat pad female adult (51 year)_285: 285
+DNASE:stomach male child (3 years)_286: 286
+DNASE:B cell male adult (37 years)_287: 287
+DNASE:foreskin fibroblast male newborn_288: 288
+DNASE:renal cortex interstitium male embryo (91 day)_289: 289
+DNASE:ACHN_290: 290
+DNASE:kidney tubule cell female adult (80 years) treated with 5 uM cisplatin_291: 291
+DNASE:left renal pelvis male embryo (105 days)_292: 292
+DNASE:iPS DF 6.9 male newborn_293: 293
+DNASE:kidney male embryo (87 days)_294: 294
+DNASE:right lung female embryo (91 day)_295: 295
+DNASE:NCI-H226_296: 296
+DNASE:right renal cortex interstitium male embryo (105 days)_297: 297
+DNASE:G401_298: 298
+DNASE:muscle of arm male embryo (113 days)_299: 299
+DNASE:common myeloid progenitor, CD34-positive male adult_300: 300
+DNASE:muscle of leg female embryo (113 days)_301: 301
+DNASE:arm bone male embryo (81 day)_302: 302
+DNASE:H9_303: 303
+DNASE:testis male embryo_304: 304
+DNASE:neural stem progenitor cell originated from H1-hESC_305: 305
+DNASE:right atrium auricular region female adult (51 year)_306: 306
+DNASE:common myeloid progenitor, CD34-positive male adult (49 years)_307: 307
+DNASE:stomach female embryo (121 day)_308: 308
+DNASE:muscle of leg female embryo (105 days)_309: 309
+DNASE:muscle of leg male embryo (97 days)_310: 310
+DNASE:left kidney female embryo (87 days)_311: 311
+DNASE:muscle of back male embryo (97 days)_312: 312
+DNASE:muscle of leg male embryo (96 days)_313: 313
+DNASE:right lung female embryo (105 days)_314: 314
+DNASE:NAMALWA treated with Sendai virus for 2 hours_315: 315
+DNASE:renal pelvis male embryo (127 days)_316: 316
+DNASE:muscle of arm male embryo (96 days)_317: 317
+DNASE:heart male child (3 years)_318: 318
+DNASE:brain female embryo (117 days)_319: 319
+DNASE:muscle of arm female embryo (85 days)_320: 320
+DNASE:heart male embryo (110 days)_321: 321
+DNASE:L1-S8_322: 322
+DNASE:CD8-positive, alpha-beta T cell male adult (37 years)_323: 323
+DNASE:muscle of back male embryo (91 day)_324: 324
+DNASE:left renal pelvis male embryo (105 days)_325: 325
+DNASE:middle frontal gyrus male adult (78 years)_326: 326
+DNASE:lung male embryo (103 days)_327: 327
+DNASE:heart male embryo (105 days)_328: 328
+DNASE:left renal pelvis male embryo (120 days)_329: 329
+DNASE:common myeloid progenitor, CD34-positive female adult (50 years)_330: 330
+DNASE:Peyer's patch female adult (53 years)_331: 331
+DNASE:skin fibroblast male embryo (97 days)_332: 332
+DNASE:hematopoietic multipotent progenitor cell_333: 333
+DNASE:right kidney male embryo (87 days)_334: 334
+DNASE:tibial artery male adult (37 years)_335: 335
+DNASE:renal cell carcinoma_336: 336
+DNASE:thymus female embryo (113 days)_337: 337
+DNASE:brain female embryo (109 days)_338: 338
+DNASE:Daoy_339: 339
+DNASE:A673_340: 340
+DNASE:muscle of arm male embryo (101 day)_341: 341
+DNASE:muscle of arm female embryo (120 days)_342: 342
+DNASE:muscle of back male embryo (105 days)_343: 343
+DNASE:skin fibroblast male embryo (97 days)_344: 344
+DNASE:ecto neural progenitor cell originated from H9_345: 345
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 17 days, kit ligand for 17 days, hydrocortisone succinate for 17 days, erythropoietin for 17 days_346: 346
+DNASE:hepatocyte originated from H9_347: 347
+DNASE:renal pelvis male embryo (97 days)_348: 348
+DNASE:heart embryo (101 day)_349: 349
+DNASE:large intestine male embryo (115 days)_350: 350
+DNASE:T-cell male adult (37 years)_351: 351
+DNASE:skin fibroblast male embryo (97 days)_352: 352
+DNASE:CD1c-positive myeloid dendritic cell_353: 353
+DNASE:B cell male adult (21 year)_354: 354
+DNASE:superior temporal gyrus male adult (84 years)_355: 355
+DNASE:skin fibroblast male embryo (97 days)_356: 356
+DNASE:iPS DF 19.11 male newborn_357: 357
+DNASE:hindlimb muscle male embryo (120 days)_358: 358
+DNASE:MCF 10A treated with 1 uM tamoxifen for 6 hours_359: 359
+DNASE:sigmoid colon male adult (54 years)_360: 360
+DNASE:heart male embryo (120 days)_361: 361
+DNASE:tibial nerve female adult (51 year)_362: 362
+DNASE:adipocyte_363: 363
+DNASE:muscle of trunk female embryo (121 day)_364: 364
+DNASE:left cardiac atrium female embryo (101 day)_365: 365
+DNASE:T-cell male adult (21 year)_366: 366
+DNASE:right kidney male embryo (108 days)_367: 367
+DNASE:adrenal gland female embryo (108 days)_368: 368
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 11 day, kit ligand for 11 day, hydrocortisone succinate for 11 day, erythropoietin for 11 day_369: 369
+DNASE:brain male embryo (105 days)_370: 370
+DNASE:body of pancreas female adult (53 years)_371: 371
+DNASE:left kidney female embryo (147 days)_372: 372
+DNASE:CD4-positive, alpha-beta T cell male adult (37 years)_373: 373
+DNASE:KBM-7_374: 374
+DNASE:psoas muscle male child (3 years)_375: 375
+DNASE:ovary female embryo_376: 376
+DNASE:RKO_377: 377
+DNASE:leg bone male embryo (81 day)_378: 378
+DNASE:glomerular visceral epithelial cell child (3 years)_379: 379
+DNASE:foreskin melanocyte male newborn_380: 380
+DNASE:embryonic facial prominence embryo (53 days) and embryo (58 days)_381: 381
+DNASE:vagina female adult (53 years)_382: 382
+DNASE:kidney female embryo (85 days)_383: 383
+DNASE:muscle of back male embryo (96 days)_384: 384
+DNASE:muscle of trunk female embryo (113 days)_385: 385
+DNASE:iPS DF 19.7 male newborn_386: 386
+DNASE:right lung female embryo (110 days)_387: 387
+DNASE:left lung male embryo (87 days)_388: 388
+DNASE:large intestine female embryo (105 days)_389: 389
+DNASE:right lung female embryo (98 days)_390: 390
+DNASE:leg bone male embryo (81 day)_391: 391
+DNASE:CD14-positive monocyte male adult (21 year)_392: 392
+DNASE:muscle of arm male embryo (120 days)_393: 393
+DNASE:Peyer's patch male adult (37 years)_394: 394
+DNASE:common myeloid progenitor, CD34-positive male adult (36 years)_395: 395
+DNASE:left lung female embryo (108 days)_396: 396
+DNASE:small intestine female embryo (91 day)_397: 397
+DNASE:MM.1S_398: 398
+DNASE:sigmoid colon female adult (51 year)_399: 399
+DNASE:left lung female embryo (105 days)_400: 400
+DNASE:common myeloid progenitor, CD34-positive female adult (33 years)_401: 401
+DNASE:retina embryo (125 days) and male embryo (103 days)_402: 402
+DNASE:brain male embryo (72 days) and male embryo (76 days)_403: 403
+DNASE:muscle of back male embryo (108 days)_404: 404
+DNASE:IMR-90_405: 405
+DNASE:lung female embryo (108 days)_406: 406
+DNASE:left lung male embryo (113 days)_407: 407
+DNASE:OCI-LY7_408: 408
+DNASE:upper lobe of left lung female adult (51 year)_409: 409
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 18 days, kit ligand for 18 days, hydrocortisone succinate for 18 days, erythropoietin for 18 days_410: 410
+DNASE:putamen male adult (78 years)_411: 411
+DNASE:common myeloid progenitor, CD34-positive male adult (42 years)_412: 412
+DNASE:placenta embryo (53 days)_413: 413
+DNASE:kidney male embryo (105 days)_414: 414
+DNASE:heart left ventricle female embryo (136 days)_415: 415
+DNASE:small intestine female embryo (108 days)_416: 416
+DNASE:LoVo_417: 417
+DNASE:cerebellar cortex male adult (78 years) and male adult (84 years)_418: 418
+DNASE:lung embryo (67 days)_419: 419
+DNASE:transverse colon female adult (53 years)_420: 420
+DNASE:brain embryo (80 days)_421: 421
+DNASE:stomach female embryo (108 days)_422: 422
+DNASE:umbilical cord embryo (59 days) and male embryo (76 days)_423: 423
+DNASE:muscle of leg male embryo (105 days)_424: 424
+DNASE:Caki2_425: 425
+DNASE:muscle of arm female embryo (105 days)_426: 426
+DNASE:foreskin melanocyte male newborn_427: 427
+DNASE:stomach male embryo (108 days)_428: 428
+DNASE:body of pancreas male adult (37 years)_429: 429
+DNASE:renal cortex interstitium female embryo (120 days)_430: 430
+DNASE:body of pancreas female adult (51 year)_431: 431
+DNASE:large intestine male embryo (105 days)_432: 432
+DNASE:limb embryo (58 days) and embryo (59 days)_433: 433
+DNASE:heart female embryo (147 days)_434: 434
+DNASE:heart male embryo (96 days)_435: 435
+DNASE:right renal pelvis male embryo (120 days)_436: 436
+DNASE:left lung female embryo (117 days)_437: 437
+DNASE:thymus female embryo (98 days)_438: 438
+DNASE:ovary female adult (53 years)_439: 439
+DNASE:left kidney male embryo (115 days)_440: 440
+DNASE:thymus male embryo (113 days)_441: 441
+DNASE:placenta female embryo (105 days)_442: 442
+DNASE:EH_443: 443
+DNASE:renal cortex interstitium male embryo (97 days)_444: 444
+DNASE:placenta embryo (102 days)_445: 445
+DNASE:placenta embryo (56 days) and embryo (59 days)_446: 446
+DNASE:renal pelvis female embryo (103 days)_447: 447
+DNASE:right lobe of liver female adult (53 years)_448: 448
+DNASE:skin fibroblast male embryo (97 days)_449: 449
+DNASE:tongue male embryo (72 days)_450: 450
+DNASE:skin fibroblast male embryo (97 days)_451: 451
+DNASE:liver female embryo (101 day) and female embryo (113 days)_452: 452
+DNASE:large intestine female embryo (107 days)_453: 453
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 6 days, kit ligand for 6 days, hydrocortisone succinate for 6 days, erythropoietin for 6 days_454: 454
+DNASE:common myeloid progenitor, CD34-positive male_455: 455
+DNASE:small intestine female embryo (98 days)_456: 456
+DNASE:CD4-positive, alpha-beta T cell male adult (21 year)_457: 457
+DNASE:brain male embryo (101 day)_458: 458
+DNASE:placenta female embryo (101 day) and male embryo (105 days)_459: 459
+DNASE:renal pelvis male embryo (91 day)_460: 460
+DNASE:lung embryo (80 days) and male embryo (76 days)_461: 461
+DNASE:Ammon's horn male adult (84 years)_462: 462
+DNASE:muscle of back female embryo (105 days)_463: 463
+DNASE:lung male embryo (82 days)_464: 464
+DNASE:left renal cortex interstitium male embryo (105 days)_465: 465
+DNASE:trophoblast cell embryo (17 weeks) and embryo (18 weeks)_466: 466
+DNASE:RPMI8226_467: 467
+DNASE:small intestine male embryo (91 day)_468: 468
+DNASE:brain embryo (56 days) and male embryo (58 days)_469: 469
+DNASE:pancreas female adult (30 years)_470: 470
+DNASE:adrenal gland female adult (53 years)_471: 471
+DNASE:breast epithelium female adult (51 year)_472: 472
+DNASE:left kidney male embryo (87 days)_473: 473
+DNASE:renal pelvis female embryo (96 days)_474: 474
+DNASE:stomach male embryo (127 days)_475: 475
+DNASE:CD8-positive, alpha-beta T cell female adult (34 years)_476: 476
+DNASE:spinal cord female embryo (89 days)_477: 477
+DNASE:muscle of arm male embryo (97 days)_478: 478
+DNASE:renal pelvis female embryo (105 days)_479: 479
+DNASE:HAP-1_480: 480
+DNASE:SJSA1_481: 481
+DNASE:retina embryo (74 days) and embryo (85 days)_482: 482
+DNASE:muscle of leg male embryo (127 days)_483: 483
+DNASE:fibroblast of skin of abdomen male embryo (97 days)_484: 484
+DNASE:bipolar neuron originated from GM23338 treated with 0.5 ug/mL doxycycline hyclate for 4 days_485: 485
+DNASE:stomach female embryo (147 days)_486: 486
+DNASE:lung male embryo (54 days) and male embryo (58 days)_487: 487
+DNASE:T-cell male adult (36 years)_488: 488
+DNASE:T-cell male adult (21 year)_489: 489
+DNASE:HK-2_490: 490
+DNASE:NCI-H460_491: 491
+DNASE:left lung male embryo (96 days)_492: 492
+DNASE:common myeloid progenitor, CD34-positive male adult (23 years)_493: 493
+DNASE:stomach female adult (51 year)_494: 494
+DNASE:CD4-positive, alpha-beta T cell female adult (33 years)_495: 495
+DNASE:kidney female embryo (113 days)_496: 496
+DNASE:skin fibroblast male embryo (97 days)_497: 497
+DNASE:placenta female embryo (85 days)_498: 498
+DNASE:brain male embryo (122 days)_499: 499
+DNASE:muscle of arm male embryo (97 days)_500: 500
+DNASE:renal cortex interstitium female embryo (103 days)_501: 501
+DNASE:thyroid gland female adult (51 year)_502: 502
+DNASE:NAMALWA_503: 503
+DNASE:heart embryo (59 days) and female embryo (76 days)_504: 504
+DNASE:large intestine male embryo (105 days)_505: 505
+DNASE:skin fibroblast male embryo (97 days)_506: 506
+DNASE:right kidney male embryo (96 days)_507: 507
+DNASE:CD14-positive monocyte male adult (37 years)_508: 508
+DNASE:ELF-1_509: 509
+DNASE:spinal cord female embryo (113 days)_510: 510
+DNASE:spleen embryo (112 days)_511: 511
+DNASE:left lung female embryo (107 days)_512: 512
+DNASE:thymus female embryo_513: 513
+DNASE:CD4-positive, alpha-beta T cell male adult (21 year)_514: 514
+DNASE:stomach female embryo (96 days)_515: 515
+DNASE:EL_516: 516
+DNASE:CD14-positive monocyte female adult (34 years)_517: 517
+DNASE:thyroid gland female adult (53 years)_518: 518
+DNASE:adrenal gland female embryo (113 days)_519: 519
+DNASE:muscle of back male embryo (96 days)_520: 520
+DNASE:SJCRH30_521: 521
+DNASE:natural killer cell male adult (21 year)_522: 522
+DNASE:heart male embryo (72 days) and male embryo (76 days)_523: 523
+DNASE:midbrain male adult (78 years) and male adult (84 years)_524: 524
+DNASE:ovary female adult (30 years)_525: 525
+DNASE:mesendoderm originated from H1-hESC_526: 526
+DNASE:natural killer cell male adult (37 years)_527: 527
+DNASE:natural killer cell female adult (34 years)_528: 528
+DNASE:foreskin keratinocyte male newborn_529: 529
+DNASE:stomach female embryo_530: 530
+DNASE:adrenal gland male embryo (108 days)_531: 531
+DNASE:testis male embryo_532: 532
+DNASE:mesenchymal stem cell originated from H1-hESC_533: 533
+DNASE:vagina female adult (51 year)_534: 534
+DNASE:common myeloid progenitor, CD34-positive male adult (43 years)_535: 535
+DNASE:heart right ventricle female embryo (101 day) and female embryo (103 days)_536: 536
+DNASE:L1-S8R_537: 537
+DNASE:heart female embryo (116 days) and female embryo (98 days)_538: 538
+DNASE:MCF 10A treated with 1 uM tamoxifen for 24 hours_539: 539
+DNASE:right renal pelvis male embryo (105 days)_540: 540
+DNASE:muscle of arm female embryo (98 days)_541: 541
+DNASE:H9 G1 phase genetically modified using stable transfection_542: 542
+DNASE:tibial nerve male adult (37 years)_543: 543
+DNASE:kidney male embryo (85 days)_544: 544
+DNASE:tongue female embryo (59 days) and female embryo (76 days)_545: 545
+DNASE:transverse colon female adult (51 year)_546: 546
+DNASE:right renal pelvis male embryo (105 days)_547: 547
+DNASE:large intestine male embryo (91 day)_548: 548
+DNASE:right kidney female embryo (117 days)_549: 549
+DNASE:right kidney male embryo (91 day)_550: 550
+DNASE:skin fibroblast male embryo (97 days)_551: 551
+DNASE:globus pallidus male adult (78 years) and male adult (84 years)_552: 552
+DNASE:kidney female embryo (105 days)_553: 553
+DNASE:right atrium auricular region female adult (53 years)_554: 554
+DNASE:thymus female embryo (147 days)_555: 555
+DNASE:stomach male adult (34 years)_556: 556
+DNASE:eye embryo (56 days) and male embryo (76 days)_557: 557
+DNASE:esophagus squamous epithelium male adult (37 years)_558: 558
+DNASE:glomerular visceral epithelial cell child (3 years)_559: 559
+DNASE:muscle of back male embryo (127 days)_560: 560
+DNASE:spinal cord male embryo (96 days)_561: 561
+DNASE:MCF 10A_562: 562
+DNASE:transverse colon male adult (54 years)_563: 563
+DNASE:kidney embryo (59 days) and female embryo (59 days)_564: 564
+DNASE:H1-hESC_565: 565
+DNASE:large intestine female embryo (98 days)_566: 566
+DNASE:large intestine female embryo (103 days)_567: 567
+DNASE:placenta male embryo (85 days)_568: 568
+DNASE:left lung female embryo (91 day)_569: 569
+DNASE:heart embryo (80 days)_570: 570
+DNASE:femur female embryo (98 days)_571: 571
+DNASE:H4_572: 572
+DNASE:trophoblast cell embryo (23 weeks)_573: 573
+DNASE:urinary bladder male embryo (76 days)_574: 574
+DNASE:HT-29_575: 575
+DNASE:limb embryo (53 days) and embryo (56 days)_576: 576
+DNASE:retina female embryo (89 days)_577: 577
+DNASE:dedifferentiated amniotic fluid mesenchymal stem cell_578: 578
+DNASE:upper lobe of left lung female adult (53 years)_579: 579
+DNASE:brain female embryo (105 days)_580: 580
+DNASE:muscle of arm embryo (101 day)_581: 581
+DNASE:renal cortex interstitium male embryo (108 days)_582: 582
+DNASE:pons male adult (78 years)_583: 583
+DNASE:thymus female embryo (105 days)_584: 584
+DNASE:CD8-positive, alpha-beta T cell female adult (33 years)_585: 585
+DNASE:cardiac muscle cell_586: 586
+DNASE:CD8-positive, alpha-beta T cell male adult (21 year)_587: 587
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 8 days, kit ligand for 8 days, hydrocortisone succinate for 8 days, erythropoietin for 8 days_588: 588
+DNASE:right lung female embryo (117 days)_589: 589
+DNASE:right lung male embryo (105 days)_590: 590
+DNASE:lung female embryo (96 days)_591: 591
+DNASE:adrenal gland male adult (54 years)_592: 592
+DNASE:renal cortex interstitium male embryo (127 days)_593: 593
+DNASE:spleen male adult (54 years)_594: 594
+DNASE:renal cortex interstitium female embryo (89 days)_595: 595
+DNASE:ascending aorta female adult (51 year)_596: 596
+DNASE:ovary female adult (51 year)_597: 597
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 13 days, kit ligand for 13 days, hydrocortisone succinate for 13 days, erythropoietin for 13 days_598: 598
+DNASE:cardiac fibroblast female embryo (94 days) and female embryo (98 days)_599: 599
+DNASE:adrenal gland male embryo (85 days)_600: 600
+DNASE:large intestine male embryo (108 days)_601: 601
+DNASE:occipital lobe male adult (84 years)_602: 602
+DNASE:right lung female embryo (107 days)_603: 603
+DNASE:small intestine female embryo (105 days)_604: 604
+DNASE:muscle of leg male embryo (104 days)_605: 605
+DNASE:lower leg skin female adult (53 years)_606: 606
+DNASE:adrenal gland female adult (51 year)_607: 607
+DNASE:adrenal gland female embryo (85 days)_608: 608
+DNASE:muscle of arm male embryo (115 days)_609: 609
+DNASE:right kidney female embryo (147 days)_610: 610
+DNASE:kidney female embryo (76 days) and male embryo (76 days)_611: 611
+DNASE:large intestine female embryo (108 days)_612: 612
+DNASE:right kidney female embryo (98 days)_613: 613
+DNASE:right renal cortex interstitium male embryo (120 days)_614: 614
+DNASE:muscle of arm male embryo (96 days)_615: 615
+DNASE:thymus male embryo (108 days)_616: 616
+DNASE:B cell female adult (34 years)_617: 617
+DNASE:thyroid gland male adult (54 years)_618: 618
+DNASE:spinal cord female embryo (59 days) and male embryo (72 days)_619: 619
+DNASE:heart embryo (96 days)_620: 620
+DNASE:renal pelvis female embryo (89 days)_621: 621
+DNASE:renal pelvis male embryo (108 days)_622: 622
+DNASE:heart female embryo (103 days)_623: 623
+DNASE:H9_624: 624
+DNASE:K562_625: 625
+DNASE:left renal cortex interstitium male embryo (105 days)_626: 626
+DNASE:right lung female embryo (108 days)_627: 627
+DNASE:stomach female embryo (96 days)_628: 628
+DNASE:small intestine male adult (34 years)_629: 629
+DNASE:renal cortex interstitium female embryo (96 days)_630: 630
+DNASE:A172_631: 631
+DNASE:left lung male embryo (115 days)_632: 632
+DNASE:muscle of leg male embryo (115 days)_633: 633
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 15 days, kit ligand for 15 days, hydrocortisone succinate for 15 days, erythropoietin for 15 days_634: 634
+DNASE:muscle of leg female embryo (115 days)_635: 635
+DNASE:PC-9_636: 636
+DNASE:kidney female embryo (108 days)_637: 637
+DNASE:stomach embryo (101 day)_638: 638
+DNASE:H9 G2 phase genetically modified using stable transfection_639: 639
+DNASE:esophagus muscularis mucosa male adult (37 years)_640: 640
+DNASE:small intestine male embryo (108 days)_641: 641
+DNASE:heart left ventricle female embryo (101 day) and female embryo (103 days)_642: 642
+DNASE:SK-N-DZ_643: 643
+DNASE:brain male embryo (104 days)_644: 644
+DNASE:right lung male embryo (87 days)_645: 645
+DNASE:muscle of arm male embryo (105 days)_646: 646
+DNASE:muscle of arm male embryo (104 days)_647: 647
+DNASE:kidney female embryo (105 days)_648: 648
+DNASE:left lung male embryo (105 days)_649: 649
+DNASE:left kidney female embryo (107 days)_650: 650
+DNASE:Peyer's patch male adult (37 years)_651: 651
+DNASE:renal pelvis male embryo (113 days)_652: 652
+DNASE:prostate gland male adult (37 years)_653: 653
+DNASE:HeLa-S3_654: 654
+DNASE:left lung female embryo (110 days)_655: 655
+DNASE:thymus male embryo (104 days)_656: 656
+DNASE:neural progenitor cell originated from H9_657: 657
+DNASE:trophoblast cell embryo (39 weeks) and embryo (40 weeks)_658: 658
+DNASE:right lung male embryo (96 days)_659: 659
+DNASE:H9 G1 phase genetically modified using stable transfection_660: 660
+DNASE:small intestine male embryo (87 days)_661: 661
+DNASE:spinal cord female embryo (87 days)_662: 662
+DNASE:left kidney female embryo (110 days)_663: 663
+DNASE:arm bone male embryo (81 day)_664: 664
+DNASE:testis male adult (54 years)_665: 665
+DNASE:transverse colon male adult (37 years)_666: 666
+DNASE:right renal pelvis male embryo (105 days)_667: 667
+DNASE:lung embryo (101 day)_668: 668
+DNASE:inferior parietal cortex male adult (84 years)_669: 669
+DNASE:kidney capillary endothelial cell female embryo (113 days)_670: 670
+DNASE:placenta male embryo (91 day)_671: 671
+DNASE:right kidney male embryo (115 days)_672: 672
+DNASE:coronary artery female adult (51 year)_673: 673
+CAGE:Clontech Human Universal Reference Total RNA, pool1_4675: 4675
+CAGE:SABiosciences XpressRef Human Universal Total RNA, pool1_4676: 4676
+CAGE:Universal RNA - Human Normal Tissues Biochain, pool1_4677: 4677
+CAGE:adipose tissue, adult, pool1_4678: 4678
+CAGE:bladder, adult, pool1_4679: 4679
+CAGE:brain, adult, pool1_4680: 4680
+CAGE:cervix, adult, pool1_4681: 4681
+CAGE:colon, adult, pool1_4682: 4682
+CAGE:esophagus, adult, pool1_4683: 4683
+CAGE:heart, adult, pool1_4684: 4684
+CAGE:kidney, adult, pool1_4685: 4685
+CAGE:liver, adult, pool1_4686: 4686
+CAGE:lung, adult, pool1_4687: 4687
+CAGE:ovary, adult, pool1_4688: 4688
+CAGE:placenta, adult, pool1_4689: 4689
+CAGE:prostate, adult, pool1_4690: 4690
+CAGE:skeletal muscle, adult, pool1_4691: 4691
+CAGE:small intestine, adult, pool1_4692: 4692
+CAGE:spleen, adult, pool1_4693: 4693
+CAGE:testis, adult, pool1_4694: 4694
+CAGE:thymus, adult, pool1_4695: 4695
+CAGE:thyroid, adult, pool1_4696: 4696
+CAGE:trachea, adult, pool1_4697: 4697
+CAGE:retina, adult, pool1_4698: 4698
+CAGE:temporal lobe, adult, pool1_4699: 4699
+CAGE:postcentral gyrus, adult, pool1_4700: 4700
+CAGE:pons, adult, pool1_4701: 4701
+CAGE:parietal lobe, adult, pool1_4702: 4702
+CAGE:paracentral gyrus, adult, pool1_4703: 4703
+CAGE:occipital pole, adult, pool1_4704: 4704
+CAGE:nucleus accumbens, adult, pool1_4705: 4705
+CAGE:medulla oblongata, adult, pool1_4706: 4706
+CAGE:insula, adult, pool1_4707: 4707
+CAGE:frontal lobe, adult, pool1_4708: 4708
+CAGE:dura mater, adult,_4709: 4709
+CAGE:corpus callosum, adult, pool1_4710: 4710
+CAGE:thymus, fetal, pool1_4711: 4711
+CAGE:spleen, fetal, pool1_4712: 4712
+CAGE:kidney, fetal, pool1_4713: 4713
+CAGE:heart, fetal, pool1_4714: 4714
+CAGE:tonsil, adult, pool1_4715: 4715
+CAGE:acute myeloid leukemia (FAB M5) cell line:THP-1 (fresh)_4716: 4716
+CAGE:acute myeloid leukemia (FAB M5) cell line:THP-1 (revived)_4717: 4717
+CAGE:acute myeloid leukemia (FAB M5) cell line:THP-1 (thawed)_4718: 4718
+CAGE:lung adenocarcinoma cell line:PC-14_4719: 4719
+CAGE:chronic myelogenous leukemia cell line:KU812_4720: 4720
+CAGE:extraskeletal myxoid chondrosarcoma cell line:H-EMC-SS_4721: 4721
+CAGE:renal cell carcinoma cell line:OS-RC-2_4722: 4722
+CAGE:malignant trichilemmal cyst cell line:DJM-1_4723: 4723
+CAGE:glioma cell line:GI-1_4724: 4724
+CAGE:maxillary sinus tumor cell line:HSQ-89_4725: 4725
+CAGE:gall bladder carcinoma cell line:TGBC2TKB_4726: 4726
+CAGE:papillotubular adenocarcinoma cell line:TGBC18TKB_4727: 4727
+CAGE:transitional-cell carcinoma cell line:5637_4728: 4728
+CAGE:breast carcinoma cell line:MDA-MB-453_4729: 4729
+CAGE:colon carcinoma cell line:COLO-320_4730: 4730
+CAGE:adult T-cell leukemia cell line:ATN-1_4731: 4731
+CAGE:Burkitt's lymphoma cell line:DAUDI_4732: 4732
+CAGE:choriocarcinoma cell line:BeWo_4733: 4733
+CAGE:splenic lymphoma with villous lymphocytes cell line:SLVL_4734: 4734
+CAGE:astrocytoma cell line:TM-31_4735: 4735
+CAGE:epidermoid carcinoma cell line:A431_4736: 4736
+CAGE:b cell line:RPMI1788_4737: 4737
+CAGE:anaplastic carcinoma cell line:8305C_4738: 4738
+CAGE:acute lymphoblastic leukemia (T-ALL) cell line:HPB-ALL_4739: 4739
+CAGE:non T non B acute lymphoblastic leukemia (ALL) cell line:P30/OHK_4740: 4740
+CAGE:epidermoid carcinoma cell line:Ca Ski_4741: 4741
+CAGE:bile duct carcinoma cell line:HuCCT1_4742: 4742
+CAGE:giant cell carcinoma cell line:Lu99B_4743: 4743
+CAGE:oral squamous cell carcinoma cell line:Ca9-22_4744: 4744
+CAGE:signet ring carcinoma cell line:Kato III_4745: 4745
+CAGE:Endothelial Cells - Aortic,_4746: 4746
+CAGE:Smooth Muscle Cells - Aortic,_4747: 4747
+CAGE:Smooth Muscle Cells - Umbilical artery,_4748: 4748
+CAGE:Retinal Pigment Epithelial Cells,_4749: 4749
+CAGE:Urothelial cells,_4750: 4750
+CAGE:Mesenchymal stem cells - adipose,_4751: 4751
+CAGE:Mesenchymal stem cells - hepatic,_4752: 4752
+CAGE:Mesenchymal Stem Cells - Vertebral,_4753: 4753
+CAGE:Sebocyte,_4754: 4754
+CAGE:Fibroblast - Gingival,  (GFH2)_4755: 4755
+CAGE:Mesothelial Cells,_4756: 4756
+CAGE:Sertoli Cells,_4757: 4757
+CAGE:CD14+ Monocytes,_4758: 4758
+CAGE:CD4+ T Cells,_4759: 4759
+CAGE:CD8+ T Cells,_4760: 4760
+CAGE:Dendritic Cells - monocyte immature derived, , tech__4761: 4761
+CAGE:Dendritic Cells - plasmacytoid,_4762: 4762
+CAGE:CD14+ monocyte derived endothelial progenitor cells,_4763: 4763
+CAGE:Natural Killer Cells,_4764: 4764
+CAGE:Peripheral Blood Mononuclear Cells,_4765: 4765
+CAGE:Macrophage - monocyte derived,_4766: 4766
+CAGE:Neutrophils,_4767: 4767
+CAGE:Smooth Muscle Cells - Brain Vascular,_4768: 4768
+CAGE:Astrocyte - cerebral cortex,_4769: 4769
+CAGE:Endothelial Cells - Lymphatic,_4770: 4770
+CAGE:Fibroblast - Gingival,_4771: 4771
+CAGE:Fibroblast - Periodontal Ligament,_4772: 4772
+CAGE:Smooth Muscle Cells - Colonic,_4773: 4773
+CAGE:Skeletal Muscle Satellite Cells,_4774: 4774
+CAGE:Myoblast,_4775: 4775
+CAGE:Ciliary Epithelial Cells,_4776: 4776
+CAGE:Endothelial Cells - Umbilical vein,_4777: 4777
+CAGE:Fibroblast - Aortic Adventitial,_4778: 4778
+CAGE:Intestinal epithelial cells (polarized),_4779: 4779
+CAGE:Anulus Pulposus Cell,_4780: 4780
+CAGE:Pancreatic stromal cells,_4781: 4781
+CAGE:Fibroblast - Pulmonary Artery,_4782: 4782
+CAGE:Keratinocyte - oral,_4783: 4783
+CAGE:Nucleus Pulposus Cell,_4784: 4784
+CAGE:Prostate Epithelial Cells (polarized),_4785: 4785
+CAGE:Prostate Stromal Cells,_4786: 4786
+CAGE:Small Airway Epithelial Cells,_4787: 4787
+CAGE:cord blood derived cell line:COBL-a untreated_4788: 4788
+'CAGE:embryonic kidney cell line: HEK293/SLAM untreated_4789': 4789
+'CAGE:embryonic kidney cell line: HEK293/SLAM infection, 24hr_4790': 4790
+CAGE:cord blood derived cell line:COBL-a 24h infection(-C)_4791: 4791
+CAGE:cord blood derived cell line:COBL-a 24h infection_4792: 4792
+CAGE:Adipocyte - breast,_4793: 4793
+CAGE:Preadipocyte - breast,_4794: 4794
+CAGE:Adipocyte - omental,_4795: 4795
+CAGE:Mesenchymal Stem Cells - Wharton's Jelly,_4796: 4796
+CAGE:Gingival epithelial cells,  (GEA11)_4797: 4797
+CAGE:Neural stem cells,_4798: 4798
+CAGE:Keratinocyte - epidermal,_4799: 4799
+CAGE:Preadipocyte - omental,_4800: 4800
+CAGE:Smooth Muscle Cells - Internal Thoracic Artery,_4801: 4801
+CAGE:Synoviocyte,_4802: 4802
+CAGE:Mast cell - stimulated,_4803: 4803
+CAGE:Fibroblast - skin spinal muscular atrophy,_4804: 4804
+CAGE:Whole blood (ribopure), , donation1_4805: 4805
+CAGE:Whole blood (ribopure), , donation2_4806: 4806
+CAGE:Mammary Epithelial Cell,_4807: 4807
+CAGE:Osteoblast,_4808: 4808
+CAGE:Placental Epithelial Cells,_4809: 4809
+CAGE:Preadipocyte - subcutaneous,_4810: 4810
+CAGE:Preadipocyte - visceral,_4811: 4811
+CAGE:Skeletal Muscle Cells,_4812: 4812
+CAGE:Skeletal muscle cells differentiated into Myotubes - multinucleated,_4813: 4813
+CAGE:Smooth Muscle Cells - Brachiocephalic,_4814: 4814
+CAGE:Smooth Muscle Cells - Carotid,_4815: 4815
+CAGE:Smooth Muscle Cells - Coronary Artery,_4816: 4816
+CAGE:Smooth Muscle Cells - Pulmonary Artery,_4817: 4817
+CAGE:Smooth Muscle Cells - Subclavian Artery,_4818: 4818
+CAGE:Smooth Muscle Cells - Umbilical Artery,_4819: 4819
+CAGE:Tracheal Epithelial Cells,_4820: 4820
+CAGE:ductal cell carcinoma cell line:KLM-1_4821: 4821
+CAGE:schwannoma cell line:HS-PSS, tech__4822: 4822
+CAGE:glioblastoma cell line:A172, tech__4823: 4823
+CAGE:prostate cancer cell line:PC-3_4824: 4824
+CAGE:synovial sarcoma cell line:HS-SY-II_4825: 4825
+CAGE:epithelioid sarcoma cell line:HS-ES-1_4826: 4826
+CAGE:endometrial stromal sarcoma cell line:OMC-9_4827: 4827
+CAGE:chronic myelogenous leukemia cell line:K562_4828: 4828
+CAGE:acute lymphoblastic leukemia (B-ALL) cell line:BALL-1_4829: 4829
+CAGE:squamous cell carcinoma cell line:EC-GI-10_4830: 4830
+CAGE:acute lymphoblastic leukemia (T-ALL) cell line:Jurkat_4831: 4831
+CAGE:melanoma cell line:G-361_4832: 4832
+CAGE:rectal cancer cell line:TT1TKB_4833: 4833
+CAGE:gall bladder carcinoma cell line:TGBC14TKB_4834: 4834
+CAGE:renal cell carcinoma cell line:TUHR10TKB_4835: 4835
+CAGE:myeloma cell line:PCM6_4836: 4836
+CAGE:ductal cell carcinoma cell line:MIA Paca2_4837: 4837
+CAGE:prostate cancer cell line:DU145_4838: 4838
+CAGE:transitional-cell carcinoma cell line:JMSU1_4839: 4839
+CAGE:mesothelioma cell line:ACC-MESO-1_4840: 4840
+CAGE:mesothelioma cell line:ACC-MESO-4_4841: 4841
+CAGE:bile duct carcinoma cell line:TFK-1_4842: 4842
+CAGE:endometrial carcinoma cell line:OMC-2_4843: 4843
+CAGE:retinoblastoma cell line:Y79_4844: 4844
+CAGE:Burkitt's lymphoma cell line:RAJI_4845: 4845
+CAGE:rhabdomyosarcoma cell line:RMS-YM_4846: 4846
+CAGE:signet ring carcinoma cell line:NUGC-4_4847: 4847
+CAGE:hepatoma cell line:Li-7_4848: 4848
+CAGE:glioblastoma cell line:T98G_4849: 4849
+CAGE:squamous cell lung carcinoma cell line:EBC-1_4850: 4850
+CAGE:giant cell carcinoma cell line:LU65_4851: 4851
+CAGE:lung adenocarcinoma cell line:A549_4852: 4852
+CAGE:neuroblastoma cell line:CHP-134_4853: 4853
+CAGE:large cell lung carcinoma cell line:IA-LM_4854: 4854
+CAGE:osteosarcoma cell line:143B/TK^(-)neo^(R)_4855: 4855
+CAGE:colon carcinoma cell line:CACO-2_4856: 4856
+CAGE:melanoma cell line:COLO 679_4857: 4857
+CAGE:acute lymphoblastic leukemia (B-ALL) cell line:NALM-6_4858: 4858
+CAGE:cholangiocellular carcinoma cell line:HuH-28_4859: 4859
+CAGE:neuroblastoma cell line:NB-1_4860: 4860
+CAGE:small cell lung carcinoma cell line:LK-2_4861: 4861
+CAGE:gastric cancer cell line:AZ521_4862: 4862
+CAGE:oral squamous cell carcinoma cell line:HO-1-u-1_4863: 4863
+CAGE:cervical cancer cell line:D98-AH2_4864: 4864
+CAGE:cervical cancer cell line:ME-180_4865: 4865
+CAGE:osteosarcoma cell line:HS-Os-1_4866: 4866
+CAGE:Melanocyte - light,_4867: 4867
+CAGE:Osteoblast - differentiated,_4868: 4868
+CAGE:Mesenchymal Stem Cells - bone marrow,_4869: 4869
+CAGE:Pericytes,_4870: 4870
+CAGE:Fibroblast - Choroid Plexus,_4871: 4871
+CAGE:Meningeal Cells,_4872: 4872
+CAGE:Astrocyte - cerebellum,_4873: 4873
+CAGE:Fibroblast - Lymphatic,_4874: 4874
+CAGE:Esophageal Epithelial Cells,_4875: 4875
+CAGE:Smooth Muscle Cells - Esophageal,_4876: 4876
+CAGE:Alveolar Epithelial Cells,_4877: 4877
+CAGE:Bronchial Epithelial Cell,_4878: 4878
+CAGE:Smooth Muscle Cells - Bronchial,_4879: 4879
+CAGE:Smooth Muscle Cells - Tracheal,_4880: 4880
+CAGE:Renal Proximal Tubular Epithelial Cell,_4881: 4881
+CAGE:Renal Cortical Epithelial Cells,_4882: 4882
+CAGE:Renal Epithelial Cells,_4883: 4883
+CAGE:Renal Mesangial Cells,_4884: 4884
+CAGE:Urothelial Cells,_4885: 4885
+CAGE:Hepatic Stellate Cells (lipocyte),_4886: 4886
+CAGE:Corneal Epithelial Cells,_4887: 4887
+CAGE:Keratocytes,_4888: 4888
+CAGE:Fibroblast - Conjunctival,_4889: 4889
+CAGE:Trabecular Meshwork Cells,_4890: 4890
+CAGE:Amniotic Epithelial Cells,_4891: 4891
+CAGE:Fibroblast - Villous Mesenchymal,_4892: 4892
+CAGE:Mesenchymal Stem Cells - adipose,_4893: 4893
+CAGE:Mesenchymal Stem Cells - hepatic,_4894: 4894
+CAGE:Mesenchymal Stem Cells - umbilical,_4895: 4895
+CAGE:Fibroblast - Mammary,_4896: 4896
+CAGE:Mesenchymal Stem Cells - amniotic membrane,_4897: 4897
+CAGE:Multipotent Cord Blood Unrestricted Somatic Stem Cells,_4898: 4898
+CAGE:Fibroblast - skin normal,_4899: 4899
+CAGE:Fibroblast - skin walker warburg,_4900: 4900
+CAGE:Fibroblast - skin dystrophia myotonica,_4901: 4901
+CAGE:Adipocyte - subcutaneous,_4902: 4902
+CAGE:Chondrocyte - de diff,_4903: 4903
+CAGE:Chondrocyte - re diff,_4904: 4904
+CAGE:Endothelial Cells - Microvascular,_4905: 4905
+CAGE:Endothelial Cells - Vein,_4906: 4906
+CAGE:Fibroblast - Cardiac,_4907: 4907
+CAGE:Fibroblast - Dermal,_4908: 4908
+CAGE:Fibroblast - Lung,_4909: 4909
+CAGE:uterus, adult, pool1_4910: 4910
+CAGE:salivary gland, adult, pool1_4911: 4911
+CAGE:lung, fetal,_4912: 4912
+CAGE:chronic lymphocytic leukemia (T-CLL) cell line:SKW-3_4913: 4913
+CAGE:Hodgkin's lymphoma cell line:HD-Mar2_4914: 4914
+CAGE:papillary adenocarcinoma cell line:8505C_4915: 4915
+CAGE:oral squamous cell carcinoma cell line:HSC-3_4916: 4916
+CAGE:mesenchymal stem cell line:Hu5/E18_4917: 4917
+CAGE:leiomyoma cell line:10964C_4918: 4918
+CAGE:leiomyoma cell line:15242A_4919: 4919
+CAGE:leiomyoma cell line:15425_4920: 4920
+CAGE:argyrophil small cell carcinoma cell line:TC-YIK_4921: 4921
+CAGE:testicular germ cell embryonal carcinoma cell line:NEC8_4922: 4922
+CAGE:Wilms' tumor cell line:HFWT_4923: 4923
+CAGE:myxofibrosarcoma cell line:MFH-ino_4924: 4924
+CAGE:embryonic pancreas cell line:1B2C6_4925: 4925
+CAGE:embryonic pancreas cell line:1C3D3_4926: 4926
+CAGE:embryonic pancreas cell line:1C3IKEI_4927: 4927
+CAGE:small-cell gastrointestinal carcinoma cell line:ECC4_4928: 4928
+CAGE:small cell gastrointestinal carcinoma cell line:ECC10_4929: 4929
+CAGE:gastric adenocarcinoma cell line:MKN1_4930: 4930
+CAGE:gastrointestinal carcinoma cell line:ECC12_4931: 4931
+CAGE:squamous cell carcinoma cell line:T3M-5_4932: 4932
+CAGE:granulosa cell tumor cell line:KGN_4933: 4933
+CAGE:diffuse large B-cell lymphoma cell line:CTB-1_4934: 4934
+CAGE:hepatoblastoma cell line:HuH-6_4935: 4935
+CAGE:neuroectodermal tumor cell line:FU-RPNT-1_4936: 4936
+CAGE:clear cell carcinoma cell line:JHOC-5_4937: 4937
+CAGE:serous adenocarcinoma cell line:JHOS-2_4938: 4938
+CAGE:carcinosarcoma cell line:JHUCS-1_4939: 4939
+CAGE:endometrioid adenocarcinoma cell line:JHUEM-1_4940: 4940
+CAGE:squamous cell carcinoma cell line:JHUS-nk1_4941: 4941
+CAGE:lens epithelial cell line:SRA 01/04_4942: 4942
+CAGE:mucinous adenocarcinoma cell line:JHOM-1_4943: 4943
+CAGE:neuroectodermal tumor cell line:FU-RPNT-2_4944: 4944
+CAGE:smooth muscle, adult, pool1_4945: 4945
+CAGE:pancreas, adult,_4946: 4946
+CAGE:heart, adult, diseased post-infarction,_4947: 4947
+CAGE:heart, adult, diseased,_4948: 4948
+CAGE:aorta, adult, pool1_4949: 4949
+CAGE:blood, adult, pool1_4950: 4950
+CAGE:eye, fetal,_4951: 4951
+CAGE:uterus, fetal,_4952: 4952
+CAGE:spinal cord, fetal,_4953: 4953
+CAGE:umbilical cord, fetal,_4954: 4954
+CAGE:trachea, fetal,_4955: 4955
+CAGE:tongue, fetal,_4956: 4956
+CAGE:thyroid, fetal,_4957: 4957
+CAGE:throat, fetal,_4958: 4958
+CAGE:stomach, fetal,_4959: 4959
+CAGE:temporal lobe, fetal, , tech__4960: 4960
+CAGE:small intestine, fetal,_4961: 4961
+CAGE:skin, fetal,_4962: 4962
+CAGE:skeletal muscle, fetal,_4963: 4963
+CAGE:rectum, fetal,_4964: 4964
+CAGE:diaphragm, fetal,_4965: 4965
+CAGE:colon, fetal,_4966: 4966
+CAGE:duodenum, fetal, , tech__4967: 4967
+CAGE:parietal lobe, fetal,_4968: 4968
+CAGE:occipital lobe, fetal,_4969: 4969
+CAGE:skin, adult,_4970: 4970
+CAGE:lung, right lower lobe, adult,_4971: 4971
+CAGE:occipital lobe, adult,_4972: 4972
+CAGE:lymph node, adult,_4973: 4973
+CAGE:left ventricle, adult,_4974: 4974
+CAGE:left atrium, adult,_4975: 4975
+CAGE:breast, adult,_4976: 4976
+CAGE:adrenal gland, adult, pool1_4977: 4977
+CAGE:colon, adult,_4978: 4978
+CAGE:cerebellum, adult, pool1_4979: 4979
+CAGE:brain, adult,_4980: 4980
+CAGE:brain, fetal, pool1_4981: 4981
+CAGE:liver, fetal, pool1_4982: 4982
+CAGE:oral squamous cell carcinoma cell line:SAS_4983: 4983
+CAGE:neuroblastoma cell line:NH-12_4984: 4984
+CAGE:small cell lung carcinoma cell line:WA-hT_4985: 4985
+CAGE:xeroderma pigentosum b cell line:XPL 17_4986: 4986
+CAGE:embryonic pancreas cell line:2C6_4987: 4987
+CAGE:neuroblastoma cell line:NBsusSR_4988: 4988
+CAGE:gastric adenocarcinoma cell line:MKN45_4989: 4989
+CAGE:choriocarcinoma cell line:T3M-3_4990: 4990
+CAGE:myxofibrosarcoma cell line:NMFH-1_4991: 4991
+CAGE:Krukenberg tumor cell line:HSKTC_4992: 4992
+CAGE:glassy cell carcinoma cell line:HOKUG_4993: 4993
+CAGE:large cell non-keratinizing squamous carcinoma cell line:SKG-II-SF_4994: 4994
+CAGE:serous cystadenocarcinoma cell line:HTOA_4995: 4995
+CAGE:tridermal teratoma cell line:HGRT_4996: 4996
+CAGE:sacrococcigeal teratoma cell line:HTST_4997: 4997
+CAGE:peripheral neuroectodermal tumor cell line:KU-SN_4998: 4998
+CAGE:pancreatic carcinoma cell line:NOR-P1_4999: 4999
+CAGE:chondrosarcoma cell line:SW 1353_5000: 5000
+CAGE:carcinoid cell line:NCI-H1770_5001: 5001
+CAGE:osteoclastoma cell line:Hs 706.T_5002: 5002
+CAGE:Ewing's sarcoma cell line:Hs 863.T_5003: 5003
+CAGE:transitional cell carcinoma cell line:Hs 769.T_5004: 5004
+CAGE:alveolar cell carcinoma cell line:SW 1573_5005: 5005
+CAGE:bronchioalveolar carcinoma cell line:NCI-H358_5006: 5006
+CAGE:bronchogenic carcinoma cell line:ChaGo-K-1_5007: 5007
+CAGE:fibrous histiocytoma cell line:GCT TIB-223_5008: 5008
+CAGE:hairy cell leukemia cell line:Mo_5009: 5009
+CAGE:acantholytic squamous carcinoma cell line:HCC1806_5010: 5010
+CAGE:biphenotypic B myelomonocytic leukemia cell line:MV-4-11_5011: 5011
+CAGE:carcinoid cell line:SK-PN-DW_5012: 5012
+CAGE:leiomyoblastoma cell line:G-402_5013: 5013
+CAGE:pharyngeal carcinoma cell line:Detroit 562_5014: 5014
+CAGE:liposarcoma cell line:SW 872_5015: 5015
+CAGE:lymphangiectasia cell line:DS-1_5016: 5016
+CAGE:neuroepithelioma cell line:SK-N-MC_5017: 5017
+CAGE:neurofibroma cell line:Hs 53.T_5018: 5018
+CAGE:pagetoid sarcoma cell line:Hs 925.T_5019: 5019
+CAGE:spindle cell sarcoma cell line:Hs 132.T_5020: 5020
+CAGE:mycosis fungoides, T cell lymphoma cell line:HuT 102 TIB-162_5021: 5021
+CAGE:leukemia, chronic megakaryoblastic cell line:MEG-01_5022: 5022
+CAGE:fibrosarcoma cell line:HT-1080_5023: 5023
+CAGE:medulloblastoma cell line:ONS-76_5024: 5024
+CAGE:bronchial squamous cell carcinoma cell line:KNS-62_5025: 5025
+CAGE:acute myeloid leukemia (FAB M2) cell line:NKM-1_5026: 5026
+CAGE:chronic myelogenous leukemia (CML) cell line:MEG-A2_5027: 5027
+CAGE:neuroectodermal tumor cell line:TASK1_5028: 5028
+CAGE:NK T cell leukemia cell line:KHYG-1_5029: 5029
+CAGE:hepatic mesenchymal tumor cell line:LI90_5030: 5030
+CAGE:somatostatinoma cell line:QGP-1_5031: 5031
+CAGE:liposarcoma cell line:KMLS-1_5032: 5032
+CAGE:thyroid carcinoma cell line:TCO-1_5033: 5033
+CAGE:mucinous cystadenocarcinoma cell line:MCAS_5034: 5034
+CAGE:choriocarcinoma cell line:SCH_5035: 5035
+CAGE:testicular germ cell embryonal carcinoma cell line:ITO-II_5036: 5036
+CAGE:rhabdomyosarcoma cell line:KYM-1_5037: 5037
+CAGE:teratocarcinoma cell line:NCC-IT-A3_5038: 5038
+CAGE:keratoacanthoma cell line:HKA-1_5039: 5039
+CAGE:anaplastic large cell lymphoma cell line:Ki-JK_5040: 5040
+CAGE:adenocarcinoma cell line:IM95m_5041: 5041
+CAGE:tubular adenocarcinoma cell line:SUIT-2_5042: 5042
+CAGE:teratocarcinoma cell line:NCR-G1_5043: 5043
+CAGE:small cell cervical cancer cell line:HCSC-1_5044: 5044
+CAGE:chronic myeloblastic leukemia (CML) cell line:KCL-22_5045: 5045
+CAGE:acute myeloid leukemia (FAB M7) cell line:MKPL-1_5046: 5046
+CAGE:anaplastic squamous cell carcinoma cell line:RPMI 2650_5047: 5047
+CAGE:teratocarcinoma cell line:PA-1_5048: 5048
+CAGE:hereditary spherocytic anemia cell line:WIL2-NS_5049: 5049
+CAGE:Wilms' tumor cell line:G-401_5050: 5050
+CAGE:adrenal cortex adenocarcinoma cell line:SW-13_5051: 5051
+CAGE:normal embryonic palatal mesenchymal cell line:HEPM_5052: 5052
+CAGE:Gingival epithelial cells,  (GEA14)_5053: 5053
+CAGE:Gingival epithelial cells,  (GEA15)_5054: 5054
+CAGE:Smooth Muscle Cells - Prostate,_5055: 5055
+CAGE:Smooth Muscle Cells - Uterine,_5056: 5056
+CAGE:Endothelial Cells - Thoracic,_5057: 5057
+CAGE:clear cell carcinoma cell line:TEN_5058: 5058
+CAGE:bone marrow stromal cell line:StromaNKtert_5059: 5059
+CAGE:basal cell carcinoma cell line:TE 354.T_5060: 5060
+CAGE:pleomorphic hepatocellular carcinoma cell line:SNU-387_5061: 5061
+CAGE:myelodysplastic syndrome cell line:SKM-1_5062: 5062
+CAGE:lymphoma, malignant, hairy B-cell cell line:MLMA_5063: 5063
+CAGE:breast carcinoma cell line:MCF7_5064: 5064
+CAGE:mixed mullerian tumor cell line:HTMMT_5065: 5065
+CAGE:meningioma cell line:HKBMM_5066: 5066
+CAGE:Whole blood (ribopure), , donation3_5067: 5067
+CAGE:normal intestinal epithelial cell line:FHs 74 Int_5068: 5068
+CAGE:Fibroblast - Gingival,  (GFH3)_5069: 5069
+CAGE:Fibroblast - Periodontal Ligament,  (PL30)_5070: 5070
+CAGE:Prostate Epithelial Cells,_5071: 5071
+CAGE:Endothelial Cells - Artery,_5072: 5072
+CAGE:Hair Follicle Dermal Papilla Cells,_5073: 5073
+CAGE:Fibroblast - Periodontal Ligament,  (PLH3)_5074: 5074
+CAGE:Dendritic Cells - monocyte immature derived,_5075: 5075
+CAGE:Preadipocyte - perirenal,_5076: 5076
+CAGE:Adipocyte - perirenal,_5077: 5077
+CAGE:Schwann Cells,_5078: 5078
+CAGE:Renal Glomerular Endothelial Cells,_5079: 5079
+CAGE:Hepatic Sinusoidal Endothelial Cells,_5080: 5080
+CAGE:CD19+ B Cells (pluriselect), , donation2_5081: 5081
+CAGE:CD8+ T Cells (pluriselect), , donation1_5082: 5082
+CAGE:CD19+ B Cells (pluriselect), , donation1_5083: 5083
+CAGE:CD8+ T Cells (pluriselect), , donation2_5084: 5084
+CAGE:CD8+ T Cells (pluriselect), , donation3_5085: 5085
+CAGE:CD19+ B Cells (pluriselect), , donation3_5086: 5086
+CAGE:mesodermal tumor cell line:HIRS-BM_5087: 5087
+CAGE:leiomyosarcoma cell line:Hs 5.T_5088: 5088
+CAGE:non-small cell lung cancer cell line:NCI-H1385_5089: 5089
+CAGE:CD34+ Progenitors,_5090: 5090
+CAGE:spinal cord, adult,_5091: 5091
+CAGE:pineal gland, adult,_5092: 5092
+CAGE:pituitary gland, adult,_5093: 5093
+CAGE:medial frontal gyrus, adult,_5094: 5094
+CAGE:amygdala, adult,_5095: 5095
+CAGE:hippocampus, adult,_5096: 5096
+CAGE:thalamus, adult,_5097: 5097
+CAGE:medulla oblongata, adult,_5098: 5098
+CAGE:medial temporal gyrus, adult,_5099: 5099
+CAGE:parietal lobe, adult,_5100: 5100
+CAGE:substantia nigra, adult,_5101: 5101
+CAGE:globus pallidus, adult,_5102: 5102
+CAGE:occipital cortex, adult,_5103: 5103
+CAGE:caudate nucleus, adult,_5104: 5104
+CAGE:locus coeruleus, adult,_5105: 5105
+CAGE:cerebellum, adult,_5106: 5106
+CAGE:putamen, adult,_5107: 5107
+'CAGE:epitheloid carcinoma cell line: HelaS3 ENCODE, biol__5108': 5108
+'CAGE:hepatocellular carcinoma cell line: HepG2 ENCODE, biol__5109': 5109
+'CAGE:B lymphoblastoid cell line: GM12878 ENCODE, biol__5110': 5110
+CAGE:chronic myelogenous leukemia cell line:K562 ENCODE, biol__5111: 5111
+CAGE:Neurons,_5112: 5112
+CAGE:Hair Follicle Outer Root Sheath Cells,_5113: 5113
+CAGE:Hepatocyte,_5114: 5114
+CAGE:Cardiac Myocyte,_5115: 5115
+CAGE:Lens Epithelial Cells,_5116: 5116
+CAGE:CD19+ B Cells,_5117: 5117
+CAGE:Melanocyte - dark,_5118: 5118
+CAGE:testicular germ cell embryonal carcinoma cell line:NEC14_5119: 5119
+CAGE:testicular germ cell embryonal carcinoma cell line:NEC15_5120: 5120
+CAGE:mesenchymal precursor cell - adipose,_5121: 5121
+CAGE:mesenchymal precursor cell - bone marrow,_5122: 5122
+CAGE:mesenchymal precursor cell - cardiac,_5123: 5123
+CAGE:mesenchymal precursor cell - ovarian cancer left ovary,_5124: 5124
+CAGE:mesenchymal precursor cell - ovarian cancer right ovary,_5125: 5125
+CAGE:mesenchymal precursor cell - ovarian cancer metastasis,_5126: 5126
+CAGE:mesenchymal precursor cell - ovarian cancer right ovary,  (SOC-57-02)_5127: 5127
+CAGE:amniotic membrane cells,_5128: 5128
+CAGE:chorionic membrane cells,_5129: 5129
+CAGE:Mesenchymal stem cells - umbilical,_5130: 5130
+CAGE:Fibroblast - Periodontal Ligament,  (PL29)_5131: 5131
+CAGE:common myeloid progenitor CMP,_5132: 5132
+CAGE:granulocyte macrophage progenitor,_5133: 5133
+CAGE:promyelocytes/myelocytes PMC,_5134: 5134
+CAGE:neutrophil PMN,_5135: 5135
+CAGE:Mallassez-derived cells,  (MZH3)_5136: 5136
+CAGE:CD133+ stem cells - cord blood derived, pool1_5137: 5137
+CAGE:Basophils,_5138: 5138
+CAGE:Eosinophils,_5139: 5139
+CAGE:CD133+ stem cells - adult bone marrow derived, pool1_5140: 5140
+CAGE:CD34+ stem cells - adult bone marrow derived, , tech__5141: 5141
+CAGE:nasal epithelial cells, , tech__5142: 5142
+CAGE:mature adipocyte,_5143: 5143
+CAGE:Mast cell,_5144: 5144
+CAGE:Smooth Muscle Cells - Umbilical Vein,_5145: 5145
+CAGE:nasal epithelial cells,_5146: 5146
+CAGE:Oligodendrocyte - precursors,_5147: 5147
+CAGE:Perineurial Cells,_5148: 5148
+CAGE:Smooth Muscle Cells - Intestinal,_5149: 5149
+CAGE:Iris Pigment Epithelial Cells,_5150: 5150
+CAGE:diencephalon, adult_5151: 5151
+CAGE:olfactory region, adult_5152: 5152
+CAGE:tenocyte,_5153: 5153
+CAGE:medulloblastoma cell line:D283 Med_5154: 5154
+CAGE:large cell lung carcinoma cell line:NCI-H460_5155: 5155
+CAGE:plasma cell leukemia cell line:ARH-77_5156: 5156
+CAGE:small cell lung carcinoma cell line:DMS 144_5157: 5157
+CAGE:small cell lung carcinoma cell line:NCI-H82_5158: 5158
+CAGE:salivary acinar cells,_5159: 5159
+CAGE:merkel cell carcinoma cell line:MKL-1_5160: 5160
+CAGE:merkel cell carcinoma cell line:MS-1_5161: 5161
+CAGE:cerebral meninges, adult_5162: 5162
+CAGE:appendix, adult_5163: 5163
+CAGE:artery, adult_5164: 5164
+CAGE:vein, adult_5165: 5165
+CAGE:bone marrow, adult_5166: 5166
+CAGE:ductus deferens, adult_5167: 5167
+CAGE:epididymis, adult_5168: 5168
+CAGE:gall bladder, adult_5169: 5169
+CAGE:parotid gland, adult_5170: 5170
+CAGE:penis, adult_5171: 5171
+CAGE:seminal vesicle, adult_5172: 5172
+CAGE:submaxillary gland, adult_5173: 5173
+CAGE:tongue, adult_5174: 5174
+CAGE:vagina, adult_5175: 5175
+CAGE:heart - mitral valve, adult_5176: 5176
+CAGE:heart - pulmonic valve, adult_5177: 5177
+CAGE:heart - tricuspid valve, adult_5178: 5178
+CAGE:throat, adult_5179: 5179
+CAGE:Smooth Muscle Cells - Bladder,_5180: 5180
+CAGE:testis, adult, pool2_5181: 5181
+CAGE:acute myeloid leukemia (FAB M7) cell line:M-MOK_5182: 5182
+CAGE:acute myeloid leukemia (FAB M5) cell line:NOMO-1_5183: 5183
+CAGE:acute myeloid leukemia (FAB M5) cell line:P31/FUJ_5184: 5184
+CAGE:acute myeloid leukemia (FAB M2) cell line:Kasumi-6_5185: 5185
+CAGE:acute myeloid leukemia (FAB M0) cell line:KG-1_5186: 5186
+CAGE:acute myeloid leukemia (FAB M1) cell line:HYT-1_5187: 5187
+CAGE:acute myeloid leukemia (FAB M3) cell line:HL60_5188: 5188
+CAGE:acute myeloid leukemia (FAB M4eo) cell line:EoL-1_5189: 5189
+CAGE:acute myeloid leukemia (FAB M4eo) cell line:EoL-3_5190: 5190
+CAGE:acute myeloid leukemia (FAB M5) cell line:U-937 DE-4_5191: 5191
+CAGE:acute myeloid leukemia (FAB M6) cell line:EEB_5192: 5192
+CAGE:acute myeloid leukemia (FAB M6) cell line:F-36E_5193: 5193
+CAGE:mesothelioma cell line:NCI-H28_5194: 5194
+CAGE:mesothelioma cell line:NCI-H226_5195: 5195
+CAGE:mesothelioma cell line:NCI-H2052_5196: 5196
+CAGE:mesothelioma cell line:NCI-H2452_5197: 5197
+CAGE:mesothelioma cell line:Mero-14, tech__5198: 5198
+CAGE:mesothelioma cell line:Mero-25_5199: 5199
+CAGE:mesothelioma cell line:Mero-41_5200: 5200
+CAGE:mesothelioma cell line:Mero-48a_5201: 5201
+CAGE:mesothelioma cell line:Mero-82_5202: 5202
+CAGE:mesothelioma cell line:Mero-83_5203: 5203
+CAGE:mesothelioma cell line:Mero-84_5204: 5204
+CAGE:mesothelioma cell line:Mero-95_5205: 5205
+CAGE:mesothelioma cell line:No36_5206: 5206
+CAGE:mesothelioma cell line:ONE58_5207: 5207
+CAGE:serous adenocarcinoma cell line:SK-OV-3-R, biol__5208: 5208
+CAGE:CD4+CD25+CD45RA- memory regulatory T cells,_5209: 5209
+CAGE:CD4+CD25-CD45RA+ naive conventional T cells expanded,_5210: 5210
+CAGE:CD4+CD25+CD45RA+ naive regulatory T cells expanded,_5211: 5211
+CAGE:CD4+CD25+CD45RA- memory regulatory T cells expanded,_5212: 5212
+CAGE:CD4+CD25-CD45RA+ naive conventional T cells,_5213: 5213
+CAGE:CD14-CD16+ Monocytes,_5214: 5214
+CAGE:CD14+CD16+ Monocytes,_5215: 5215
+CAGE:CD4+CD25-CD45RA- memory conventional T cells expanded,_5216: 5216
+CAGE:CD14+CD16- Monocytes,_5217: 5217
+CAGE:CD4+CD25+CD45RA+ naive regulatory T cells,_5218: 5218
+CAGE:CD4+CD25-CD45RA- memory conventional T cells,_5219: 5219
+CAGE:acute myeloid leukemia (FAB M0) cell line:Kasumi-3_5220: 5220
+CAGE:achilles tendon,_5221: 5221
+CAGE:cerebrospinal fluid,_5222: 5222
+CAGE:cruciate ligament,_5223: 5223
+CAGE:eye - vitreous humor,_5224: 5224
+CAGE:eye - muscle superior,_5225: 5225
+CAGE:eye - muscle lateral,_5226: 5226
+CAGE:eye - muscle medial,_5227: 5227
+CAGE:eye - muscle inferior rectus,_5228: 5228
+CAGE:Fingernail (including nail plate, eponychium and hyponychium),_5229: 5229
+CAGE:optic nerve,_5230: 5230
+CAGE:skeletal muscle - soleus muscle,_5231: 5231
+CAGE:Skin - palm,_5232: 5232
+CAGE:tongue epidermis (fungiform papillae),_5233: 5233
+CAGE:Urethra,_5234: 5234
+CAGE:CD14+ monocytes - treated with BCG,_5235: 5235
+CAGE:CD14+ monocytes - treated with IFN + N-hexane,_5236: 5236
+CAGE:CD14+ monocytes - treated with Trehalose dimycolate (TDM),_5237: 5237
+CAGE:CD14+ monocytes - mock treated,_5238: 5238
+CAGE:CD14+ monocytes - treated with Group A streptococci,_5239: 5239
+CAGE:CD14+ monocytes - treated with lipopolysaccharide,_5240: 5240
+CAGE:CD14+ monocytes - treated with Salmonella,_5241: 5241
+CAGE:CD14+ monocytes - treated with Cryptococcus,_5242: 5242
+CAGE:CD14+ monocytes - treated with Candida,_5243: 5243
+CAGE:CD14+ monocytes - treated with B-glucan,_5244: 5244
+CAGE:Hep-2 cells treated with Streptococci strain 5448, biol__5245: 5245
+CAGE:Hep-2 cells treated with Streptococci strain JRS4, biol__5246: 5246
+CAGE:Hep-2 cells mock treated, biol__5247: 5247
+CAGE:immature langerhans cells,_5248: 5248
+CAGE:acute myeloid leukemia (FAB M2) cell line:Kasumi-1_5249: 5249
+CAGE:acute myeloid leukemia (FAB M4) cell line:FKH-1_5250: 5250
+CAGE:acute myeloid leukemia (FAB M4) cell line:HNT-34_5251: 5251
+CAGE:acute myeloid leukemia (FAB M6) cell line:F-36P_5252: 5252
+CAGE:mesenchymal precursor cell - ovarian cancer right ovary,  (SOC-57-02-G)_5253: 5253
+CAGE:serous adenocarcinoma cell line:SK-OV-3-R after co-culture with SOC-57-02-G, biol__5254: 5254
+CAGE:migratory langerhans cells,_5255: 5255
+CAGE:Mallassez-derived cells,_5256: 5256
+CAGE:CD34 cells differentiated to erythrocyte lineage, biol__5257: 5257
+CAGE:amygdala - adult,_5258: 5258
+CAGE:thalamus - adult,_5259: 5259
+CAGE:hippocampus - adult,_5260: 5260
+CAGE:medial frontal gyrus - adult,_5261: 5261
+CAGE:parietal lobe - adult,_5262: 5262
+CAGE:occipital cortex - adult,_5263: 5263
+CAGE:cerebellum - adult,_5264: 5264
+CAGE:medulla oblongata - adult,_5265: 5265
+CAGE:globus pallidus - adult,_5266: 5266
+CAGE:caudate nucleus - adult,_5267: 5267
+CAGE:substantia nigra - adult,_5268: 5268
+CAGE:pineal gland - adult,_5269: 5269
+CAGE:pituitary gland - adult,_5270: 5270
+CAGE:spinal cord - adult,_5271: 5271
+CAGE:locus coeruleus - adult,_5272: 5272
+CAGE:medial temporal gyrus - adult,_5273: 5273
+CAGE:Olfactory epithelial cells,_5274: 5274
+CAGE:gamma delta positive T cells,_5275: 5275
+CAGE:Mast cell, expanded,_5276: 5276
+CAGE:Mast cell, expanded and stimulated,_5277: 5277
+CAGE:adipose,_5278: 5278
+CAGE:medial frontal gyrus, newborn,_5279: 5279
+CAGE:medial temporal gyrus, newborn,_5280: 5280
+CAGE:caudate nucleus, newborn,_5281: 5281
+CAGE:occipital cortex, newborn,_5282: 5282
+CAGE:parietal lobe, newborn,_5283: 5283
+CAGE:cerebellum, newborn,_5284: 5284
+CAGE:substantia nigra, newborn,_5285: 5285
+CAGE:spinal cord, newborn,_5286: 5286
+CAGE:amygdala, newborn,_5287: 5287
+CAGE:medulla oblongata, newborn,_5288: 5288
+CAGE:locus coeruleus, newborn,_5289: 5289
+CAGE:hippocampus, newborn,_5290: 5290
+CAGE:globus pallidus, newborn,_5291: 5291
+CAGE:putamen, newborn,_5292: 5292
+CAGE:thalamus, newborn,_5293: 5293
+CAGE:Fibroblast - Gingival,  (aggressive periodontitis)_5294: 5294
+CAGE:Fibroblast - Gingival,  (control)_5295: 5295
+CAGE:Fibroblast - Gingival,  (chronic periodontitis)_5296: 5296
+CAGE:Fibroblast - Gingival,  (periodontitis)_5297: 5297
+CAGE:bronchioalveolar carcinoma cell line:NCI-H650_5298: 5298
+CAGE:thymic carcinoma cell line:Ty-82_5299: 5299
+CAGE:thyroid carcinoma cell line:KHM-5M_5300: 5300
+CAGE:Smooth muscle cells - airway, asthmatic,_5301: 5301
+CAGE:Smooth muscle cells - airway, control,_5302: 5302
+CAGE:thalamus, adult, , tech__5303: 5303
+CAGE:putamen, adult, , tech__5304: 5304
+CAGE:parietal cortex, adult,_5305: 5305
+CAGE:medial temporal gyrus, adult, , tech__5306: 5306
+CAGE:squamous cell lung carcinoma cell line:LC-1F_5307: 5307
+CAGE:epithelioid sarcoma cell line:HS-ES-2R_5308: 5308
+CAGE:squamous cell lung carcinoma cell line:RERF-LC-AI_5309: 5309
+CAGE:gastric cancer cell line:GSS_5310: 5310
+CAGE:carcinoid cell line:NCI-H727_5311: 5311
+CAGE:lung adenocarcinoma, papillary cell line:NCI-H441_5312: 5312

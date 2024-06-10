@@ -213,4 +213,4 @@ def test_train_tissue_mapper(chr22_example_files, gtex_tissue_mapper_path, enfor
 
     tissue_mapper = EnformerTissueMapper(tracks_path=enformer_tracks_path,
                                          tissue_mapper_path=gtex_tissue_mapper_path)
-    tissue_mapper.train(enformer_filepath, output_path=output_dir / 'tissue_mapper.pkl', expression_path=chr22_example_files['gtex_expression'])
+    tissue_mapper.train(enformer_filepath, output_path=output_dir / 'tissue_mapper', expression_path=chr22_example_files['gtex_expression'])
