@@ -173,6 +173,7 @@ class EnformerTissueMapper:
         :return:
         """
 
+        logger.info(f'Loading the expression scores from {expression_path}')
         expression_xr = xr.open_zarr(expression_path)['tpm']
         expression_xr = expression_xr.groupby('subtissue').mean('sample')
         transcripts = [x.split('.')[0] for x in expression_xr.transcript.values]
@@ -182,13 +183,12 @@ class EnformerTissueMapper:
         scores = []
         transcripts = []
         enformer_ds = pq.ParquetDataset(enformer_scores_path)
-        for enformer_file in enformer_ds.files:
+        for enformer_file in tqdm(enformer_ds.files, desc='Iterating over the parquet files'):
             enformer_file = pq.ParquetFile(enformer_file)
             enformer_schema = enformer_file.schema.to_arrow_schema()
             shifts = [int(x) for x in enformer_schema.metadata[b'shifts'].split(b';')]
 
-            logger.debug(f'Iterating over the parquet files in {enformer_scores_path}')
-            for i in tqdm(range(enformer_file.num_row_groups)):
+            for i in tqdm(range(enformer_file.num_row_groups), desc='Iterating over row groups', leave=False):
                 batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(enformer_file.read_row_group(i)),
                                                                    Enformer.BIN_SIZE, num_bins, shifts, tracks)
                 scores.append(batch_agg_pred)
