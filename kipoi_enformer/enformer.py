@@ -158,7 +158,8 @@ class EnformerTissueMapper:
             self.tracks_dict = yaml.safe_load(f)
 
     def train(self, enformer_scores_path: str | pathlib.Path, expression_path: str | pathlib.Path,
-              output_path: str | pathlib.Path, num_bins: int = 3, model=linear_model.ElasticNetCV(cv=5)):
+              output_path: str | pathlib.Path, num_bins: int = 3, model=linear_model.ElasticNetCV(cv=5),
+              batch_read=False):
         """
         Load the predictions from the parquet file lazily.
         For each record, calculate the average predictions over the bins centered at the tss bin.
@@ -170,6 +171,7 @@ class EnformerTissueMapper:
         :param output_path: The pickle file that will contain the linear models.
         :param num_bins: number of bins to average over for each record.
         :param model: The model to use for training the tissue mapper.
+        :param batch_read: If True, read the parquet file in batches.
         :return:
         """
 
@@ -183,14 +185,19 @@ class EnformerTissueMapper:
         scores = []
         transcripts = []
         enformer_ds = pq.ParquetDataset(enformer_scores_path)
-        for enformer_file in tqdm(enformer_ds.files, desc='Iterating over the parquet files'):
-            enformer_file = pq.ParquetFile(enformer_file)
-            enformer_schema = enformer_file.schema.to_arrow_schema()
+        for enformer_path in tqdm(enformer_ds.files, desc='Iterating over the parquet files'):
+            pqfile = pq.ParquetFile(enformer_path)
+            enformer_schema = pqfile.schema.to_arrow_schema()
             shifts = [int(x) for x in enformer_schema.metadata[b'shifts'].split(b';')]
-
-            for i in tqdm(range(enformer_file.num_row_groups), desc='Iterating over row groups', leave=False):
-                batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(enformer_file.read_row_group(i)),
-                                                                   Enformer.BIN_SIZE, num_bins, shifts, tracks)
+            if batch_read:
+                for i in tqdm(range(pqfile.num_row_groups), desc='Iterating over row groups', leave=False):
+                    batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(pqfile.read_row_group(i)),
+                                                                       Enformer.BIN_SIZE, num_bins, shifts, tracks)
+                    scores.append(batch_agg_pred)
+                    transcripts.append(batch_meta['transcript_id'])
+            else:
+                batch_agg_pred, batch_meta = self._aggregate_batch(pl.read_parquet(enformer_path), Enformer.BIN_SIZE,
+                                                                   num_bins, shifts, tracks)
                 scores.append(batch_agg_pred)
                 transcripts.append(batch_meta['transcript_id'])
 
