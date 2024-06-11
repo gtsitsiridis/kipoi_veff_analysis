@@ -177,7 +177,28 @@ class EnformerTissueMapper:
 
         logger.info(f'Loading the expression scores from {expression_path}')
         expression_xr = xr.open_zarr(expression_path)['tpm']
+
+        logger.info('Checking if the data is compatible')
+        expr_transcripts = expression_xr.transcript.values
+        enf_transcripts = pl.scan_parquet(pathlib.Path(enformer_scores_path) / '**/data.parquet'). \
+            select('transcript').collect().to_series().to_list()
+        expr_transcripts = [x.split('.')[0] for x in expr_transcripts if '_PAR_Y' not in x]
+        enf_transcripts = [x.split('.')[0] for x in enf_transcripts if '_PAR_Y' not in x]
+
+        assert len(set(expr_transcripts)) == len(expr_transcripts), \
+            'Duplicate transcripts found in the expression dataset.'
+        assert len(set(enf_transcripts)) == len(enf_transcripts), \
+            'Duplicate transcripts found in the enformer dataset.'
+
+        common_size = len(set(expr_transcripts).intersection(set(enf_transcripts)))
+        assert common_size > 0, 'No common transcripts found in the datasets.'
+        logger.info(f'Number of common transcripts: {common_size}')
+        logger.info(f'Missing transcripts in the expression dataset: {set(enf_transcripts) - set(expr_transcripts)}')
+
+        logger.info('Calculating the average expression scores...')
         expression_xr = expression_xr.groupby('subtissue').mean('sample')
+        # filter out Y chromosome equivalent transcripts
+        expression_xr = expression_xr.sel(transcript=~expression_xr.transcript.str.endswith('_PAR_Y'))
         transcripts = [x.split('.')[0] for x in expression_xr.transcript.values]
         expression_xr = expression_xr.assign_coords(dict(transcript=transcripts))
         tracks = list(self.tracks_dict.values())
@@ -203,9 +224,14 @@ class EnformerTissueMapper:
 
         logger.info('Collecting results...')
         # flatten the lists
-        transcripts = [item.split('.')[0] for sublist in transcripts for item in sublist]
+        transcripts = [item for sublist in transcripts for item in sublist]
         enformer_xr = xr.DataArray(data=np.concatenate(scores), dims=['transcript', 'tracks'],
                                    coords=dict(transcript=transcripts, tracks=tracks), name='enformer')
+        # filter out Y chromosome equivalent transcripts
+        enformer_xr = enformer_xr.sel(transcript=~enformer_xr.transcript.str.endswith('_PAR_Y'))
+        transcripts = [x.split('.')[0] for x in enformer_xr.transcript.values]
+        enformer_xr = enformer_xr.assign_coords(dict(transcript=transcripts))
+
         # merge the two xr data arrays
         xrds = xr.merge([expression_xr, enformer_xr], join='inner')
         # train the linear models
@@ -376,13 +402,14 @@ def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Pat
     :param isoforms_path: The file containing the isoform proportions per tissue
     :param output_path: The parquet file that will contain the aggregated scores
     :param mode: One of ['logsum', 'mean']. If 'logsum', calculate the logsumexp of the scores.
-    :param with_version: If True, keep the version in the gene_id and transcript_id.
     If 'mean', calculate the mean.
     """
 
     veff_metadata = pq.ParquetFile(veff_path).schema_arrow.metadata
 
     veff_ldf = pl.scan_parquet(veff_path).filter(pl.col('log2fc').is_not_null())
+    # filter out Y chromosome equivalent transcripts
+    veff_ldf = veff_ldf.filter(~pl.col('transcript_id').str.contains('_PAR_Y'))
     veff_ldf = veff_ldf.with_columns(pl.col('gene_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('gene_id'))
     veff_ldf = veff_ldf.with_columns(
         pl.col('transcript_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('transcript_id'))
