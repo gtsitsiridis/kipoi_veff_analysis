@@ -159,7 +159,7 @@ class EnformerTissueMapper:
 
     def train(self, enformer_scores_path: str | pathlib.Path, expression_path: str | pathlib.Path,
               output_path: str | pathlib.Path, num_bins: int = 3, model=linear_model.ElasticNetCV(cv=5),
-              batch_read=True):
+              skip_checks=False):
         """
         Load the predictions from the parquet file lazily.
         For each record, calculate the average predictions over the bins centered at the tss bin.
@@ -171,29 +171,30 @@ class EnformerTissueMapper:
         :param output_path: The pickle file that will contain the linear models.
         :param num_bins: number of bins to average over for each record.
         :param model: The model to use for training the tissue mapper.
-        :param batch_read: If True, read the parquet file in batches.
+        :param skip_checks: If True, skip the checks for the compatibility of the datasets.
         :return:
         """
 
         logger.info(f'Loading the expression scores from {expression_path}')
         expression_xr = xr.open_zarr(expression_path)['tpm']
 
-        logger.info('Checking if the data is compatible')
-        expr_transcripts = expression_xr.transcript.values
-        enf_transcripts = pl.scan_parquet(pathlib.Path(enformer_scores_path) / '**/data.parquet'). \
-            select('transcript_id').collect().to_series().to_list()
-        expr_transcripts = [x.split('.')[0] for x in expr_transcripts if '_PAR_Y' not in x]
-        enf_transcripts = [x.split('.')[0] for x in enf_transcripts if '_PAR_Y' not in x]
+        if not skip_checks:
+            logger.info('Checking if the data is compatible')
+            expr_transcripts = expression_xr.transcript.values
+            enf_transcripts = pl.scan_parquet(pathlib.Path(enformer_scores_path) / '**/data.parquet'). \
+                select('transcript_id').collect().to_series().to_list()
+            expr_transcripts = [x.split('.')[0] for x in expr_transcripts if '_PAR_Y' not in x]
+            enf_transcripts = [x.split('.')[0] for x in enf_transcripts if '_PAR_Y' not in x]
 
-        assert len(set(expr_transcripts)) == len(expr_transcripts), \
-            'Duplicate transcripts found in the expression dataset.'
-        assert len(set(enf_transcripts)) == len(enf_transcripts), \
-            'Duplicate transcripts found in the enformer dataset.'
+            assert len(set(expr_transcripts)) == len(expr_transcripts), \
+                'Duplicate transcripts found in the expression dataset.'
+            assert len(set(enf_transcripts)) == len(enf_transcripts), \
+                'Duplicate transcripts found in the enformer dataset.'
 
-        common_size = len(set(expr_transcripts).intersection(set(enf_transcripts)))
-        assert common_size > 0, 'No common transcripts found in the datasets.'
-        logger.info(f'Number of common transcripts: {common_size}')
-        logger.info(f'Missing transcripts in the expression dataset: {set(enf_transcripts) - set(expr_transcripts)}')
+            common_size = len(set(expr_transcripts).intersection(set(enf_transcripts)))
+            assert common_size > 0, 'No common transcripts found in the datasets.'
+            logger.info(f'Number of common transcripts: {common_size}')
+            logger.info(f'Missing transcripts in the expression dataset: {len(set(enf_transcripts) - set(expr_transcripts))}')
 
         logger.info('Calculating the average expression scores...')
         expression_xr = expression_xr.groupby('subtissue').mean('sample')
@@ -210,15 +211,9 @@ class EnformerTissueMapper:
             pqfile = pq.ParquetFile(enformer_path)
             enformer_schema = pqfile.schema.to_arrow_schema()
             shifts = [int(x) for x in enformer_schema.metadata[b'shifts'].split(b';')]
-            if batch_read:
-                for i in tqdm(range(pqfile.num_row_groups), desc='Iterating over row groups', leave=False):
-                    batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(pqfile.read_row_group(i)),
-                                                                       Enformer.BIN_SIZE, num_bins, shifts, tracks)
-                    scores.append(batch_agg_pred)
-                    transcripts.append(batch_meta['transcript_id'])
-            else:
-                batch_agg_pred, batch_meta = self._aggregate_batch(pl.read_parquet(enformer_path), Enformer.BIN_SIZE,
-                                                                   num_bins, shifts, tracks)
+            for i in tqdm(range(pqfile.num_row_groups), desc='Iterating over row groups', leave=False):
+                batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(pqfile.read_row_group(i)),
+                                                                   Enformer.BIN_SIZE, num_bins, shifts, tracks)
                 scores.append(batch_agg_pred)
                 transcripts.append(batch_meta['transcript_id'])
 
