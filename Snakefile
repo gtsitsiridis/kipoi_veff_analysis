@@ -68,7 +68,7 @@ rule train_tissue_mapper:
     resources:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 50000 + (10000 * attempt)
-    threads: workflow.cores
+    threads: 30
     output:
         tissue_mapper_path=tissue_mapper_path(),
     input:
