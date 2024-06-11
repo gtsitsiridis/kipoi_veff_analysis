@@ -181,7 +181,7 @@ class EnformerTissueMapper:
         logger.info('Checking if the data is compatible')
         expr_transcripts = expression_xr.transcript.values
         enf_transcripts = pl.scan_parquet(pathlib.Path(enformer_scores_path) / '**/data.parquet'). \
-            select('transcript').collect().to_series().to_list()
+            select('transcript_id').collect().to_series().to_list()
         expr_transcripts = [x.split('.')[0] for x in expr_transcripts if '_PAR_Y' not in x]
         enf_transcripts = [x.split('.')[0] for x in enf_transcripts if '_PAR_Y' not in x]
 
