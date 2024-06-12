@@ -166,7 +166,7 @@ class EnformerAggregator:
 
         shifts = [int(x) for x in metadata[b'shifts'].split(b';')]
 
-        logger.debug(f'Iterating over the parquet files in {enformer_scores_path}')
+        logger.info(f'Iterating over the parquet files in {enformer_scores_path}')
         with pq.ParquetWriter(output_path, output_schema) as writer:
             for i in tqdm(range(enformer_file.num_row_groups)):
                 df = self._aggregate_batch(pl.from_arrow(enformer_file.read_row_group(i)),
