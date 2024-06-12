@@ -45,4 +45,5 @@ enformer:
     expression_path: /s/project/rep/processed/training_results_v14/general/gtex_transcript_tpms.zarr/
     tracks_path: assets/human_cage_dnase_enformer_tracks.yaml
     cv: 5
+    max_iter: 10000
     nbins: 3

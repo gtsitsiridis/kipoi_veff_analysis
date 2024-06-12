@@ -1,7 +1,7 @@
 import pytest
 
 from kipoi_enformer.dataloader import TSSDataloader, RefTSSDataloader, VCFTSSDataloader
-from kipoi_enformer.enformer import Enformer, EnformerTissueMapper, calculate_veff, aggregate_veff
+from kipoi_enformer.enformer import Enformer, EnformerAggregator, EnformerTissueMapper, calculate_veff, aggregate_veff
 from pathlib import Path
 import pyarrow.parquet as pq
 from kipoi_enformer.logger import logger
@@ -10,6 +10,7 @@ import pickle
 import polars as pl
 from kipoi_enformer.constants import AlleleType
 from shutil import rmtree
+import tempfile
 
 
 @pytest.fixture
@@ -143,10 +144,14 @@ def test_predict_tissue_mapper(allele_type: str, chr22_example_files, output_dir
     else:
         logger.debug(f'Using existing file: {enformer_filepath}')
 
+    enformer_aggregator = EnformerAggregator()
+    agg_path = output_dir / f'enformer_{size}/tmp_aggregated.parquet'
+    enformer_aggregator.aggregate(enformer_filepath, agg_path)
+
     tissue_mapper = EnformerTissueMapper(tracks_path=enformer_tracks_path,
                                          tissue_mapper_path=gtex_tissue_mapper_path)
     enformer_tissue_filepath = get_tissue_path(output_dir, size, AlleleType[allele_type])
-    tissue_mapper.predict(enformer_filepath, output_path=enformer_tissue_filepath)
+    tissue_mapper.predict(agg_path, output_path=enformer_tissue_filepath)
 
     with open(gtex_tissue_mapper_path, 'rb') as f:
         num_tissues = len(pickle.load(f))
@@ -211,6 +216,11 @@ def test_train_tissue_mapper(chr22_example_files, gtex_tissue_mapper_path, enfor
     else:
         logger.debug(f'Using existing file: {enformer_filepath}')
 
+    enformer_aggregator = EnformerAggregator()
+    agg_path = output_dir / f'enformer_{size}/tmp_aggregated.parquet'
+    enformer_aggregator.aggregate(enformer_filepath, agg_path)
+
     tissue_mapper = EnformerTissueMapper(tracks_path=enformer_tracks_path,
                                          tissue_mapper_path=gtex_tissue_mapper_path)
-    tissue_mapper.train(enformer_filepath, output_path=output_dir / 'tissue_mapper', expression_path=chr22_example_files['gtex_expression'])
+    tissue_mapper.train(agg_path, output_path=output_dir / 'tissue_mapper',
+                        expression_path=chr22_example_files['gtex_expression'])

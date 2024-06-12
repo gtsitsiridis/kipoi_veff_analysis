@@ -10,7 +10,7 @@ def vcf_file(wildcards):
 
 
 def tissue_mapper_path():
-    config_path = config['enformer']['tissue_mapper'].get('model_path', None)
+    config_path = config['enformer']['tissue_mapper'].get('model_path',None)
     if config_path:
         return config_path
     else:
@@ -45,7 +45,7 @@ rule enformer_ref:
         'scripts/enformer.py'
 
 rule enformer_alt:
-    priority: 2
+    priority: 3
     resources:
         gpu=1,
         ntasks=1,
@@ -63,8 +63,20 @@ rule enformer_alt:
     script:
         'scripts/enformer.py'
 
+rule aggregate_enformer:
+    priority: 2
+    resources:
+        ntasks=1,
+        mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
+    output:
+        aggregated_path=temp(output_dir / 'aggregated' / '{path}',)
+    input:
+        enformer_path=output_dir / 'raw' / '{path}',
+    script:
+        'scripts/aggregate_enformer.py'
+
 rule train_tissue_mapper:
-    priority: 3
+    priority: 2
     resources:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 50000 + (10000 * attempt)
@@ -72,12 +84,12 @@ rule train_tissue_mapper:
     output:
         tissue_mapper_path=tissue_mapper_path(),
     input:
-        enformer_paths = expand(output_dir / 'raw/ref.parquet' / 'chrom={chromosome}/data.parquet',
+        enformer_paths=expand(output_dir / 'aggregated/ref.parquet' / 'chrom={chromosome}/data.parquet',
             chromosome=config['genome']['chromosomes']),
         tracks_path=config['enformer']['tissue_mapper']['tracks_path'],
         expression_path=config['enformer']['tissue_mapper']['expression_path']
     params:
-        enformer_path=output_dir / 'raw/ref.parquet'
+        enformer_path=output_dir / 'aggregated/ref.parquet/**/data.parquet'
     script:
         'scripts/train_tissue_mapper.py'
 
@@ -89,7 +101,7 @@ rule enformer_to_tissue:
     output:
         prediction_path=output_dir / 'tissue' / '{path}',
     input:
-        enformer_path=output_dir / 'raw' / '{path}',
+        enformer_path=output_dir / 'aggregated' / '{path}',
         tracks_path=config['enformer']['tissue_mapper']['tracks_path'],
         tissue_mapper_path=rules.train_tissue_mapper.output
     script:

@@ -17,13 +17,14 @@ import xarray as xr
 from collections import defaultdict
 from sklearn import linear_model, pipeline, preprocessing
 
-__all__ = ['Enformer', 'EnformerTissueMapper', 'calculate_veff', 'aggregate_veff']
+__all__ = ['Enformer', 'EnformerAggregator', 'EnformerTissueMapper', 'calculate_veff', 'aggregate_veff']
 
 # Enformer model URI
 MODEL_PATH = 'https://tfhub.dev/deepmind/enformer/1'
 
 
 class Enformer:
+    NUM_HUMAN_TRACKS = 5313
     # length of the bins in the enformer model
     BIN_SIZE = 128
     NUM_PREDICTION_BINS = 896
@@ -98,8 +99,8 @@ class Enformer:
 
         # run model
         predictions = self._model.predict_on_batch(input_tensor)['human'].numpy()
-        assert predictions.shape == (batch_size * seqs_per_record, 896, 5313)
-        predictions = predictions.reshape(batch_size, seqs_per_record, 896, 5313)
+        assert predictions.shape == (batch_size * seqs_per_record, self.NUM_PREDICTION_BINS, self.NUM_HUMAN_TRACKS)
+        predictions = predictions.reshape(batch_size, seqs_per_record, self.NUM_PREDICTION_BINS, self.NUM_HUMAN_TRACKS)
 
         # extract central bins if the number of output bins is different from the number of prediction bins
         if num_output_bins != self.NUM_PREDICTION_BINS:
@@ -141,6 +142,73 @@ class Enformer:
         return pa.RecordBatch.from_arrays(list(formatted_results.values()), names=list(formatted_results.keys()))
 
 
+class EnformerAggregator:
+    def aggregate(self, enformer_scores_path: str | pathlib.Path, output_path: str | pathlib.Path, num_bins: int = 3):
+        """
+        Aggregate enformer predictions over the bins centered at the tss bin, and the shifts.
+        :param enformer_scores_path:
+        :param output_path:
+        :param num_bins:
+        :return:
+        """
+
+        enformer_file = pq.ParquetFile(enformer_scores_path)
+        enformer_schema = enformer_file.schema.to_arrow_schema()
+        metadata = enformer_schema.metadata
+        metadata['nbins'] = str(num_bins)
+        output_schema = enformer_schema.with_metadata(metadata)
+        output_schema = output_schema.remove(0). \
+            insert(0, pa.field('tracks', pa.list_(pa.float32(), list_size=Enformer.NUM_HUMAN_TRACKS)))
+        # fix polars string issue when transforming to pyarrow
+        for idx, x in enumerate(output_schema):
+            if x.type == pa.string():
+                output_schema = output_schema.remove(idx).insert(idx, pa.field(x.name, pa.large_string()))
+
+        shifts = [int(x) for x in metadata[b'shifts'].split(b';')]
+
+        logger.debug(f'Iterating over the parquet files in {enformer_scores_path}')
+        with pq.ParquetWriter(output_path, output_schema) as writer:
+            for i in tqdm(range(enformer_file.num_row_groups)):
+                df = self._aggregate_batch(pl.from_arrow(enformer_file.read_row_group(i)),
+                                           Enformer.BIN_SIZE, num_bins, shifts)
+                logger.debug('Writing to file')
+                writer.write(df.to_arrow())
+
+    @staticmethod
+    def _aggregate_batch(frame, bin_size, num_bins, shifts):
+        """
+        Aggregate the predictions for a record.
+        :param frame:
+        :param bin_size:
+        :param num_bins:
+        :return:
+        """
+        logger.debug('Aggregating the predictions for a batch')
+
+        pred = np.stack(frame['tracks'].to_list(), dtype=np.float32)
+        pred_seq_length = bin_size * pred.shape[2]
+        agg_pred = []
+        for shift_i, shift in enumerate(shifts):
+            # estimate the tss bin
+            # todo verify this calculation
+            tss_bin = (pred_seq_length // 2 + 1 - shift) // bin_size
+            # get num_bins - 1 neighboring bins centered at tss bin
+            bins = [tss_bin + i for i in range(-math.floor(num_bins / 2), math.ceil(num_bins / 2))]
+            assert len(bins) == num_bins
+            agg_pred.append(pred[:, shift_i, bins, :])
+
+        agg_pred = np.stack(agg_pred).swapaxes(0, 1)
+
+        assert agg_pred.shape == (len(frame), len(shifts), num_bins, Enformer.NUM_HUMAN_TRACKS)
+        # average over shifts and bins
+        agg_pred = agg_pred.mean(axis=(1, 2))
+
+        assert agg_pred.shape == (len(frame), Enformer.NUM_HUMAN_TRACKS)
+
+        return frame.with_columns(pl.Series(values=agg_pred.tolist(), name='tracks',
+                                            dtype=pl.Array(pl.Float32, width=Enformer.NUM_HUMAN_TRACKS)))
+
+
 class EnformerTissueMapper:
     def __init__(self, tracks_path: str | pathlib.Path, tissue_mapper_path: str | pathlib.Path | None = None):
         """
@@ -157,44 +225,23 @@ class EnformerTissueMapper:
         with open(tracks_path, 'rb') as f:
             self.tracks_dict = yaml.safe_load(f)
 
-    def train(self, enformer_scores_path: str | pathlib.Path, expression_path: str | pathlib.Path,
-              output_path: str | pathlib.Path, num_bins: int = 3, model=linear_model.ElasticNetCV(cv=5),
-              skip_checks=False):
+    def train(self, agg_enformer_path: str | pathlib.Path, expression_path: str | pathlib.Path
+              , output_path: str | pathlib.Path, model=linear_model.ElasticNetCV(cv=5)):
         """
         Load the predictions from the parquet file lazily.
         For each record, calculate the average predictions over the bins centered at the tss bin.
         Collect the average predictions and train a linear model for each tissue.
         Save the linear models in a pickle file.
 
-        :param enformer_scores_path: The parquet file that contains the enformer predictions.
+        :param agg_enformer_path: The parquet file that contains the aggregated enformer predictions.
         :param expression_path: The zarr file that contains the expression scores. (ground truth)
         :param output_path: The pickle file that will contain the linear models.
-        :param num_bins: number of bins to average over for each record.
         :param model: The model to use for training the tissue mapper.
-        :param skip_checks: If True, skip the checks for the compatibility of the datasets.
         :return:
         """
 
         logger.info(f'Loading the expression scores from {expression_path}')
         expression_xr = xr.open_zarr(expression_path)['tpm']
-
-        if not skip_checks:
-            logger.info('Checking if the data is compatible')
-            expr_transcripts = expression_xr.transcript.values
-            enf_transcripts = pl.scan_parquet(pathlib.Path(enformer_scores_path) / '**/data.parquet'). \
-                select('transcript_id').collect().to_series().to_list()
-            expr_transcripts = [x.split('.')[0] for x in expr_transcripts if '_PAR_Y' not in x]
-            enf_transcripts = [x.split('.')[0] for x in enf_transcripts if '_PAR_Y' not in x]
-
-            assert len(set(expr_transcripts)) == len(expr_transcripts), \
-                'Duplicate transcripts found in the expression dataset.'
-            assert len(set(enf_transcripts)) == len(enf_transcripts), \
-                'Duplicate transcripts found in the enformer dataset.'
-
-            common_size = len(set(expr_transcripts).intersection(set(enf_transcripts)))
-            assert common_size > 0, 'No common transcripts found in the datasets.'
-            logger.info(f'Number of common transcripts: {common_size}')
-            logger.info(f'Missing transcripts in the expression dataset: {len(set(enf_transcripts) - set(expr_transcripts))}')
 
         logger.info('Calculating the average expression scores...')
         expression_xr = expression_xr.groupby('subtissue').mean('sample')
@@ -204,31 +251,22 @@ class EnformerTissueMapper:
         expression_xr = expression_xr.assign_coords(dict(transcript=transcripts))
         tracks = list(self.tracks_dict.values())
 
-        scores = []
-        transcripts = []
-        enformer_ds = pq.ParquetDataset(enformer_scores_path)
-        for enformer_path in tqdm(enformer_ds.files, desc='Iterating over the parquet files'):
-            pqfile = pq.ParquetFile(enformer_path)
-            enformer_schema = pqfile.schema.to_arrow_schema()
-            shifts = [int(x) for x in enformer_schema.metadata[b'shifts'].split(b';')]
-            for i in tqdm(range(pqfile.num_row_groups), desc='Iterating over row groups', leave=False):
-                batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(pqfile.read_row_group(i)),
-                                                                   Enformer.BIN_SIZE, num_bins, shifts, tracks)
-                scores.append(batch_agg_pred)
-                transcripts.append(batch_meta['transcript_id'])
-
-        logger.info('Collecting results...')
-        # flatten the lists
-        transcripts = [item for sublist in transcripts for item in sublist]
-        enformer_xr = xr.DataArray(data=np.concatenate(scores), dims=['transcript', 'tracks'],
+        logger.info(f'Loading the enformer scores from {agg_enformer_path}')
+        enformer_df = pl.scan_parquet(agg_enformer_path).select(['transcript_id', 'tracks']).collect()
+        scores = enformer_df['tracks'].to_numpy()[:, tracks]
+        transcripts = enformer_df['transcript_id'].to_list()
+        enformer_xr = xr.DataArray(data=scores, dims=['transcript', 'tracks'],
                                    coords=dict(transcript=transcripts, tracks=tracks), name='enformer')
         # filter out Y chromosome equivalent transcripts
         enformer_xr = enformer_xr.sel(transcript=~enformer_xr.transcript.str.endswith('_PAR_Y'))
         transcripts = [x.split('.')[0] for x in enformer_xr.transcript.values]
         enformer_xr = enformer_xr.assign_coords(dict(transcript=transcripts))
 
+        logger.info('Merging datasets...')
         # merge the two xr data arrays
         xrds = xr.merge([expression_xr, enformer_xr], join='inner')
+
+        logger.info('Stared training.')
         # train the linear models
         model_dict = {}
         for subtissue, subtissue_xrds in xrds.groupby('subtissue'):
@@ -248,107 +286,32 @@ class EnformerTissueMapper:
         with open(output_path, 'wb') as f:
             pickle.dump(model_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def predict(self, enformer_scores_path: str | pathlib.Path, output_path: str | pathlib.Path, num_bins: int = 3):
+    def predict(self, agg_enformer_path: str | pathlib.Path, output_path: str | pathlib.Path):
         """
-        Load the predictions from the parquet file lazily.
-        For each record, calculate the average predictions over the bins centered at the tss bin.
         For each tissue in the tissue_mapper_lm_dict, predict a tissue-specific expression score.
-        Finally, save the expression scores in a new parquet file.
+        Save the expression scores in a new parquet file.
 
-        :param enformer_scores_path: The parquet file that contains the enformer predictions.
+        :param agg_enformer_path: The parquet file that contains the aggregated enformer predictions.
         :param output_path: The parquet file that will contain the tissue-specific expression scores.
-        :param num_bins: number of bins to average over for each record.
 
         The average predictions will be calculated at the tss bin of each record.
         """
         if self.tissue_mapper_lm_dict is None:
             raise ValueError('The tissue_mapper_lm_dict is not provided. Please train the linear models first.')
 
-        enformer_file = pq.ParquetFile(enformer_scores_path)
-        enformer_schema = enformer_file.schema.to_arrow_schema()
-        output_schema = enformer_schema.remove(enformer_schema.get_field_index('tracks'))
-        output_schema = pa.unify_schemas([output_schema, pa.schema([
-            pa.field('tissue', pa.string()),
-            pa.field('score', pa.float64()),
-        ])])
-        metadata = output_schema.metadata
-        metadata['nbins'] = str(num_bins)
-        output_schema = output_schema.with_metadata(metadata)
-        shifts = [int(x) for x in metadata[b'shifts'].split(b';')]
         tracks = list(self.tracks_dict.values())
-
-        logger.debug(f'Iterating over the parquet files in {enformer_scores_path}')
-        with pq.ParquetWriter(output_path, output_schema) as writer:
-            for i in tqdm(range(enformer_file.num_row_groups)):
-                batch_agg_pred, batch_meta = self._aggregate_batch(pl.from_arrow(enformer_file.read_row_group(i)),
-                                                                   Enformer.BIN_SIZE, num_bins, shifts, tracks)
-                logger.debug('Running model on the batch...')
-                record_batch = self._predict_batch(batch_agg_pred, batch_meta)
-                logger.debug('Writing to file')
-                writer.write(record_batch)
-
-    @staticmethod
-    def _aggregate_batch(frame, bin_size, num_bins, shifts, tracks):
-        """
-        Aggregate the predictions for a record.
-        :param frame:
-        :param bin_size:
-        :param num_bins:
-        :param tracks:
-        :return:
-        """
-        logger.debug('Aggregating the predictions for a batch')
-
-        pred = np.stack(frame['tracks'].to_list())
-        pred_seq_length = bin_size * pred.shape[2]
-        agg_pred = []
-        for shift_i, shift in enumerate(shifts):
-            # estimate the tss bin
-            # todo verify this calculation
-            tss_bin = (pred_seq_length // 2 + 1 - shift) // bin_size
-            # get num_bins - 1 neighboring bins centered at tss bin
-            bins = [tss_bin + i for i in range(-math.floor(num_bins / 2), math.ceil(num_bins / 2))]
-            assert len(bins) == num_bins
-            agg_pred.append(pred[:, shift_i, bins, :][:, :, tracks])
-
-        agg_pred = np.stack(agg_pred).swapaxes(0, 1)
-
-        assert agg_pred.shape == (len(frame), len(shifts), num_bins, len(tracks))
-        # average over shifts and bins
-        agg_pred = agg_pred.mean(axis=(1, 2))
-
-        assert agg_pred.shape == (len(frame), len(tracks),)
-        metadata = frame.select([k for k in frame.columns if k != 'tracks']).to_dict(as_series=False)
-        return agg_pred, metadata
-
-    def _predict_batch(self, batch_agg_pred, batch_meta):
-        """
-        Map the enformer predictions to the GTEx tissues using the linear models.
-        :param batch_agg_pred: The averaged predictions.
-        :param batch_meta: The metadata for each record.
-        :return:
-        """
-        batch_agg_pred = np.log10(batch_agg_pred + 1)
-        tissue_scores = defaultdict()
+        logger.debug(f'Iterating over the parquet files in {agg_enformer_path}')
+        enformer_df = pl.read_parquet(agg_enformer_path, hive_partitioning=False)
+        scores = enformer_df['tracks'].to_numpy()[:, tracks]
+        scores = np.log10(scores + 1)
+        dfs = []
         for tissue, lm in self.tissue_mapper_lm_dict.items():
-            tissue_scores[tissue] = lm.predict(batch_agg_pred)
-
-        scores = []
-        tissues = []
-        meta = defaultdict(list)
-        for tissue in self.tissue_mapper_lm_dict.keys():
-            tissues.extend([tissue] * len(batch_agg_pred))
-            scores.extend(tissue_scores[tissue].tolist())
-            for k, v in batch_meta.items():
-                meta[k].extend(v)
-
-        logger.debug('Constructing pyarrow record batch')
-        values = [pa.array(v) for v in meta.values()] + [pa.array(tissues),
-                                                         pa.array(scores), ]
-        names = [k for k in meta.keys()] + ['tissue', 'score']
-
-        # write to parquet
-        return pa.RecordBatch.from_arrays(values, names=names)
+            tissue_df = enformer_df.select(pl.exclude('tracks'))
+            tissue_df = tissue_df.with_columns(pl.Series(name='score', values=lm.predict(scores)),
+                                               pl.lit(tissue).alias('tissue'))
+            dfs.append(tissue_df)
+        enformer_df = pl.concat(dfs)
+        enformer_df.write_parquet(output_path)
 
 
 def calculate_veff(ref_path, alt_path, output_path):
@@ -369,8 +332,6 @@ def calculate_veff(ref_path, alt_path, output_path):
 
     ref_df = pl.scan_parquet(ref_path).rename({'score': 'ref_score'})
     alt_df = pl.scan_parquet(alt_path).rename({'score': 'alt_score'})
-    alt_metadata = pq.ParquetFile(alt_path).schema_arrow.metadata
-    del alt_metadata[b'allele_type']
 
     on = ['tss', 'chrom', 'strand', 'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
           'enformer_start', 'enformer_end', 'tissue']
@@ -381,10 +342,9 @@ def calculate_veff(ref_path, alt_path, output_path):
                                   'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
                                   'variant_start', 'variant_end', 'ref', 'alt', 'tissue',
                                   'ref_score', 'alt_score', 'log2fc'])
-    joined_df = joined_df.collect().to_arrow()
-    joined_df = joined_df.replace_schema_metadata(alt_metadata)
+    joined_df = joined_df.collect()
     logger.debug(f'Writing the variant effect to {output_path}')
-    pq.write_table(joined_df, output_path)
+    joined_df.write_parquet(output_path)
 
 
 def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Path,
@@ -399,8 +359,6 @@ def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Pat
     :param mode: One of ['logsum', 'mean']. If 'logsum', calculate the logsumexp of the scores.
     If 'mean', calculate the mean.
     """
-
-    veff_metadata = pq.ParquetFile(veff_path).schema_arrow.metadata
 
     veff_ldf = pl.scan_parquet(veff_path).filter(pl.col('log2fc').is_not_null())
     # filter out Y chromosome equivalent transcripts
@@ -450,8 +408,6 @@ def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Pat
     else:
         raise ValueError(f'Unknown mode: {mode}')
 
-    joined_df = joined_df.collect().to_arrow()
+    joined_df = joined_df.collect()
     logger.debug(f'Aggregated table size: {len(joined_df)}')
-    joined_df = joined_df.replace_schema_metadata(veff_metadata)
-    logger.debug(f'Writing the variant effect to {output_path}')
-    pq.write_table(joined_df, output_path)
+    joined_df.write_parquet(output_path)
