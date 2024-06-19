@@ -20,4 +20,15 @@ runs:
     veff2:
       alternative: alt1
       mapper: elasticnet_cage
+      isoform_file: null
+      aggregation_mode: first
+    veff3:
+      alternative: alt1
+      mapper: lightgbm_dnase_cage
+      isoform_file: ../assets/example_files/isoform_proportions.tsv
+      aggregation_mode: logsumexp
+    veff4:
+      alternative: alt1
+      mapper: lightgbm_cage
+      isoform_file: null
       aggregation_mode: first

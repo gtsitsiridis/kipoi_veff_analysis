@@ -10,7 +10,8 @@ import pickle
 import polars as pl
 from kipoi_enformer.constants import AlleleType
 from shutil import rmtree
-import tempfile
+from sklearn import linear_model
+import lightgbm as lgb
 
 
 @pytest.fixture
@@ -193,8 +194,12 @@ def test_calculate_veff(chr22_example_files, output_dir: Path,
     enformer_veff.run([ref_filepath], alt_filepath, output_path, aggregation_mode=aggregation_mode)
 
 
-def test_train_tissue_mapper(chr22_example_files, gtex_tissue_mapper_path, enformer_tracks_path, output_dir, size=10,
-                             batch_size=5, num_output_bins=21):
+@pytest.mark.parametrize("model", [
+    linear_model.ElasticNetCV(cv=5),
+    lgb.LGBMRegressor()
+])
+def test_train_tissue_mapper(chr22_example_files, gtex_tissue_mapper_path, enformer_tracks_path, output_dir,
+                             model, size=10, batch_size=5, num_output_bins=21):
     enformer_filepath = get_enformer_path(output_dir, size, AlleleType.REF)
     if not enformer_filepath.exists():
         logger.debug(f'Creating file: {enformer_filepath}')
@@ -209,4 +214,5 @@ def test_train_tissue_mapper(chr22_example_files, gtex_tissue_mapper_path, enfor
     tissue_mapper = EnformerTissueMapper(tracks_path=enformer_tracks_path,
                                          tissue_mapper_path=gtex_tissue_mapper_path)
     tissue_mapper.train([agg_path], output_path=output_dir / 'tissue_mapper',
-                        expression_path=chr22_example_files['gtex_expression'])
+                        expression_path=chr22_example_files['gtex_expression'],
+                        model=model)

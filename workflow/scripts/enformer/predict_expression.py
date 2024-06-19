@@ -33,10 +33,8 @@ if params['type'] == 'reference':
 
     # load reference config
     ref_config = config['enformer']['references'][wildcards['ref_key']]
-
     # load model config
     model_config = config['enformer']['models'][ref_config['model']]
-
     # load genome config
     genome_config = config['genomes'][ref_config['genome']]
 elif params.type == 'alternative':
@@ -45,16 +43,12 @@ elif params.type == 'alternative':
 
     # load alternative config
     alt_config = config['enformer']['alternatives'][wildcards['alt_key']]
-
-    # load model config
-    model_config = config['enformer']['models'][alt_config['model']]
-
     # load reference config
     ref_config = config['enformer']['references'][alt_config['reference']]
-
+    # load model config
+    model_config = config['enformer']['models'][ref_config['model']]
     # load genome config
     genome_config = config['genomes'][ref_config['genome']]
-
     # load VCF config
     vcf_config = config['vcfs'][alt_config['vcf']]
     vcf_file = pathlib.Path(vcf_config['path']) / f'{wildcards["vcf_name"]}'

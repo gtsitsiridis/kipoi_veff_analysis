@@ -74,14 +74,14 @@ rule aggregate_prediction:
 
 
 def train_mapper_input(wildcards):
-    mapper_key = wildcards['mapper_key']
+    mapper_key, ref_key = wildcards['mapper_key'], wildcards['ref_key']
     mapper_config = config['enformer']['mappers'][mapper_key]
-    reference_config = config['enformer']['references'][mapper_config['reference']]
+    reference_config = config['enformer']['references'][ref_key]
     genome_config = config['genomes'][reference_config['genome']]
     return expand(rules.aggregate_prediction.output['aggregated_path'],
         allele_type='reference',
         num_agg_bins=mapper_config['num_agg_bins'],
-        key=mapper_config['reference'],
+        key=ref_key,
         subpath=[f'chrom={chr}/data.parquet' for chr in genome_config['chromosomes']])
 
 
@@ -92,7 +92,7 @@ rule train_mapper:
         mem_mb=lambda wildcards, attempt, threads: 50000 + (10000 * attempt)
     threads: 30
     output:
-        tissue_mapper_path=output_path / 'mappers/{mapper_key}.pkl',
+        tissue_mapper_path=output_path / 'mappers/{mapper_key}_{ref_key}.pkl',
     input:
         enformer_paths=train_mapper_input
     script:
@@ -105,14 +105,14 @@ rule tissue_expression:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
     output:
-        prediction_path=output_path / '{allele_type}/expression/{mapper_key}/{key}.parquet/{subpath}',
+        prediction_path=output_path / '{allele_type}/expression/{mapper_key}_{ref_key}/{key}.parquet/{subpath}',
     input:
         enformer_path=expand(rules.aggregate_prediction.output['aggregated_path'],
             allele_type='{allele_type}',
             num_agg_bins=lookup(dpath='enformer/mappers/{mapper_key}/num_agg_bins',within=config),
             key='{key}',
             subpath='{subpath}'),
-        tissue_mapper_path=expand(rules.train_mapper.output[0],mapper_key='{mapper_key}')
+        tissue_mapper_path=expand(rules.train_mapper.output[0],mapper_key='{mapper_key}',ref_key='{ref_key}')
     script:
         '../scripts/enformer/tissue_expression.py'
 
@@ -128,11 +128,13 @@ def variant_effect_input(wildcards):
             allele_type='reference',
             mapper_key=run_config['mapper'],
             key=alternative_config['reference'],
+            ref_key=alternative_config['reference'],
             subpath=[f'chrom={chr}/data.parquet' for chr in genome_config['chromosomes']]),
         'alt_path': expand(rules.tissue_expression.output[0],
             allele_type='alternative',
             mapper_key=run_config['mapper'],
             key=run_config['alternative'],
+            ref_key=alternative_config['reference'],
             subpath=f'{vcf_name}.parquet')
 
     }

@@ -35,14 +35,12 @@ enformer:
     alt1:
       reference: ref1
       vcf: chr21_22_var
-      model: short
 
   mappers:
     elasticnet_dnase_cage:
       num_agg_bins: 3
       expression_path: ../assets/example_files/gtex_transcripts_tpms.zarr
       tracks_path: ../assets/human_cage_dnase_enformer_tracks.yaml
-      reference: ref1
       type: ElasticNet
       params:
         cv: 2
@@ -51,8 +49,17 @@ enformer:
       num_agg_bins: 3
       expression_path: ../assets/example_files/gtex_transcripts_tpms.zarr
       tracks_path: ../assets/cage_enformer_tracks.yaml
-      reference: ref1
       type: ElasticNet
       params:
         cv: 2
         max_iter: 1000
+    lightgbm_dnase_cage:
+      num_agg_bins: 3
+      expression_path: ../assets/example_files/gtex_transcripts_tpms.zarr
+      tracks_path: ../assets/human_cage_dnase_enformer_tracks.yaml
+      type: LightGBM
+    lightgbm_cage:
+      num_agg_bins: 3
+      expression_path: ../assets/example_files/gtex_transcripts_tpms.zarr
+      tracks_path: ../assets/cage_enformer_tracks.yaml
+      type: LightGBM
