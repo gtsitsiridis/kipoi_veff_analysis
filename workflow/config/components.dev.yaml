@@ -1,0 +1,58 @@
+genomes:
+  chr21_22:
+    gtf_file: ../assets/example_files/annot.gtf.gz
+    fasta_file: ../assets/example_files/seq.fa
+    canonical_only: false
+    protein_coding_only: true
+    chromosomes:
+      - chr21
+      - chr22
+
+vcfs:
+  chr21_22_var:
+    path: ../assets/example_files/vcf
+    variant_upstream_tss: 2000
+    variant_downstream_tss: 500
+
+enformer:
+  models:
+    short:
+      shift: 43
+      batch_size: 2
+      num_output_bins: 21
+      num_agg_bins: 3
+    complete:
+      shift: 43
+      batch_size: 2
+      num_output_bins: 896
+
+  references:
+    ref1:
+      genome: chr21_22
+      model: short
+
+  alternatives:
+    alt1:
+      reference: ref1
+      vcf: chr21_22_var
+      model: short
+
+  mappers:
+    elasticnet_dnase_cage:
+      num_agg_bins: 3
+      expression_path: ../assets/example_files/gtex_transcripts_tpms.zarr
+      tracks_path: ../assets/human_cage_dnase_enformer_tracks.yaml
+      reference: ref1
+      type: ElasticNet
+      params:
+        cv: 2
+        max_iter: 1000
+    elasticnet_cage:
+      num_agg_bins: 3
+      expression_path: ../assets/example_files/gtex_transcripts_tpms.zarr
+      tracks_path: ../assets/cage_enformer_tracks.yaml
+      reference: ref1
+      type: ElasticNet
+      params:
+        cv: 2
+        max_iter: 1000

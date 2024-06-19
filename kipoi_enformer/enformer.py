@@ -14,10 +14,9 @@ import pickle
 import polars as pl
 from scipy.special import logsumexp
 import xarray as xr
-from collections import defaultdict
 from sklearn import linear_model, pipeline, preprocessing
 
-__all__ = ['Enformer', 'EnformerAggregator', 'EnformerTissueMapper', 'calculate_veff', 'aggregate_veff']
+__all__ = ['Enformer', 'EnformerAggregator', 'EnformerTissueMapper', 'EnformerVeff']
 
 # Enformer model URI
 MODEL_PATH = 'https://tfhub.dev/deepmind/enformer/1'
@@ -225,7 +224,7 @@ class EnformerTissueMapper:
         with open(tracks_path, 'rb') as f:
             self.tracks_dict = yaml.safe_load(f)
 
-    def train(self, agg_enformer_path: str | pathlib.Path, expression_path: str | pathlib.Path
+    def train(self, agg_enformer_paths: list[str] | list[pathlib.Path], expression_path: str | pathlib.Path
               , output_path: str | pathlib.Path, model=linear_model.ElasticNetCV(cv=5)):
         """
         Load the predictions from the parquet file lazily.
@@ -233,7 +232,7 @@ class EnformerTissueMapper:
         Collect the average predictions and train a linear model for each tissue.
         Save the linear models in a pickle file.
 
-        :param agg_enformer_path: The parquet file that contains the aggregated enformer predictions.
+        :param agg_enformer_paths: The parquet files that contain the aggregated enformer predictions.
         :param expression_path: The zarr file that contains the expression scores. (ground truth)
         :param output_path: The pickle file that will contain the linear models.
         :param model: The model to use for training the tissue mapper.
@@ -251,8 +250,10 @@ class EnformerTissueMapper:
         expression_xr = expression_xr.assign_coords(dict(transcript=transcripts))
         tracks = list(self.tracks_dict.values())
 
-        logger.info(f'Loading the enformer scores from {agg_enformer_path}')
-        enformer_df = pl.scan_parquet(agg_enformer_path).select(['transcript_id', 'tracks']).collect()
+        logger.info(f'Loading the enformer scores from {agg_enformer_paths}')
+        enformer_df = pl.concat([
+            pl.scan_parquet(path).select(['transcript_id', 'tracks']) for path in agg_enformer_paths
+        ]).collect()
         scores = enformer_df['tracks'].to_numpy()[:, tracks]
         transcripts = enformer_df['transcript_id'].to_list()
         enformer_xr = xr.DataArray(data=scores, dims=['transcript', 'tracks'],
@@ -314,100 +315,117 @@ class EnformerTissueMapper:
         enformer_df.write_parquet(output_path)
 
 
-def calculate_veff(ref_path, alt_path, output_path):
-    """
-    Given a file containing enformer scores for alternative alleles,
-     1) load the corresponding reference chromosomes into memory,
-     2) iterate over the alternative allele in batches,
-     3) join the reference and alternative scores on the chromosome and position,
-     and 4) calculate the variant effect by subtracting the reference scores from the alternate scores.
+class EnformerVeff:
 
-    :param ref_path: The parquet files that contains the reference scores
-    :param alt_path: The parquet file that contains the alternate scores
-    :param output_path: Whether the model scores are already log transformed
-    :return:
-    """
+    def __init__(self, isoforms_path: str | pathlib.Path | None = None):
+        self.isoform_proportion_ldf = None
+        if isoforms_path is not None:
+            self.isoform_proportion_ldf = (pl.scan_csv(isoforms_path, separator='\t').
+                                           select(['gene', 'transcript', 'tissue', 'median_transcript_proportions']).
+                                           rename({'median_transcript_proportions': 'isoform_proportion',
+                                                   'gene': 'gene_id', 'transcript': 'transcript_id'}).
+                                           filter(~pl.col('isoform_proportion').is_null()))
 
-    logger.debug(f'Calculating the variant effect for {alt_path}')
+    def run(self, ref_paths: list[str] | list[pathlib.Path], alt_path: str | pathlib.Path, output_path: str | pathlib.Path,
+            aggregation_mode: str):
+        """
+        Given a file containing enformer scores for alternative alleles, calculate the variant effect.
+        Then aggregate the scores by gene, variant and tissue. Save the results in a parquet file.
 
-    ref_df = pl.scan_parquet(ref_path).rename({'score': 'ref_score'})
-    alt_df = pl.scan_parquet(alt_path).rename({'score': 'alt_score'})
+        :param ref_paths: The parquet files that contains the reference scores
+        :param alt_path: The parquet file that contains the alternate scores
+        :param output_path: The parquet file that will contain the variant effect scores
+        :param aggregation_mode: One of ['logsumexp', 'weighted-sum', 'median', 'first'].
+        :return:
+        """
 
-    on = ['tss', 'chrom', 'strand', 'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
-          'enformer_start', 'enformer_end', 'tissue']
+        if aggregation_mode not in ['logsumexp', 'weighted_sum', 'median', 'first']:
+            raise ValueError(f'Unknown mode: {aggregation_mode}')
 
-    joined_df = alt_df.join(ref_df, how='left', on=on)
-    joined_df = joined_df.with_columns(((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
-    joined_df = joined_df.select(['enformer_start', 'enformer_end', 'tss', 'chrom', 'strand',
-                                  'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
-                                  'variant_start', 'variant_end', 'ref', 'alt', 'tissue',
-                                  'ref_score', 'alt_score', 'log2fc'])
-    joined_df = joined_df.collect()
-    logger.debug(f'Writing the variant effect to {output_path}')
-    joined_df.write_parquet(output_path)
+        logger.debug(f'Calculating the variant effect for {alt_path}')
+
+        ref_ldf = pl.concat([pl.scan_parquet(path).rename({'score': 'ref_score'}) for path in ref_paths])
+        alt_ldf = pl.scan_parquet(alt_path).rename({'score': 'alt_score'})
+
+        on = ['tss', 'chrom', 'strand', 'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
+              'enformer_start', 'enformer_end', 'tissue']
+
+        veff_ldf = alt_ldf.join(ref_ldf, how='left', on=on)
+        veff_ldf = veff_ldf.select(['enformer_start', 'enformer_end', 'tss', 'chrom', 'strand',
+                                    'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
+                                    'variant_start', 'variant_end', 'ref', 'alt', 'tissue',
+                                    'ref_score', 'alt_score'])
 
 
-def aggregate_veff(veff_path: str | pathlib.Path, output_path: str | pathlib.Path,
-                   isoforms_path: str | pathlib.Path | None = None, mode='logsumexp'):
-    """
-    Given a file containing variant effect scores, aggregate the scores by gene, variant and tissue.
-    If the isoform proportions per tissue are given, then calculate the weighted sum. Otherwise, calculate the average.
-
-    :param veff_path: The parquet file that contains the variant effect scores
-    :param isoforms_path: The file containing the isoform proportions per tissue
-    :param output_path: The parquet file that will contain the aggregated scores
-    :param mode: One of ['logsum', 'mean']. If 'logsum', calculate the logsumexp of the scores.
-    If 'mean', calculate the mean.
-    """
-
-    veff_ldf = pl.scan_parquet(veff_path).filter(pl.col('log2fc').is_not_null())
-    # filter out Y chromosome equivalent transcripts
-    veff_ldf = veff_ldf.filter(~pl.col('transcript_id').str.contains('_PAR_Y'))
-    veff_ldf = veff_ldf.with_columns(pl.col('gene_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('gene_id'))
-    veff_ldf = veff_ldf.with_columns(
-        pl.col('transcript_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('transcript_id'))
-
-    if isoforms_path is not None:
-        isoform_proportion_ldf = (pl.scan_csv(isoforms_path, separator='\t').
-                                  select(['gene', 'transcript', 'tissue', 'median_transcript_proportions']).
-                                  rename({'median_transcript_proportions': 'isoform_proportion',
-                                          'gene': 'gene_id', 'transcript': 'transcript_id'}).
-                                  filter(~pl.col('isoform_proportion').is_null()))
-        joined_df = (veff_ldf.join(isoform_proportion_ldf, on=['gene_id', 'tissue', 'transcript_id'], how='left').
-                     with_columns('isoform_proportion').fill_null(0))
-    else:
-        # assign equal weight to each transcript, if no isoform proportions are given
-        joined_df = veff_ldf.with_columns(
-            (1 / pl.len()).over(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']).
-            alias('isoform_proportion'))
-
-    def logsumexp_udf(score, weight):
-        return logsumexp(score / math.log10(math.e), b=weight) / math.log(10)
-
-    if mode == 'logsumexp':
-        joined_df = joined_df. \
-            group_by(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']). \
-            agg(
-            pl.struct(['ref_score', 'isoform_proportion']).
-            map_elements(lambda x: logsumexp_udf(x.struct.field('ref_score'), x.struct.field('isoform_proportion')),
-                         return_dtype=pl.Float64()).
-            alias('ref_score'),
-            pl.struct(['alt_score', 'isoform_proportion']).
-            map_elements(lambda x: logsumexp_udf(x.struct.field('alt_score'), x.struct.field('isoform_proportion')),
-                         return_dtype=pl.Float64()).
-            alias('alt_score'),
+        # filter out Y chromosome equivalent transcripts
+        veff_ldf = veff_ldf.filter(~pl.col('transcript_id').str.contains('_PAR_Y'))
+        # remove gene and transcript versions
+        veff_ldf = veff_ldf.with_columns(
+            pl.col('gene_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('gene_id'),
+            pl.col('transcript_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('transcript_id')
         )
-        joined_df = joined_df.with_columns(((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc')). \
-            fill_nan(0)
-    elif mode == 'mean':
-        joined_df = (joined_df.
-        group_by(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']).
-        agg(
-            (pl.col('isoform_proportion') * (pl.col('alt_score') - pl.col('ref_score'))).sum().alias('log2fc'),
-        ))
-    else:
-        raise ValueError(f'Unknown mode: {mode}')
 
-    joined_df = joined_df.collect()
-    logger.debug(f'Aggregated table size: {len(joined_df)}')
-    joined_df.write_parquet(output_path)
+        veff_df = self._aggregate(veff_ldf, aggregation_mode)
+        logger.debug(f'Writing the variant effect to {output_path}')
+        veff_df.write_parquet(output_path)
+
+    def _aggregate(self, veff_ldf, mode='logsumexp'):
+        """
+        Given a dataframe containing variant effect scores, aggregate the scores by gene, variant and tissue.
+
+        :param veff_ldf: A polars dataframe containing the variant effect scores.
+        :param mode: One of ['logsumexp', 'weighted_sum', 'median', 'first'].
+        """
+
+        def logsumexp_udf(score, weight):
+            return logsumexp(score / math.log10(math.e), b=weight) / math.log(10)
+
+        if mode in ['logsumexp', 'weighted_sum']:
+            assert self.isoform_proportion_ldf is not None, 'Isoform proportions are required for this mode.'
+            veff_ldf = (
+                veff_ldf.join(self.isoform_proportion_ldf, on=['gene_id', 'tissue', 'transcript_id'], how='left').
+                with_columns('isoform_proportion').fill_null(0))
+
+            if mode == 'logsumexp':
+                veff_ldf = veff_ldf. \
+                    group_by(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']). \
+                    agg(
+                    pl.struct(['ref_score', 'isoform_proportion']).
+                    map_elements(
+                        lambda x: logsumexp_udf(x.struct.field('ref_score'), x.struct.field('isoform_proportion')),
+                        return_dtype=pl.Float64()).
+                    alias('ref_score'),
+                    pl.struct(['alt_score', 'isoform_proportion']).
+                    map_elements(
+                        lambda x: logsumexp_udf(x.struct.field('alt_score'), x.struct.field('isoform_proportion')),
+                        return_dtype=pl.Float64()).
+                    alias('alt_score'),
+                )
+                veff_ldf = veff_ldf.with_columns(
+                    ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc')). \
+                    fill_nan(0)
+            elif mode == 'weighted_sum':
+                veff_ldf = veff_ldf.with_columns(
+                    (pl.col('isoform_proportion') * (pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias(
+                        'log2fc'))
+                veff_ldf = veff_ldf.group_by(['chrom', 'strand', 'gene_id', 'variant_start',
+                                              'variant_end', 'ref', 'alt', 'tissue']).agg(pl.col('log2fc').sum())
+        elif mode == 'median':
+            veff_ldf = veff_ldf.with_columns(
+                ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
+            veff_ldf = veff_ldf.groupby(['chrom', 'strand', 'gene_id', 'variant_start',
+                                         'variant_end', 'ref', 'alt', 'tissue', ]).agg(pl.col('log2fc').median())
+        elif mode == 'first':
+            veff_ldf = veff_ldf.with_columns(
+                ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
+            veff_ldf = veff_ldf.groupby(['chrom', 'strand', 'gene_id', 'variant_start',
+                                         'variant_end', 'ref', 'alt', 'tissue', ]).agg(
+                pl.col(['enformer_start', 'enformer_end', 'tss', 'transcript_id', 'transcript_start', 'transcript_end',
+                        'ref_score', 'alt_score', 'log2fc']).first()
+            )
+        else:
+            raise ValueError(f'Unknown mode: {mode}')
+
+        veff_df = veff_ldf.collect()
+        logger.debug(f'Aggregated table size: {len(veff_df)}')
+        return veff_df

@@ -1,7 +1,7 @@
 import pytest
 
 from kipoi_enformer.dataloader import TSSDataloader, RefTSSDataloader, VCFTSSDataloader
-from kipoi_enformer.enformer import Enformer, EnformerAggregator, EnformerTissueMapper, calculate_veff, aggregate_veff
+from kipoi_enformer.enformer import Enformer, EnformerAggregator, EnformerTissueMapper, EnformerVeff
 from pathlib import Path
 import pyarrow.parquet as pq
 from kipoi_enformer.logger import logger
@@ -164,8 +164,11 @@ def test_predict_tissue_mapper(allele_type: str, chr22_example_files, output_dir
         assert tbl.shape == (num_tissues * size, 13 + 2)
 
 
+@pytest.mark.parametrize("aggregation_mode", [
+    'logsumexp', 'first', 'median', 'weighted_sum'
+])
 def test_calculate_veff(chr22_example_files, output_dir: Path,
-                        enformer_tracks_path: Path, gtex_tissue_mapper_path: Path, size=10):
+                        enformer_tracks_path: Path, gtex_tissue_mapper_path: Path, aggregation_mode, size=10):
     ref_filepath = get_tissue_path(output_dir, size, AlleleType.REF)
     if ref_filepath.exists():
         logger.debug(f'Using existing file: {ref_filepath}')
@@ -182,29 +185,12 @@ def test_calculate_veff(chr22_example_files, output_dir: Path,
         test_predict_tissue_mapper('ALT', chr22_example_files, output_dir,
                                    enformer_tracks_path, gtex_tissue_mapper_path, size=size)
 
-    output_path = output_dir / f'enformer_{size}/tissue/veff.parquet'
+    output_path = output_dir / f'enformer_{size}/tissue/{aggregation_mode}_veff.parquet'
     if output_path.exists():
         output_path.unlink()
-    calculate_veff(ref_filepath, alt_filepath, output_path)
 
-
-@pytest.mark.parametrize("is_isoform", [
-    True, False
-])
-def test_calculate_agg_veff(chr22_example_files, output_dir: Path,
-                            enformer_tracks_path: Path, gtex_tissue_mapper_path: Path, is_isoform, size=100):
-    veff_filepath = get_veff_path(output_dir, size)
-    if veff_filepath.exists():
-        logger.debug(f'Using existing file: {veff_filepath}')
-    else:
-        logger.debug(f'Creating file: {veff_filepath}')
-        test_calculate_veff(chr22_example_files, output_dir, enformer_tracks_path, gtex_tissue_mapper_path, size=size)
-
-    output_path = output_dir / f'enformer_{size}/tissue/veff_agg.parquet'
-    if output_path.exists():
-        output_path.unlink()
-    aggregate_veff(veff_path=veff_filepath, output_path=output_path,
-                   isoforms_path=None if not is_isoform else chr22_example_files['isoform_proportions'])
+    enformer_veff = EnformerVeff(isoforms_path=chr22_example_files['isoform_proportions'])
+    enformer_veff.run([ref_filepath], alt_filepath, output_path, aggregation_mode=aggregation_mode)
 
 
 def test_train_tissue_mapper(chr22_example_files, gtex_tissue_mapper_path, enformer_tracks_path, output_dir, size=10,
@@ -222,5 +208,5 @@ def test_train_tissue_mapper(chr22_example_files, gtex_tissue_mapper_path, enfor
 
     tissue_mapper = EnformerTissueMapper(tracks_path=enformer_tracks_path,
                                          tissue_mapper_path=gtex_tissue_mapper_path)
-    tissue_mapper.train(agg_path, output_path=output_dir / 'tissue_mapper',
+    tissue_mapper.train([agg_path], output_path=output_dir / 'tissue_mapper',
                         expression_path=chr22_example_files['gtex_expression'])

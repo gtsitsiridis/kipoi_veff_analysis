@@ -14,5 +14,5 @@ else:
     logger = setup_logger()
 
 aggregator = EnformerAggregator()
-aggregator.aggregate(input_['enformer_path'], output_path=output['aggregated_path'],
-                     num_bins=config['enformer']['tissue_mapper']['nbins'])
+aggregator.aggregate(input_['prediction_path'], output_path=output['aggregated_path'],
+                     num_bins=int(wildcards['num_agg_bins']))

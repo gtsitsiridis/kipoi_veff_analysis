@@ -1,4 +1,4 @@
-from kipoi_enformer.enformer import calculate_veff
+from kipoi_enformer.enformer import EnformerVeff
 from kipoi_enformer.logger import setup_logger
 import logging
 
@@ -14,4 +14,6 @@ if config.get('debug', False):
 else:
     logger = setup_logger()
 
-calculate_veff(params['ref_tissue_pred_paths'], input_['alt_tissue_pred_path'], output['transcript_veff_path'])
+logger.info(f'Running veff on {input_["alt_path"]}')
+veff = EnformerVeff(params.get('isoform_file', None))
+veff.run(input_['ref_paths'], input_['alt_path'], output['veff_path'], aggregation_mode=params['aggregation_mode'])

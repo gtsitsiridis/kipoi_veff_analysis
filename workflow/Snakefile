@@ -1,0 +1,32 @@
+import pathlib
+
+assert len(config) > 0, "The config file has not been defined or is empty"
+
+output_path = pathlib.Path(config["output_path"]) / 'enformer'
+
+# load additional configurations
+if config.get('configs',None):
+    for conf in config["configs"]:
+        print(conf)
+        configfile: conf
+del config['configs']
+
+module enfomer_workflow:
+    snakefile: "rules/enformer.smk"
+    config: config
+
+use rule * from enfomer_workflow as enformer_ *
+
+rule all:
+    default_target: True
+    input:
+        expand(rules.enformer_train_mapper.output,mapper_key='elasticnet_dnase_cage'),
+        expand(rules.enformer_tissue_expression.output,mapper_key='elasticnet_dnase_cage',
+            allele_type='reference',key='ref1',subpath='chrom=chr21/data.parquet',),
+        expand(rules.enformer_tissue_expression.output,mapper_key='elasticnet_dnase_cage',
+            allele_type='alternative',key='alt1',subpath='chr21_var.vcf.gz.parquet',),
+        expand(rules.enformer_variant_effect.output,run_key='veff1',vcf_name='chr21_var.vcf.gz',)
+    # expand(rules.enformer_aggregate_prediction.output,
+    #     allele_type='reference',key='ref1',num_agg_bins=3,subpath='chrom=chr21/data.parquet'),
+    # expand(rules.enformer_aggregate_prediction.output,
+    #     allele_type='alternative',key='alt1',num_agg_bins=3,subpath='vcf=chr21_var.vcf.gz/data.parquet'),

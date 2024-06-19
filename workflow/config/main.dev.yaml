@@ -1,0 +1,23 @@
+# the path to the output folder
+output_path: ../output/smk
+
+debug: true
+test:
+  dataloader_size: 100
+  is_random_enformer: true
+
+# additional component configuration files to be used
+configs:
+  - config/components.dev.yaml
+
+runs:
+  enformer:
+    veff1:
+      alternative: alt1
+      mapper: elasticnet_dnase_cage
+      isoform_file: ../assets/example_files/isoform_proportions.tsv
+      aggregation_mode: logsumexp
+    veff2:
+      alternative: alt1
+      mapper: elasticnet_cage
+      aggregation_mode: first
