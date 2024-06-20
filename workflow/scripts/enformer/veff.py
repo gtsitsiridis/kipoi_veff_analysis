@@ -15,5 +15,9 @@ else:
     logger = setup_logger()
 
 logger.info(f'Running veff on {input_["alt_path"]}')
-veff = EnformerVeff(params.get('isoform_file', None))
-veff.run(input_['ref_paths'], input_['alt_path'], output['veff_path'], aggregation_mode=params['aggregation_mode'])
+logger.info(params)
+veff = EnformerVeff(isoforms_path=params.get('isoform_file', None),
+                    aggregation_mode=params['aggregation_mode'],
+                    upstream_tss=params.get('upstream_tss', None),
+                    downstream_tss=params.get('downstream_tss', None), )
+veff.run(input_['ref_paths'], input_['alt_path'], output['veff_path'])

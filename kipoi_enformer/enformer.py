@@ -317,7 +317,22 @@ class EnformerTissueMapper:
 
 class EnformerVeff:
 
-    def __init__(self, isoforms_path: str | pathlib.Path | None = None):
+    def __init__(self, aggregation_mode: str, isoforms_path: str | pathlib.Path | None = None,
+                 upstream_tss: int | None = None, downstream_tss: int | None = None):
+        """
+
+        :param aggregation_mode: One of ['logsumexp', 'weighted_sum', 'median', 'first'].
+        :param isoforms_path: The path to the file containing the isoform proportions.
+        :param upstream_tss: Variant effects outside of the interval [-upstream_tss, downstream_tss] will be set to 0.
+        :param downstream_tss: Variant effects outside of the interval [-upstream_tss, downstream_tss] will be set to 0.
+        """
+        if aggregation_mode not in ['logsumexp', 'weighted_sum', 'median', 'first']:
+            raise ValueError(f'Unknown mode: {aggregation_mode}')
+
+        self.aggregation_mode = aggregation_mode
+        self.upstream_tss = upstream_tss
+        self.downstream_tss = downstream_tss
+
         self.isoform_proportion_ldf = None
         if isoforms_path is not None:
             self.isoform_proportion_ldf = (pl.scan_csv(isoforms_path, separator='\t').
@@ -326,8 +341,8 @@ class EnformerVeff:
                                                    'gene': 'gene_id', 'transcript': 'transcript_id'}).
                                            filter(~pl.col('isoform_proportion').is_null()))
 
-    def run(self, ref_paths: list[str] | list[pathlib.Path], alt_path: str | pathlib.Path, output_path: str | pathlib.Path,
-            aggregation_mode: str):
+    def run(self, ref_paths: list[str] | list[pathlib.Path], alt_path: str | pathlib.Path,
+            output_path: str | pathlib.Path):
         """
         Given a file containing enformer scores for alternative alleles, calculate the variant effect.
         Then aggregate the scores by gene, variant and tissue. Save the results in a parquet file.
@@ -335,12 +350,11 @@ class EnformerVeff:
         :param ref_paths: The parquet files that contains the reference scores
         :param alt_path: The parquet file that contains the alternate scores
         :param output_path: The parquet file that will contain the variant effect scores
-        :param aggregation_mode: One of ['logsumexp', 'weighted-sum', 'median', 'first'].
         :return:
         """
 
-        if aggregation_mode not in ['logsumexp', 'weighted_sum', 'median', 'first']:
-            raise ValueError(f'Unknown mode: {aggregation_mode}')
+        downstream_tss = self.downstream_tss
+        upstream_tss = self.upstream_tss
 
         logger.debug(f'Calculating the variant effect for {alt_path}')
 
@@ -356,7 +370,6 @@ class EnformerVeff:
                                     'variant_start', 'variant_end', 'ref', 'alt', 'tissue',
                                     'ref_score', 'alt_score'])
 
-
         # filter out Y chromosome equivalent transcripts
         veff_ldf = veff_ldf.filter(~pl.col('transcript_id').str.contains('_PAR_Y'))
         # remove gene and transcript versions
@@ -365,17 +378,35 @@ class EnformerVeff:
             pl.col('transcript_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('transcript_id')
         )
 
-        veff_df = self._aggregate(veff_ldf, aggregation_mode)
+        # calculate variant position relative to the tss
+        if downstream_tss is not None or upstream_tss is not None:
+            veff_ldf = veff_ldf.with_columns(
+                (pl.when(pl.col('strand') == '+').then(
+                    pl.col('variant_start') - pl.col('transcript_start')
+                ).otherwise(
+                    pl.col('transcript_end') - pl.col('variant_start'))
+                ).alias('relative_pos'))
+
+            if downstream_tss is not None:
+                expr = pl.when(pl.col('relative_pos') > downstream_tss).then(0)
+                veff_ldf = veff_ldf.with_columns(expr.alias('ref_score'),
+                                                 expr.alias('alt_score'))
+            if upstream_tss is not None:
+                expr = pl.when(pl.col('relative_pos') < -upstream_tss).then(0)
+                veff_ldf = veff_ldf.with_columns(expr.alias('ref_score'),
+                                                 expr.alias('alt_score'))
+
+        veff_df = self._aggregate(veff_ldf)
         logger.debug(f'Writing the variant effect to {output_path}')
         veff_df.write_parquet(output_path)
 
-    def _aggregate(self, veff_ldf, mode='logsumexp'):
+    def _aggregate(self, veff_ldf):
         """
         Given a dataframe containing variant effect scores, aggregate the scores by gene, variant and tissue.
 
         :param veff_ldf: A polars dataframe containing the variant effect scores.
-        :param mode: One of ['logsumexp', 'weighted_sum', 'median', 'first'].
         """
+        mode = self.aggregation_mode
 
         def logsumexp_udf(score, weight):
             return logsumexp(score / math.log10(math.e), b=weight) / math.log(10)

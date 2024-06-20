@@ -10,6 +10,10 @@ test:
 configs:
   - config/components.dev.yaml
 
+benchmark:
+  genotypes_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
+  annotation_path: /s/project/rep/processed/training_results_v14/gtex_benchmark_with_annotation.parquet/*.parquet
+
 runs:
   enformer:
     gtex_v8_2000_500_elasticnet_dnase_cage_logsumexp:
@@ -17,38 +21,54 @@ runs:
       mapper: elasticnet_dnase_cage_gtex_v8
       isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
       aggregation_mode: logsumexp
+      upstream_tss: None
+      downstream_tss: None
     gtex_v8_2000_500_elasticnet_cage_logsumexp:
       alternative: gtex_v8_2000_500
       mapper: elasticnet_cage_gtex_v8
       isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
       aggregation_mode: logsumexp
+      upstream_tss: None
+      downstream_tss: None
     gtex_v8_500_100_canonical_elasticnet_dnase_cage_logsumexp:
       alternative: gtex_v8_500_100_canonical
       mapper: elasticnet_dnase_cage_gtex_v8
       isoform_file: null
       aggregation_mode: first
+      upstream_tss: None
+      downstream_tss: None
     gtex_v8_500_100_canonical_elasticnet_cage_logsumexp:
       alternative: gtex_v8_500_100_canonical
       mapper: elasticnet_cage_gtex_v8
       isoform_file: null
       aggregation_mode: first
+      upstream_tss: None
+      downstream_tss: None
     gtex_v8_2000_500_lightgbm_dnase_cage_logsumexp:
       alternative: gtex_v8_2000_500
       mapper: lightgbm_dnase_cage_gtex_v8
       isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
       aggregation_mode: logsumexp
+      upstream_tss: None
+      downstream_tss: None
     gtex_v8_2000_500_lightgbm_cage_logsumexp:
       alternative: gtex_v8_2000_500
       mapper: lightgbm_cage_gtex_v8
       isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
       aggregation_mode: logsumexp
+      upstream_tss: None
+      downstream_tss: None
     gtex_v8_500_100_canonical_lightgbm_dnase_cage_logsumexp:
       alternative: gtex_v8_500_100_canonical
       mapper: lightgbm_dnase_cage_gtex_v8
       isoform_file: null
       aggregation_mode: first
+      upstream_tss: None
+      downstream_tss: None
     gtex_v8_500_100_canonical_lightgbm_cage_logsumexp:
       alternative: gtex_v8_500_100_canonical
       mapper: lightgbm_cage_gtex_v8
       isoform_file: null
       aggregation_mode: first
+      upstream_tss: None
+      downstream_tss: None

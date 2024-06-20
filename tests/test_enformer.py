@@ -14,23 +14,6 @@ from sklearn import linear_model
 import lightgbm as lgb
 
 
-@pytest.fixture
-def output_dir():
-    output_dir = Path('output/test')
-    output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir
-
-
-@pytest.fixture
-def gtex_tissue_mapper_path():
-    return Path('assets/gtex_enformer_lm_models_pseudocount1.pkl')
-
-
-@pytest.fixture
-def enformer_tracks_path():
-    return Path('assets/cage_nonuniversal_enformer_tracks.yaml')
-
-
 def run_enformer(dl: TSSDataloader, output_path, size, batch_size, num_output_bins):
     enformer = Enformer(is_random=True)
 
@@ -165,11 +148,13 @@ def test_predict_tissue_mapper(allele_type: str, chr22_example_files, output_dir
         assert tbl.shape == (num_tissues * size, 13 + 2)
 
 
-@pytest.mark.parametrize("aggregation_mode", [
-    'logsumexp', 'first', 'median', 'weighted_sum'
+@pytest.mark.parametrize("aggregation_mode, upstream_tss, downstream_tss", [
+    ('logsumexp', 100, 50), ('first', 100, 50), ('median', 100, 50), ('weighted_sum', 100, 50),
+    ('logsumexp', 200, 50), ('first', 200, 50), ('median', 200, 50), ('weighted_sum', 200, 50),
 ])
 def test_calculate_veff(chr22_example_files, output_dir: Path,
-                        enformer_tracks_path: Path, gtex_tissue_mapper_path: Path, aggregation_mode, size=10):
+                        enformer_tracks_path: Path, gtex_tissue_mapper_path: Path, aggregation_mode, downstream_tss,
+                        upstream_tss, size=10):
     ref_filepath = get_tissue_path(output_dir, size, AlleleType.REF)
     if ref_filepath.exists():
         logger.debug(f'Using existing file: {ref_filepath}')
@@ -186,12 +171,15 @@ def test_calculate_veff(chr22_example_files, output_dir: Path,
         test_predict_tissue_mapper('ALT', chr22_example_files, output_dir,
                                    enformer_tracks_path, gtex_tissue_mapper_path, size=size)
 
-    output_path = output_dir / f'enformer_{size}/tissue/{aggregation_mode}_veff.parquet'
+    output_path = output_dir / f'enformer_{size}/tissue/{aggregation_mode}_{upstream_tss}_{downstream_tss}_veff.parquet'
     if output_path.exists():
         output_path.unlink()
 
-    enformer_veff = EnformerVeff(isoforms_path=chr22_example_files['isoform_proportions'])
-    enformer_veff.run([ref_filepath], alt_filepath, output_path, aggregation_mode=aggregation_mode)
+    enformer_veff = EnformerVeff(isoforms_path=chr22_example_files['isoform_proportions'],
+                                 aggregation_mode=aggregation_mode, downstream_tss=downstream_tss,
+                                 upstream_tss=upstream_tss)
+    enformer_veff.run([ref_filepath], alt_filepath, output_path)
+    return output_path
 
 
 @pytest.mark.parametrize("model", [

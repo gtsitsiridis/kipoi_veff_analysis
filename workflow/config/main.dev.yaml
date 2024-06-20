@@ -10,6 +10,10 @@ test:
 configs:
   - config/components.dev.yaml
 
+benchmark:
+  genotypes_path: ../assets/example_files/gtex_samples/rare_variants.vcf.parquet
+  annotation_path: ../assets/example_files/gtex_samples/benchmark_with_annotation.parquet
+
 runs:
   enformer:
     veff1:
@@ -17,18 +21,40 @@ runs:
       mapper: elasticnet_dnase_cage
       isoform_file: ../assets/example_files/isoform_proportions.tsv
       aggregation_mode: logsumexp
+      upstream_tss: 2000
+      downstream_tss: 500
     veff2:
       alternative: alt1
       mapper: elasticnet_cage
       isoform_file: null
       aggregation_mode: first
+      upstream_tss: 2000
+      downstream_tss: 500
     veff3:
       alternative: alt1
       mapper: lightgbm_dnase_cage
       isoform_file: ../assets/example_files/isoform_proportions.tsv
       aggregation_mode: logsumexp
+      upstream_tss: 2000
+      downstream_tss: 500
     veff4:
       alternative: alt1
       mapper: lightgbm_cage
       isoform_file: null
       aggregation_mode: first
+      upstream_tss: 2000
+      downstream_tss: 500
+    veff5:
+      alternative: alt1
+      mapper: lightgbm_dnase_cage
+      isoform_file: ../assets/example_files/isoform_proportions.tsv
+      aggregation_mode: logsumexp
+      upstream_tss: 100
+      downstream_tss: 500
+    veff6:
+      alternative: alt1
+      mapper: lightgbm_cage
+      isoform_file: null
+      aggregation_mode: first
+      upstream_tss: 100
+      downstream_tss: 500

@@ -15,7 +15,13 @@ module enfomer_workflow:
     snakefile: "rules/enformer.smk"
     config: config
 
+module benchmark_workflow:
+    snakefile: "rules/benchmark.smk"
+    config: config
+
+
 use rule * from enfomer_workflow as enformer_ *
+use rule benchmark from benchmark_workflow
 
 
 def vcfs(vcf_key):
@@ -35,7 +41,11 @@ def enformer_input():
     return dict(run_key=run_key,vcf_name=vcf_name)
 
 
+def enformer_runs():
+    return list(config['runs']['enformer'].keys())
+
 rule all:
     default_target: True
     input:
-        expand(rules.enformer_variant_effect.output,**enformer_input())
+        expand(rules.benchmark.output, predictor='enformer', run_key=enformer_runs()),
+        # expand(rules.enformer_variant_effect.output,**enformer_input())

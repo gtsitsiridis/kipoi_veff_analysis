@@ -10,14 +10,6 @@ module common_workflow:
 use rule genome from common_workflow
 
 
-# todo
-# performance evaluation
-# runs/performance/<run>.parquet
-
-# performance benchmarking
-# benchmark.parquet
-
-
 rule predict_reference:
     priority: 5
     resources:
@@ -146,13 +138,15 @@ rule variant_effect:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 10000 + (1000 * attempt)
     output:
-        veff_path=output_path / 'runs/{run_key}/veff.parquet/{vcf_name}.parquet',
+        veff_path=output_path / 'veff.parquet/run={run_key}/{vcf_name}.parquet',
     input:
         unpack(variant_effect_input)
     wildcard_constraints:
         vcf_name='.*\.vcf\.gz'
     params:
         isoform_file=lookup(dpath='runs/enformer/{run_key}/isoform_file',within=config),
-        aggregation_mode=lookup(dpath='runs/enformer/{run_key}/aggregation_mode',within=config)
+        aggregation_mode=lookup(dpath='runs/enformer/{run_key}/aggregation_mode',within=config),
+        upstream_tss=lookup(dpath='runs/enformer/{run_key}/upstream_tss',within=config),
+        downstream_tss=lookup(dpath='runs/enformer/{run_key}/downstream_tss',within=config),
     script:
         '../scripts/enformer/veff.py'
