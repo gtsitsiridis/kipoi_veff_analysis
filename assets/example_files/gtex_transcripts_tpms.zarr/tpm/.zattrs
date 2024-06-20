@@ -1,0 +1,7 @@
+{
+    "_ARRAY_DIMENSIONS": [
+        "transcript",
+        "sample"
+    ],
+    "coordinates": "gene subtissue tissue"
+}
