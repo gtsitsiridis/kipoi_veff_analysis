@@ -1,7 +1,14 @@
 import pathlib
 
 # the path to the output folder
-output_path = pathlib.Path(config["output_path"])
+benchmark_path = pathlib.Path(config["output_path"]) / 'benchmark.parquet'
+veff_path = pathlib.Path(config["output_path"]) / 'veff.parquet'
+
+module veff_workflow:
+    snakefile: "../rules/veff.smk"
+    config: config
+
+use rule * from veff_workflow
 
 
 def vcfs(vcf_key):
@@ -16,7 +23,7 @@ def benchmark_input(wildcards):
     vcf_key = config[predictor]['alternatives'][run_config['alternative']]['vcf']
 
     return [
-        output_path / f'{predictor}/veff.parquet/run={run_key}/{vcf}.parquet'
+        veff_path / f'predictor={predictor}/run={run_key}/{vcf}.parquet'
         for vcf in vcfs(vcf_key)
     ]
 
@@ -26,7 +33,7 @@ rule benchmark:
     resources:
         mem_mb=lambda wildcards, attempt, threads: 20000 + (1000 * attempt)
     output:
-        benchmark_path=output_path / 'benchmark.parquet/predictor={predictor}/run={run_key}/data.parquet'
+        benchmark_path=benchmark_path / 'predictor={predictor}/run={run_key}/data.parquet'
     input:
         veff_path=benchmark_input
     script:

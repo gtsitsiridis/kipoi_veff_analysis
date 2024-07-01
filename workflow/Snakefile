@@ -2,7 +2,7 @@ import pathlib
 
 assert len(config) > 0, "The config file has not been defined or is empty"
 
-output_path = pathlib.Path(config["output_path"]) / 'enformer'
+output_path = pathlib.Path(config["output_path"])
 
 # load additional configurations
 if config.get('configs',None):
@@ -11,16 +11,11 @@ if config.get('configs',None):
         configfile: conf
 del config['configs']
 
-module enfomer_workflow:
-    snakefile: "rules/enformer.smk"
-    config: config
 
 module benchmark_workflow:
     snakefile: "rules/benchmark.smk"
     config: config
 
-
-use rule * from enfomer_workflow as enformer_ *
 use rule benchmark from benchmark_workflow
 
 
@@ -29,23 +24,10 @@ def vcfs(vcf_key):
     return [f.name for f in pathlib.Path(config["vcfs"][vcf_key]["path"]).glob('*.vcf.gz')]
 
 
-def enformer_input():
-    run_key = []
-    vcf_name = []
-    for run in config['runs']['enformer'].keys():
-        run_config = config['runs']['enformer'][run]
-        vcf_key = config['enformer']['alternatives'][run_config['alternative']]['vcf']
-        for vcf in vcfs(vcf_key):
-            run_key.append(run)
-            vcf_name.append(vcf)
-    return dict(run_key=run_key,vcf_name=vcf_name)
-
-
 def enformer_runs():
     return list(config['runs']['enformer'].keys())
 
 rule all:
     default_target: True
     input:
-        expand(rules.benchmark.output, predictor='enformer', run_key=enformer_runs()),
-        # expand(rules.enformer_variant_effect.output,**enformer_input())
+        expand(rules.benchmark.output,predictor='enformer',run_key=enformer_runs()),

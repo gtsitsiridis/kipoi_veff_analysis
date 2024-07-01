@@ -1,7 +1,7 @@
 import pathlib
 
 # the path to the output folder
-output_path = pathlib.Path(config["output_path"]) / 'common'
+output_path = pathlib.Path(config["output_path"]) / 'process' / 'common'
 
 rule genome:
     priority: 5

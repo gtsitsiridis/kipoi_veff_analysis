@@ -17,17 +17,19 @@ class VeffBenchmark:
         gene_veff_df = pl.concat([pl.scan_parquet(path) for path in variant_effects_paths]).select(
             pl.col(['tissue', 'gene_id']),
             pl.col('strand').cast(pl.Enum(['-', '+'])),
-            pl.col(['chrom', 'variant_start', 'variant_end', 'ref', 'alt', 'log2fc'])
+            pl.col(['chrom', 'variant_start', 'variant_end', 'ref', 'alt', 'veff_score'])
         ).with_columns(
             pl.col('gene_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('gene_id'))
+
+        # todo assert that the index is unique
 
         veff_df = self.genotypes_df.join(
             gene_veff_df, on=['chrom', 'variant_start', 'variant_end', 'ref', 'alt'], how='inner'
         ).with_columns(
-            (pl.col('log2fc').abs() == pl.col('log2fc').abs().max())
+            (pl.col('veff_score').abs() == pl.col('veff_score').abs().max())
             .over(['gene_id', 'tissue', 'individual']).alias('top')
         ).filter(pl.col('top')).groupby(['gene_id', 'tissue', 'individual']).agg(
             pl.exclude('top').first()
-        ).rename({'log2fc': f'predicted_log2fc', })
+        )
         res_df = self.annotation_df.join(veff_df, on=['individual', 'gene_id', 'tissue'], how='left').fill_null(0)
         res_df.collect().write_parquet(output_path)

@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow_hub as hub
 import tensorflow as tf
 from .dataloader import TSSDataloader
-from .utils import RandomModel
+from .utils import RandomModel, gtf_to_pandas
 from kipoi_enformer.logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -15,6 +15,7 @@ import polars as pl
 from scipy.special import logsumexp
 import xarray as xr
 from sklearn import linear_model, pipeline, preprocessing
+import pandas as pd
 
 __all__ = ['Enformer', 'EnformerAggregator', 'EnformerTissueMapper', 'EnformerVeff']
 
@@ -317,21 +318,13 @@ class EnformerTissueMapper:
 
 class EnformerVeff:
 
-    def __init__(self, aggregation_mode: str, isoforms_path: str | pathlib.Path | None = None,
-                 upstream_tss: int | None = None, downstream_tss: int | None = None):
+    def __init__(self, isoforms_path: str | pathlib.Path | None = None,
+                 gtf: pd.DataFrame | str | pathlib.Path | None = None):
         """
 
-        :param aggregation_mode: One of ['logsumexp', 'weighted_sum', 'median', 'first'].
         :param isoforms_path: The path to the file containing the isoform proportions.
-        :param upstream_tss: Variant effects outside of the interval [-upstream_tss, downstream_tss] will be set to 0.
-        :param downstream_tss: Variant effects outside of the interval [-upstream_tss, downstream_tss] will be set to 0.
+        :param gtf: The path to the GTF file or a pandas DataFrame containing the genome annotation.
         """
-        if aggregation_mode not in ['logsumexp', 'weighted_sum', 'median', 'first']:
-            raise ValueError(f'Unknown mode: {aggregation_mode}')
-
-        self.aggregation_mode = aggregation_mode
-        self.upstream_tss = upstream_tss
-        self.downstream_tss = downstream_tss
 
         self.isoform_proportion_ldf = None
         if isoforms_path is not None:
@@ -341,8 +334,22 @@ class EnformerVeff:
                                                    'gene': 'gene_id', 'transcript': 'transcript_id'}).
                                            filter(~pl.col('isoform_proportion').is_null()))
 
+        # if GTF file is given, then extract the canonical transcripts for the canonical aggregation mode
+        if gtf is not None:
+            if isinstance(gtf, str) or isinstance(gtf, pathlib.Path):
+                gtf = gtf_to_pandas(gtf)
+            elif not isinstance(gtf, pd.DataFrame):
+                raise ValueError('gtf must be a path or a pandas DataFrame')
+
+            # only keep protein_coding transcripts
+            gtf = gtf.query("`gene_type` == 'protein_coding'")
+            # check if Ensembl_canonical is in the set of tags
+            gtf = gtf[gtf['tag'].apply(lambda x: False if pd.isna(x) else ('Ensembl_canonical' in x.split(',')))]
+            self.canonical_transcripts = gtf['transcript_id'].str.extract(r'([^\.]+)\..+$')[0].unique()
+
     def run(self, ref_paths: list[str] | list[pathlib.Path], alt_path: str | pathlib.Path,
-            output_path: str | pathlib.Path):
+            output_path: str | pathlib.Path, aggregation_mode: str, upstream_tss: int | None = None,
+            downstream_tss: int | None = None):
         """
         Given a file containing enformer scores for alternative alleles, calculate the variant effect.
         Then aggregate the scores by gene, variant and tissue. Save the results in a parquet file.
@@ -350,11 +357,18 @@ class EnformerVeff:
         :param ref_paths: The parquet files that contains the reference scores
         :param alt_path: The parquet file that contains the alternate scores
         :param output_path: The parquet file that will contain the variant effect scores
+        :param aggregation_mode: One of ['logsumexp', 'weighted_sum', 'median', 'canonical'].
+        :param upstream_tss: Variant effects outside of the interval [-upstream_tss, downstream_tss] will be set to 0.
+        :param downstream_tss: Variant effects outside of the interval [-upstream_tss, downstream_tss] will be set to 0.
         :return:
         """
 
-        downstream_tss = self.downstream_tss
-        upstream_tss = self.upstream_tss
+        if aggregation_mode not in ['logsumexp', 'weighted_sum', 'median', 'canonical']:
+            raise ValueError(f'Unknown mode: {aggregation_mode}')
+        elif aggregation_mode in ['logsumexp', 'weighted_sum']:
+            assert self.isoform_proportion_ldf is not None, 'Isoform proportions are required for this mode.'
+        elif aggregation_mode == 'canonical':
+            pass
 
         logger.debug(f'Calculating the variant effect for {alt_path}')
 
@@ -388,36 +402,32 @@ class EnformerVeff:
                 ).alias('relative_pos'))
 
             if downstream_tss is not None:
-                expr = pl.when(pl.col('relative_pos') > downstream_tss).then(0)
-                veff_ldf = veff_ldf.with_columns(expr.alias('ref_score'),
-                                                 expr.alias('alt_score'))
+                veff_ldf = veff_ldf.filter(pl.col('relative_pos') <= downstream_tss)
             if upstream_tss is not None:
-                expr = pl.when(pl.col('relative_pos') < -upstream_tss).then(0)
-                veff_ldf = veff_ldf.with_columns(expr.alias('ref_score'),
-                                                 expr.alias('alt_score'))
+                veff_ldf = veff_ldf.filter(pl.col('relative_pos') >= -upstream_tss)
 
-        veff_df = self._aggregate(veff_ldf)
+        veff_df = self._aggregate(veff_ldf, aggregation_mode)
         logger.debug(f'Writing the variant effect to {output_path}')
+        veff_df = veff_df.rename({'log2fc': 'veff_score'})
         veff_df.write_parquet(output_path)
 
-    def _aggregate(self, veff_ldf):
+    def _aggregate(self, veff_ldf, aggregation_mode: str):
         """
         Given a dataframe containing variant effect scores, aggregate the scores by gene, variant and tissue.
 
         :param veff_ldf: A polars dataframe containing the variant effect scores.
+        :param aggregation_mode: One of ['logsumexp', 'weighted_sum', 'median', 'canonical'].
+        :return: A pandas dataframe containing the aggregated scores.
         """
-        mode = self.aggregation_mode
 
         def logsumexp_udf(score, weight):
             return logsumexp(score / math.log10(math.e), b=weight) / math.log(10)
 
-        if mode in ['logsumexp', 'weighted_sum']:
-            assert self.isoform_proportion_ldf is not None, 'Isoform proportions are required for this mode.'
-            veff_ldf = (
-                veff_ldf.join(self.isoform_proportion_ldf, on=['gene_id', 'tissue', 'transcript_id'], how='left').
-                with_columns('isoform_proportion').fill_null(0))
+        if aggregation_mode in ['logsumexp', 'weighted_sum']:
+            veff_ldf = veff_ldf.join(self.isoform_proportion_ldf, on=['gene_id', 'tissue', 'transcript_id'],
+                                     how='inner')
 
-            if mode == 'logsumexp':
+            if aggregation_mode == 'logsumexp':
                 veff_ldf = veff_ldf. \
                     group_by(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']). \
                     agg(
@@ -435,28 +445,42 @@ class EnformerVeff:
                 veff_ldf = veff_ldf.with_columns(
                     ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc')). \
                     fill_nan(0)
-            elif mode == 'weighted_sum':
+            elif aggregation_mode == 'weighted_sum':
                 veff_ldf = veff_ldf.with_columns(
                     (pl.col('isoform_proportion') * (pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias(
                         'log2fc'))
                 veff_ldf = veff_ldf.group_by(['chrom', 'strand', 'gene_id', 'variant_start',
                                               'variant_end', 'ref', 'alt', 'tissue']).agg(pl.col('log2fc').sum())
-        elif mode == 'median':
-            veff_ldf = veff_ldf.with_columns(
-                ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
-            veff_ldf = veff_ldf.groupby(['chrom', 'strand', 'gene_id', 'variant_start',
-                                         'variant_end', 'ref', 'alt', 'tissue', ]).agg(pl.col('log2fc').median())
-        elif mode == 'first':
+            veff_df = veff_ldf.collect()
+        elif aggregation_mode == 'canonical':
+            # Keep only the canonical transcripts
+            veff_ldf = veff_ldf.filter(pl.col('transcript_id').is_in(self.canonical_transcripts))
             veff_ldf = veff_ldf.with_columns(
                 ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
             veff_ldf = veff_ldf.groupby(['chrom', 'strand', 'gene_id', 'variant_start',
                                          'variant_end', 'ref', 'alt', 'tissue', ]).agg(
                 pl.col(['enformer_start', 'enformer_end', 'tss', 'transcript_id', 'transcript_start', 'transcript_end',
-                        'ref_score', 'alt_score', 'log2fc']).first()
+                        'ref_score', 'alt_score', 'log2fc']).first(),
+                pl.len().alias('num_transcripts')
             )
-        else:
-            raise ValueError(f'Unknown mode: {mode}')
+            veff_df = veff_ldf.collect()
+            # Verify that there is only one canonical transcript per gene
+            max_transcripts_per_gene = veff_df['num_transcripts'].max()
+            if max_transcripts_per_gene is not None and max_transcripts_per_gene > 1:
+                logger.error('Multiple canonical transcripts found for a gene.')
+                logger.error(veff_df[veff_df['num_transcripts'] > 1])
+                raise ValueError('Multiple canonical transcripts found for a gene.')
 
-        veff_df = veff_ldf.collect()
+            # Remove the num_transcripts column
+            veff_df.drop_in_place('num_transcripts')
+        elif aggregation_mode == 'median':
+            veff_ldf = veff_ldf.with_columns(
+                ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
+            veff_ldf = veff_ldf.groupby(['chrom', 'strand', 'gene_id', 'variant_start',
+                                         'variant_end', 'ref', 'alt', 'tissue', ]).agg(pl.col('log2fc').median())
+            veff_df = veff_ldf.collect()
+        else:
+            raise ValueError(f'Unknown mode: {aggregation_mode}')
+
         logger.debug(f'Aggregated table size: {len(veff_df)}')
         return veff_df

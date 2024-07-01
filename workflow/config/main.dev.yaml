@@ -11,15 +11,15 @@ configs:
   - config/components.dev.yaml
 
 benchmark:
-  genotypes_path: ../assets/example_files/gtex_samples/rare_variants.vcf.parquet
-  annotation_path: ../assets/example_files/gtex_samples/benchmark_with_annotation.parquet
+  genotypes_path: ../example_files/gtex_samples/rare_variants.vcf.parquet
+  annotation_path: ../example_files/gtex_samples/benchmark_with_annotation.parquet
 
 runs:
   enformer:
     veff1:
       alternative: alt1
       mapper: elasticnet_dnase_cage
-      isoform_file: ../assets/example_files/isoform_proportions.tsv
+      isoform_file: ../example_files/isoform_proportions.tsv
       aggregation_mode: logsumexp
       upstream_tss: 2000
       downstream_tss: 500
@@ -27,13 +27,13 @@ runs:
       alternative: alt1
       mapper: elasticnet_cage
       isoform_file: null
-      aggregation_mode: first
+      aggregation_mode: canonical
       upstream_tss: 2000
       downstream_tss: 500
     veff3:
       alternative: alt1
       mapper: lightgbm_dnase_cage
-      isoform_file: ../assets/example_files/isoform_proportions.tsv
+      isoform_file: ../example_files/isoform_proportions.tsv
       aggregation_mode: logsumexp
       upstream_tss: 2000
       downstream_tss: 500
@@ -41,13 +41,13 @@ runs:
       alternative: alt1
       mapper: lightgbm_cage
       isoform_file: null
-      aggregation_mode: first
+      aggregation_mode: canonical
       upstream_tss: 2000
       downstream_tss: 500
     veff5:
       alternative: alt1
       mapper: lightgbm_dnase_cage
-      isoform_file: ../assets/example_files/isoform_proportions.tsv
+      isoform_file: ../example_files/isoform_proportions.tsv
       aggregation_mode: logsumexp
       upstream_tss: 100
       downstream_tss: 500
@@ -55,6 +55,13 @@ runs:
       alternative: alt1
       mapper: lightgbm_cage
       isoform_file: null
-      aggregation_mode: first
+      aggregation_mode: canonical
       upstream_tss: 100
       downstream_tss: 500
+    veff7:
+      alternative: alt1
+      mapper: lightgbm_cage
+      isoform_file: null
+      aggregation_mode: canonical
+      upstream_tss: null
+      downstream_tss: null

@@ -14,6 +14,10 @@ from sklearn import linear_model
 import lightgbm as lgb
 
 
+@pytest.fixture
+def enformer_veff():
+    pass
+
 def run_enformer(dl: TSSDataloader, output_path, size, batch_size, num_output_bins):
     enformer = Enformer(is_random=True)
 
@@ -83,7 +87,9 @@ def test_enformer_ref(chr22_example_files, output_dir: Path, size, batch_size, n
         'shift': 43,
         'seq_length': 393_216,
         'size': size,
-        'chromosome': 'chr22'
+        'chromosome': 'chr22',
+        'canonical_only': True,
+        'protein_coding_only': True,
     }
 
     enformer_filepath = get_enformer_path(output_dir, size, AlleleType.REF, rm=True)
@@ -105,6 +111,8 @@ def test_enformer_alt(chr22_example_files, output_dir: Path, size, batch_size, n
         'vcf_file': chr22_example_files['vcf'],
         'variant_downstream_tss': 500,
         'variant_upstream_tss': 500,
+        'canonical_only': True,
+        'protein_coding_only': True,
     }
 
     enformer_filepath = get_enformer_path(output_dir, size, AlleleType.ALT, rm=True)
@@ -149,8 +157,8 @@ def test_predict_tissue_mapper(allele_type: str, chr22_example_files, output_dir
 
 
 @pytest.mark.parametrize("aggregation_mode, upstream_tss, downstream_tss", [
-    ('logsumexp', 100, 50), ('first', 100, 50), ('median', 100, 50), ('weighted_sum', 100, 50),
-    ('logsumexp', 200, 50), ('first', 200, 50), ('median', 200, 50), ('weighted_sum', 200, 50),
+    ('logsumexp', 100, 50), ('canonical', 100, 50), ('median', 100, 50), ('weighted_sum', 100, 50),
+    ('logsumexp', 200, 50), ('canonical', 200, 50), ('median', 200, 50), ('weighted_sum', 200, 50),
 ])
 def test_calculate_veff(chr22_example_files, output_dir: Path,
                         enformer_tracks_path: Path, gtex_tissue_mapper_path: Path, aggregation_mode, downstream_tss,
@@ -176,9 +184,9 @@ def test_calculate_veff(chr22_example_files, output_dir: Path,
         output_path.unlink()
 
     enformer_veff = EnformerVeff(isoforms_path=chr22_example_files['isoform_proportions'],
-                                 aggregation_mode=aggregation_mode, downstream_tss=downstream_tss,
-                                 upstream_tss=upstream_tss)
-    enformer_veff.run([ref_filepath], alt_filepath, output_path)
+                                 gtf=chr22_example_files['gtf'])
+    enformer_veff.run([ref_filepath], alt_filepath, output_path, aggregation_mode=aggregation_mode,
+                      downstream_tss=downstream_tss, upstream_tss=upstream_tss)
     return output_path
 
 

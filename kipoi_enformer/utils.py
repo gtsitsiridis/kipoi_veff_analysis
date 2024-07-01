@@ -5,7 +5,7 @@ import tensorflow as tf
 from kipoiseq.extractors import VariantSeqExtractor, FastaStringExtractor
 from kipoiseq import Interval, Variant
 from kipoiseq.transforms.functional import one_hot_dna
-
+import pathlib
 
 def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_negative_strand: bool) -> (int, int):
     """
@@ -24,6 +24,15 @@ def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_ne
     return tss, tss + 1
 
 
+def gtf_to_pandas(gtf: str | pathlib.Path):
+    """
+    Read GTF file to pandas DataFrame
+    :param gtf: Path to GTF file
+    :return:
+    """
+    return pr.read_gtf(gtf, as_df=True, duplicate_attr=True)
+
+
 def get_tss_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | None = None,
                                    protein_coding_only: bool = False, canonical_only: bool = False,
                                    gene_ids: list | None = None):
@@ -32,7 +41,7 @@ def get_tss_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | No
     :return: genome_annotation with additional columns tss (0-based), transcript_start (0-based), transcript_end (1-based)
     """
     if not isinstance(gtf, pd.DataFrame):
-        genome_annotation = pr.read_gtf(gtf, as_df=True, duplicate_attr=True)
+        genome_annotation = gtf_to_pandas(gtf)
     else:
         genome_annotation = gtf.copy()
     if gene_ids is not None:

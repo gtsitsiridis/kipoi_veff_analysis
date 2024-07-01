@@ -26,12 +26,12 @@ def gtex_tissue_mapper_path():
 
 @pytest.fixture
 def enformer_tracks_path():
-    return Path('assets/cage_nonuniversal_enformer_tracks.yaml')
+    return Path('assets/enformer_tracks/cage_nonuniversal_enformer_tracks.yaml')
 
 
 @pytest.fixture
 def chr22_example_files():
-    base = Path("assets/example_files")
+    base = Path("example_files")
     return {
         'fasta': base / "seq.fa",
         'gtf': base / "annot.gtf.gz",

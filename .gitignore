@@ -108,9 +108,9 @@ slurm*out
 # intellij
 .idea
 
-assets/tfhub_cache/**
 
 # snakemake tests
 .tests
 logs
-output/*
+output/**
+tfhub_cache/**

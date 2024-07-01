@@ -1,11 +1,6 @@
 # the path to the output folder
 output_path: ../output/smk
 
-debug: true
-test:
-  dataloader_size: 100
-  is_random_enformer: true
-
 # additional component configuration files to be used
 configs:
   - config/components.dev.yaml
@@ -14,61 +9,68 @@ benchmark:
   genotypes_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
   annotation_path: /s/project/rep/processed/training_results_v14/gtex_benchmark_with_annotation.parquet/*.parquet
 
+# todo add is_canonical parameter
+# todo add ridge regression
+# todo run with all tracks and lightgbm
+# todo lightgbm with different cutoffs if it works better
+# todo ridge regression with different cutoffs
+# todo canonical yes or no?
+
 runs:
   enformer:
-    gtex_v8_2000_500_elasticnet_dnase_cage_logsumexp:
-      alternative: gtex_v8_2000_500
+    gtex_v8_elasticnet_dnase_cage_logsumexp:
+      alternative: gtex_v8
       mapper: elasticnet_dnase_cage_gtex_v8
       isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
       aggregation_mode: logsumexp
-      upstream_tss: None
-      downstream_tss: None
-    gtex_v8_2000_500_elasticnet_cage_logsumexp:
-      alternative: gtex_v8_2000_500
+      upstream_tss: null
+      downstream_tss: null
+    gtex_v8_elasticnet_cage_logsumexp:
+      alternative: gtex_v8
       mapper: elasticnet_cage_gtex_v8
       isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
       aggregation_mode: logsumexp
-      upstream_tss: None
-      downstream_tss: None
-    gtex_v8_500_100_canonical_elasticnet_dnase_cage_logsumexp:
-      alternative: gtex_v8_500_100_canonical
+      upstream_tss: null
+      downstream_tss: null
+    gtex_v8_canonical_elasticnet_dnase_cage_logsumexp:
+      alternative: gtex_v8
       mapper: elasticnet_dnase_cage_gtex_v8
       isoform_file: null
-      aggregation_mode: first
-      upstream_tss: None
-      downstream_tss: None
-    gtex_v8_500_100_canonical_elasticnet_cage_logsumexp:
-      alternative: gtex_v8_500_100_canonical
+      aggregation_mode: canonical
+      upstream_tss: null
+      downstream_tss: null
+    gtex_v8_canonical_elasticnet_cage_logsumexp:
+      alternative: gtex_v8
       mapper: elasticnet_cage_gtex_v8
       isoform_file: null
-      aggregation_mode: first
-      upstream_tss: None
-      downstream_tss: None
-    gtex_v8_2000_500_lightgbm_dnase_cage_logsumexp:
-      alternative: gtex_v8_2000_500
+      aggregation_mode: canonical
+      upstream_tss: null
+      downstream_tss: null
+    gtex_v8_lightgbm_dnase_cage_logsumexp:
+      alternative: gtex_v8
       mapper: lightgbm_dnase_cage_gtex_v8
       isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
       aggregation_mode: logsumexp
-      upstream_tss: None
-      downstream_tss: None
-    gtex_v8_2000_500_lightgbm_cage_logsumexp:
-      alternative: gtex_v8_2000_500
+      upstream_tss: null
+      downstream_tss: null
+    gtex_v8_lightgbm_cage_logsumexp:
+      alternative: gtex_v8
       mapper: lightgbm_cage_gtex_v8
       isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
       aggregation_mode: logsumexp
-      upstream_tss: None
-      downstream_tss: None
-    gtex_v8_500_100_canonical_lightgbm_dnase_cage_logsumexp:
-      alternative: gtex_v8_500_100_canonical
+      upstream_tss: null
+      downstream_tss: null
+    gtex_v8_canonical_lightgbm_dnase_cage_logsumexp:
+      alternative: gtex_v8
       mapper: lightgbm_dnase_cage_gtex_v8
       isoform_file: null
-      aggregation_mode: first
-      upstream_tss: None
-      downstream_tss: None
-    gtex_v8_500_100_canonical_lightgbm_cage_logsumexp:
-      alternative: gtex_v8_500_100_canonical
+      aggregation_mode: canonical
+      upstream_tss: null
+      downstream_tss: null
+    gtex_v8_canonical_lightgbm_cage_logsumexp:
+      alternative: gtex_v8
       mapper: lightgbm_cage_gtex_v8
       isoform_file: null
-      aggregation_mode: first
-      upstream_tss: None
-      downstream_tss: None
+      aggregation_mode: canonical
+      upstream_tss: null
+      downstream_tss: null
