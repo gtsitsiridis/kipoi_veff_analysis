@@ -19,17 +19,19 @@ module benchmark_workflow:
 use rule benchmark from benchmark_workflow
 
 
-def vcfs(vcf_key):
-    # extract name from vcf file
-    return [f.name for f in pathlib.Path(config["vcfs"][vcf_key]["path"]).glob('*.vcf.gz')]
-
-
-def enformer_runs():
-    return list(config['runs']['enformer'].keys())
+def get_config_runs():
+    predictors = []
+    runs = []
+    for predictor in config['runs']:
+        for run_key in config['runs'][predictor]:
+            predictors.append(predictor)
+            runs.append(run_key)
+    return {'predictor': predictors, 'run_key': runs}
 
 
 rule all:
     default_target: True
-    input: expand(rules.benchmark.output,predictor='enformer',run_key=enformer_runs())
+    input:
+        expand(rules.benchmark.output,**get_config_runs())
     output: output_path / 'config.yaml'
     script: 'scripts/write_config.py'

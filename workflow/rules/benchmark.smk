@@ -31,7 +31,7 @@ def benchmark_input(wildcards):
 rule benchmark:
     priority: 1
     resources:
-        mem_mb=lambda wildcards, attempt, threads: 20000 + (1000 * attempt)
+        mem_mb=lambda wildcards, attempt, threads: 60000 + (1000 * attempt)
     output:
         benchmark_path=benchmark_path / 'predictor={predictor}/run={run_key}/data.parquet'
     input:

@@ -34,7 +34,7 @@ def enformer_variant_effect_input(wildcards):
 
 
 rule enformer_variant_effect:
-    priority: 4
+    priority: 2
     resources:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 10000 + (1000 * attempt)

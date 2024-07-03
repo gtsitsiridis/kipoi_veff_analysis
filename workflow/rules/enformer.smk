@@ -27,33 +27,8 @@ rule predict_reference:
         '../scripts/enformer/predict_expression.py'
 
 
-def predict_alternative_input(wildcards):
-    alt_key = wildcards['alt_key']
-    ref_key = lookup(f'enformer/alternatives/{alt_key}/reference',within=config)
-    return expand(rules.genome.output[0],
-        genome=lookup(dpath=f"enformer/references/{ref_key}/genome",within=config))
-
-
-rule predict_alternative:
-    priority: 3
-    resources:
-        gpu=1,
-        ntasks=1,
-        mem_mb=lambda wildcards, attempt, threads: 12000 + (1000 * attempt)
-    output:
-        prediction_path=output_path / 'alternative/raw/{alt_key}.parquet' / '{vcf_name}.parquet',
-    input:
-        genome_path=predict_alternative_input
-    wildcard_constraints:
-        vcf_name='.*\.vcf\.gz'
-    params:
-        type='alternative'
-    script:
-        '../scripts/enformer/predict_expression.py'
-
-
 rule aggregate_prediction:
-    priority: 2
+    priority: 4
     resources:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
@@ -78,7 +53,7 @@ def train_mapper_input(wildcards):
 
 
 rule train_mapper:
-    priority: 2
+    priority: 4
     resources:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 50000 + (10000 * attempt)
@@ -91,8 +66,15 @@ rule train_mapper:
         '../scripts/enformer/train_mapper.py'
 
 
+def predict_alternative_input(wildcards):
+    alt_key = wildcards['alt_key']
+    ref_key = lookup(f'enformer/alternatives/{alt_key}/reference',within=config)
+    return expand(rules.genome.output[0],
+        genome=lookup(dpath=f"enformer/references/{ref_key}/genome",within=config))
+
+
 rule tissue_expression:
-    priority: 3
+    priority: 4
     resources:
         ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
@@ -107,3 +89,21 @@ rule tissue_expression:
         tissue_mapper_path=expand(rules.train_mapper.output[0],mapper_key='{mapper_key}',ref_key='{ref_key}')
     script:
         '../scripts/enformer/tissue_expression.py'
+
+
+rule predict_alternative:
+    priority: 3
+    resources:
+        gpu=1,
+        ntasks=1,
+        mem_mb=lambda wildcards, attempt, threads: 12000 + (1000 * attempt)
+    output:
+        prediction_path=output_path / 'alternative/raw/{alt_key}.parquet' / '{vcf_name}.parquet',
+    input:
+        genome_path=predict_alternative_input
+    wildcard_constraints:
+        vcf_name='.*\.vcf\.gz'
+    params:
+        type='alternative'
+    script:
+        '../scripts/enformer/predict_expression.py'
