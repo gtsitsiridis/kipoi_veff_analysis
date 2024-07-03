@@ -27,7 +27,9 @@ def vcfs(vcf_key):
 def enformer_runs():
     return list(config['runs']['enformer'].keys())
 
+
 rule all:
     default_target: True
-    input:
-        expand(rules.benchmark.output,predictor='enformer',run_key=enformer_runs()),
+    input: expand(rules.benchmark.output,predictor='enformer',run_key=enformer_runs())
+    output: output_path / 'config.yaml'
+    script: 'scripts/write_config.py'
