@@ -32,7 +32,7 @@ genomes:
 
 
 vcfs:
-  gtex_v8_2000_500:
+  gtexv8_2000-500:
     path: /s/project/rep/processed/training_results_v15/distinct_variants.valid_snp_indel.vcf.restored/distinct_variants.valid_snp_indel.vcf/
     variant_upstream_tss: 2000
     variant_downstream_tss: 500
@@ -49,17 +49,17 @@ enformer:
       num_output_bins: 896
 
   references:
-    GRCh37:
+    GRCh37_short:
       genome: GRCh37
       model: short
 
   alternatives:
-    gtex_v8:
-      reference: GRCh37
-      vcf: gtex_v8_2000_500
+    GRCh37_short__gtexv8_2000-500:
+      reference: GRCh37_short
+      vcf: gtexv8_2000-500
 
   mappers:
-    elasticnet_dnase_cage_gtex_v8:
+    elasticnet_dnase_cage_gtexv8:
       num_agg_bins: 3
       expression_path: /s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/
       tracks_path: ../assets/enformer_tracks/human_cage_dnase_enformer_tracks.yaml
@@ -67,7 +67,7 @@ enformer:
       params:
         cv: 5
         max_iter: 1000
-    elasticnet_cage_gtex_v8:
+    elasticnet_cage_gtexv8:
       num_agg_bins: 3
       expression_path: /s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/
       tracks_path: ../assets/enformer_tracks/cage_nonuniversal_enformer_tracks.yaml
@@ -75,7 +75,7 @@ enformer:
       params:
         cv: 5
         max_iter: 1000
-    lightgbm_dnase_cage_gtex_v8:
+    lightgbm_dnase_cage_gtexv8:
       num_agg_bins: 3
       expression_path: /s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/
       tracks_path: ../assets/enformer_tracks/human_cage_dnase_enformer_tracks.yaml
@@ -83,7 +83,7 @@ enformer:
       params:
         cv: 5
         max_iter: 1000
-    lightgbm_cage_gtex_v8:
+    lightgbm_cage_gtexv8:
       num_agg_bins: 3
       expression_path: /s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/
       tracks_path: ../assets/enformer_tracks/cage_nonuniversal_enformer_tracks.yaml
