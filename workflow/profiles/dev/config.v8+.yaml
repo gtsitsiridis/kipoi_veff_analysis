@@ -1,0 +1,3 @@
+configfile: config/main.dev.yaml
+cores: 1
+rerun-incomplete: true

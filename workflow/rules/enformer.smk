@@ -14,7 +14,6 @@ rule predict_reference:
     priority: 5
     resources:
         gpu=1,
-        ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 12000 + (1000 * attempt)
     output:
         prediction_path=output_path / 'reference/raw/{ref_key}.parquet' / 'chrom={chromosome}/data.parquet',
@@ -30,7 +29,6 @@ rule predict_reference:
 rule aggregate_prediction:
     priority: 4
     resources:
-        ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
     output:
         aggregated_path=temp(output_path / '{allele_type}/aggregated/{num_agg_bins}/{key}.parquet/{subpath}'),
@@ -55,7 +53,6 @@ def train_mapper_input(wildcards):
 rule train_mapper:
     priority: 4
     resources:
-        ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 50000 + (10000 * attempt)
     threads: 30
     output:
@@ -76,7 +73,6 @@ def predict_alternative_input(wildcards):
 rule tissue_expression:
     priority: 4
     resources:
-        ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
     output:
         prediction_path=output_path / '{allele_type}/expression/{mapper_key}_{ref_key}/{key}.parquet/{subpath}',
@@ -95,7 +91,6 @@ rule predict_alternative:
     priority: 3
     resources:
         gpu=1,
-        ntasks=1,
         mem_mb=lambda wildcards, attempt, threads: 12000 + (1000 * attempt)
     output:
         prediction_path=output_path / 'alternative/raw/{alt_key}.parquet' / '{vcf_name}.parquet',

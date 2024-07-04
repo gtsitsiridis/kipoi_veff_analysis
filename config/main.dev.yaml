@@ -1,5 +1,5 @@
 # the path to the output folder
-output_path: ../output/smk
+output_path: output/smk
 
 debug: true
 test:
@@ -11,15 +11,15 @@ configs:
   - config/components.dev.yaml
 
 benchmark:
-  genotypes_path: ../example_files/gtex_samples/rare_variants.vcf.parquet
-  annotation_path: ../example_files/gtex_samples/benchmark_with_annotation.parquet
+  genotypes_path: example_files/gtex_samples/rare_variants.vcf.parquet
+  annotation_path: example_files/gtex_samples/benchmark_with_annotation.parquet
 
 runs:
   enformer:
     veff1:
       alternative: alt1
       mapper: elasticnet_dnase_cage
-      isoform_file: ../example_files/isoform_proportions.tsv
+      isoform_file: example_files/isoform_proportions.tsv
       aggregation_mode: logsumexp
       upstream_tss: 2000
       downstream_tss: 500
@@ -33,7 +33,7 @@ runs:
     veff3:
       alternative: alt1
       mapper: lightgbm_dnase_cage
-      isoform_file: ../example_files/isoform_proportions.tsv
+      isoform_file: example_files/isoform_proportions.tsv
       aggregation_mode: logsumexp
       upstream_tss: 2000
       downstream_tss: 500
@@ -47,7 +47,7 @@ runs:
     veff5:
       alternative: alt1
       mapper: lightgbm_dnase_cage
-      isoform_file: ../example_files/isoform_proportions.tsv
+      isoform_file: example_files/isoform_proportions.tsv
       aggregation_mode: logsumexp
       upstream_tss: 100
       downstream_tss: 500

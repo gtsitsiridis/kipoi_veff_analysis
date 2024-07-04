@@ -1,7 +1,9 @@
+from snakemake.utils import min_version
+min_version("8.0")
+
 import pathlib
 
 assert len(config) > 0, "The config file has not been defined or is empty"
-
 output_path = pathlib.Path(config["output_path"])
 
 # load additional configurations

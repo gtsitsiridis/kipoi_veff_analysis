@@ -1,0 +1,17 @@
+configfile: config/main.prod.yaml
+executor: slurm
+jobs: 200
+rerun-incomplete: true
+rerun-triggers: mtime
+keep-going: true
+restart-times: 3
+show-failed-logs: true
+
+default-resources:
+  slurm_extra: "'--exclude=ouga[01-04]'"
+  slurm_partition: lowprio
+set-resources:
+  enformer_predict_reference:
+    slurm_extra: "'--gpus=1'"
+  enformer_predict_alternative:
+    slurm_extra: "'--gpus=1'"
