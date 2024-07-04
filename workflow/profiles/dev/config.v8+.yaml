@@ -1,3 +1,5 @@
-configfile: config/main.dev.yaml
+configfile:
+  - config/main.dev.yaml
+  - config/components.dev.yaml
 cores: 1
 rerun-incomplete: true

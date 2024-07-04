@@ -6,10 +6,6 @@ test:
   dataloader_size: 100
   is_random_enformer: true
 
-# additional component configuration files to be used
-configs:
-  - config/components.dev.yaml
-
 benchmark:
   genotypes_path: example_files/gtex_samples/rare_variants.vcf.parquet
   annotation_path: example_files/gtex_samples/benchmark_with_annotation.parquet

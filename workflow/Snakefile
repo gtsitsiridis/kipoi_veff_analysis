@@ -6,13 +6,6 @@ import pathlib
 assert len(config) > 0, "The config file has not been defined or is empty"
 output_path = pathlib.Path(config["output_path"])
 
-# load additional configurations
-if config.get('configs',None):
-    for conf in config["configs"]:
-        print(conf)
-        configfile: conf
-del config['configs']
-
 
 module benchmark_workflow:
     snakefile: "rules/benchmark.smk"

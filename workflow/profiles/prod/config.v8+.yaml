@@ -1,4 +1,6 @@
-configfile: config/main.prod.yaml
+configfile:
+  - config/main.prod.yaml
+  - config/components.prod.yaml
 executor: slurm
 jobs: 200
 rerun-incomplete: true

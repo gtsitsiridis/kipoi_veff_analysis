@@ -1,10 +1,6 @@
 # the path to the output folder
 output_path: /s/project/promoter_prediction/kipoi_expression_prediction
 
-# additional component configuration files to be used
-configs:
-  - config/components.prod.yaml
-
 benchmark:
   genotypes_path: /s/project/rep/processed/training_results_v15/gtexv8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
   annotation_path: /s/project/rep/processed/training_results_v14/gtex_benchmark_with_annotation.parquet/*.parquet
