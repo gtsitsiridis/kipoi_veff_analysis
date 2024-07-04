@@ -26,5 +26,5 @@ snakemake --workflow-profile=workflow/profiles/dev
 To run the snakemake workflow on a slurm cluster using the production config, execute the following command:
 ```bash
 conda activate kipoi-enformer-<your_name>
-CONDA_OVERRIDE_CUDA="11.8" snakemake --workflow-profile=prod
+CONDA_OVERRIDE_CUDA="11.8" snakemake --workflow-profile=workflow/profiles/prod
 ```
