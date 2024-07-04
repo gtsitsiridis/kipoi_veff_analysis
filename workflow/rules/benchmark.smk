@@ -5,7 +5,7 @@ benchmark_path = pathlib.Path(config["output_path"]) / 'benchmark.parquet'
 veff_path = pathlib.Path(config["output_path"]) / 'veff.parquet'
 
 module veff_workflow:
-    snakefile: "../rules/veff.smk"
+    snakefile: "veff.smk"
     config: config
 
 use rule * from veff_workflow

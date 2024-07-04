@@ -20,7 +20,6 @@ enformer:
       shift: 43
       batch_size: 2
       num_output_bins: 21
-      num_agg_bins: 3
     complete:
       shift: 43
       batch_size: 2

@@ -4,7 +4,7 @@ import pathlib
 veff_path = pathlib.Path(config["output_path"]) / 'veff.parquet'
 
 module enfomer_workflow:
-    snakefile: "../rules/enformer.smk"
+    snakefile: "enformer.smk"
     config: config
 
 use rule * from enfomer_workflow as enformer_ *

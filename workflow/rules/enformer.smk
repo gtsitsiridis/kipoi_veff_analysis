@@ -56,7 +56,7 @@ rule train_mapper:
         mem_mb=lambda wildcards, attempt, threads: 50000 + (10000 * attempt)
     threads: 30
     output:
-        tissue_mapper_path=output_path / 'mappers/{mapper_key}_{ref_key}.pkl',
+        tissue_mapper_path=output_path / 'mappers/{mapper_key}__{ref_key}.pkl',
     input:
         enformer_paths=train_mapper_input
     script:
@@ -75,7 +75,7 @@ rule tissue_expression:
     resources:
         mem_mb=lambda wildcards, attempt, threads: 6000 + (1000 * attempt)
     output:
-        prediction_path=output_path / '{allele_type}/expression/{mapper_key}_{ref_key}/{key}.parquet/{subpath}',
+        prediction_path=output_path / '{allele_type}/expression/{mapper_key}__{ref_key}/{key}.parquet/{subpath}',
     input:
         enformer_path=expand(rules.aggregate_prediction.output['aggregated_path'],
             allele_type='{allele_type}',
