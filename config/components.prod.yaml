@@ -62,7 +62,7 @@ enformer:
     elasticnet_dnase_cage_gtexv8:
       num_agg_bins: 3
       expression_path: /s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/
-      tracks_path: ../assets/enformer_tracks/human_cage_dnase_enformer_tracks.yaml
+      tracks_path: assets/enformer_tracks/human_cage_dnase_enformer_tracks.yaml
       type: ElasticNet
       params:
         cv: 5
@@ -70,7 +70,7 @@ enformer:
     elasticnet_cage_gtexv8:
       num_agg_bins: 3
       expression_path: /s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/
-      tracks_path: ../assets/enformer_tracks/cage_nonuniversal_enformer_tracks.yaml
+      tracks_path: assets/enformer_tracks/cage_nonuniversal_enformer_tracks.yaml
       type: ElasticNet
       params:
         cv: 5
@@ -78,7 +78,7 @@ enformer:
     lightgbm_dnase_cage_gtexv8:
       num_agg_bins: 3
       expression_path: /s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/
-      tracks_path: ../assets/enformer_tracks/human_cage_dnase_enformer_tracks.yaml
+      tracks_path: assets/enformer_tracks/human_cage_dnase_enformer_tracks.yaml
       type: LightGBM
       params:
         cv: 5
@@ -86,7 +86,7 @@ enformer:
     lightgbm_cage_gtexv8:
       num_agg_bins: 3
       expression_path: /s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/
-      tracks_path: ../assets/enformer_tracks/cage_nonuniversal_enformer_tracks.yaml
+      tracks_path: assets/enformer_tracks/cage_nonuniversal_enformer_tracks.yaml
       type: LightGBM
       params:
         cv: 5
