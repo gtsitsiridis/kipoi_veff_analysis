@@ -10,7 +10,7 @@ restart-times: 3
 show-failed-logs: true
 
 default-resources:
-  slurm_extra: "'--exclude=ouga[01-04]'"
+  slurm_extra: "'--exclude=ouga[01-04] --no-requeue'"
   slurm_partition: lowprio
 set-resources:
   enformer_predict_reference:
