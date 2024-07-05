@@ -6,7 +6,7 @@ jobs: 200
 rerun-incomplete: true
 rerun-triggers: mtime
 keep-going: true
-restart-times: 3
+restart-times: 0
 show-failed-logs: true
 
 default-resources:
