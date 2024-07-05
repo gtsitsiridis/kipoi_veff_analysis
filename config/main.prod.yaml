@@ -2,7 +2,7 @@
 output_path: /s/project/promoter_prediction/kipoi_expression_prediction
 
 benchmark:
-  genotypes_path: /s/project/rep/processed/training_results_v14/gtexv8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
+  genotypes_path: /s/project/rep/processed/training_results_v14/gtex_v8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
   annotation_path: /s/project/rep/processed/training_results_v14/gtex_benchmark_with_annotation.parquet/*.parquet
 
 # todo add is_canonical parameter
