@@ -23,14 +23,14 @@ runs:
     gtexv8_elasticnet_dnase_cage_logsumexp:
       alternative: GRCh37_short__gtexv8_2000-500
       mapper: elasticnet_dnase_cage_gtexv8
-      isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtexv8_isoform_proportions.tsv
+      isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
       aggregation_mode: logsumexp
       upstream_tss: null
       downstream_tss: null
 #    gtexv8_elasticnet_cage_logsumexp:
 #      alternative: GRCh37_short__gtexv8_2000-500
 #      mapper: elasticnet_cage_gtexv8
-#      isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtexv8_isoform_proportions.tsv
+#      isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
 #      aggregation_mode: logsumexp
 #      upstream_tss: null
 #      downstream_tss: null
@@ -51,14 +51,14 @@ runs:
 #    gtexv8_lightgbm_dnase_cage_logsumexp:
 #      alternative: GRCh37_short__gtexv8_2000-500
 #      mapper: lightgbm_dnase_cage_gtexv8
-#      isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtexv8_isoform_proportions.tsv
+#      isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
 #      aggregation_mode: logsumexp
 #      upstream_tss: null
 #      downstream_tss: null
 #    gtexv8_lightgbm_cage_logsumexp:
 #      alternative: GRCh37_short__gtexv8_2000-500
 #      mapper: lightgbm_cage_gtexv8
-#      isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtexv8_isoform_proportions.tsv
+#      isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
 #      aggregation_mode: logsumexp
 #      upstream_tss: null
 #      downstream_tss: null
