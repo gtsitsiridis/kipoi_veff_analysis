@@ -11,7 +11,7 @@ module benchmark_workflow:
     snakefile: "rules/benchmark.smk"
     config: config
 
-use rule benchmark from benchmark_workflow
+use rule benchmark, evaluation from benchmark_workflow
 
 
 def get_config_runs():
@@ -28,5 +28,5 @@ rule all:
     default_target: True
     input:
         expand(rules.benchmark.output,**get_config_runs())
-    output: output_path / 'config.yaml'
+    log: output_path / 'config.yaml'
     script: 'scripts/write_config.py'
