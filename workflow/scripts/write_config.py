@@ -2,7 +2,7 @@ import yaml
 
 # SNAKEMAKE SCRIPT
 config = snakemake.config
-output = snakemake.output
+output = snakemake.log[0]
 
 print(config)
 
