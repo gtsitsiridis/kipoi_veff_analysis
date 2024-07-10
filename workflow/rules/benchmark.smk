@@ -44,6 +44,8 @@ rule evaluation:
     priority: 1
     resources:
         mem_mb=lambda wildcards, attempt, threads: 60000 + (1000 * attempt)
+    log:
+        notebook=evaluation_path / 'notebooks/{predictor}-{run_key}.ipynb'
     output:
         prc_path = evaluation_path / 'prc.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
         prc_tissue_path = evaluation_path / 'prc_tissue.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
@@ -53,7 +55,6 @@ rule evaluation:
         r2_tissue_path= evaluation_path / 'r2_tissue.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
         r2_tissue_type_path= evaluation_path / 'r2_tissue_type.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
         r2_fold_path= evaluation_path / 'r2_fold.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
-        notebook = evaluation_path / 'notebooks/{predictor}-{run_key}.ipynb'
     input:
         benchmark_path=rules.benchmark.output.benchmark_path
     notebook:
