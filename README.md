@@ -9,6 +9,11 @@ conda activate kipoi-enformer-<your_name>
 pip install -e .
 ```
 
+### Convert percent scripts to jupyter notebooks
+```bash
+find workflow/notebooks/ -iname "*[.py.py|.R.R]" -exec jupytext --sync {} \;
+```
+
 ### Pytest
 To run the tests, execute the following command:
 ```bash
