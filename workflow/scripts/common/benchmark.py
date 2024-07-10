@@ -16,6 +16,8 @@ else:
     logger = setup_logger()
 
 benchmark = VeffBenchmark(annotation_path=config['benchmark']['annotation_path'],
-                          genotypes_path=config['benchmark']['genotypes_path'])
+                          genotypes_path=config['benchmark']['genotypes_path'],
+                          folds_path=config['benchmark']['folds_path'],
+                          fdr_cutoff=config['benchmark']['fdr_cutoff'])
 
 benchmark.run(list(input_['veff_path']), output_path=output['benchmark_path'])

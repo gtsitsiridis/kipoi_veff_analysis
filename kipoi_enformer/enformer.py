@@ -36,7 +36,7 @@ class Enformer:
     # ─────┆═════┆════════════════════════┆═════┆─────
     SEEN_SEQUENCE_LENGTH = NUM_SEEN_BINS * BIN_SIZE
 
-    def __init__(self, is_random: bool = False):
+    def __init__(self, is_random: bool = False, **random_kwargs):
         """
         :param is_random: If True, load a random model for testing purposes.
         """
@@ -44,7 +44,7 @@ class Enformer:
             logger.debug(f'Loading model from {MODEL_PATH}')
             self._model = hub.load(MODEL_PATH).model
         else:
-            self._model = RandomModel()
+            self._model = RandomModel(**random_kwargs)
 
     def predict(self, dataloader: TSSDataloader, batch_size: int, filepath: str | pathlib.Path,
                 num_output_bins=NUM_PREDICTION_BINS):
@@ -368,7 +368,7 @@ class EnformerVeff:
         elif aggregation_mode in ['logsumexp', 'weighted_sum']:
             assert self.isoform_proportion_ldf is not None, 'Isoform proportions are required for this mode.'
         elif aggregation_mode == 'canonical':
-            pass
+            assert self.canonical_transcripts is not None, 'Canonical transcripts are required for this mode.'
 
         logger.debug(f'Calculating the variant effect for {alt_path}')
 

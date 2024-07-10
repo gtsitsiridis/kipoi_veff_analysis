@@ -5,16 +5,19 @@ debug: true
 test:
   dataloader_size: 100
   is_random_enformer: true
+  precomputed_enformer_mapper_path: example_files/gtex_enformer_lm_models_pseudocount1.pkl
 
 benchmark:
   genotypes_path: example_files/gtex_samples/rare_variants.vcf.parquet
   annotation_path: example_files/gtex_samples/benchmark_with_annotation.parquet
+  folds_path: example_files/gtex_samples/folds.parquet
+  fdr_cutoff: 0.2
 
 runs:
   enformer:
     veff1:
       alternative: alt1
-      mapper: elasticnet_dnase_cage
+      mapper: elasticnet_cage
       isoform_file: example_files/isoform_proportions.tsv
       aggregation_mode: logsumexp
       upstream_tss: 2000
@@ -28,7 +31,7 @@ runs:
       downstream_tss: 500
     veff3:
       alternative: alt1
-      mapper: lightgbm_dnase_cage
+      mapper: lightgbm_cage
       isoform_file: example_files/isoform_proportions.tsv
       aggregation_mode: logsumexp
       upstream_tss: 2000
@@ -42,7 +45,7 @@ runs:
       downstream_tss: 500
     veff5:
       alternative: alt1
-      mapper: lightgbm_dnase_cage
+      mapper: lightgbm_cage
       isoform_file: example_files/isoform_proportions.tsv
       aggregation_mode: logsumexp
       upstream_tss: 100
@@ -61,3 +64,10 @@ runs:
       aggregation_mode: canonical
       upstream_tss: null
       downstream_tss: null
+
+comparisons:
+  dev1:
+    runs:
+      - veff1
+      - veff2
+      - veff3

@@ -69,6 +69,13 @@ dl_args = dl_args | {'fasta_file': genome_config['fasta_file'],
                      'gtf': genome_df}
 
 dl = TSSDataloader.from_allele_type(allele, **dl_args, )
-enformer = Enformer(is_random=False if test_config is None else test_config['is_random_enformer'])
+# for development purposes and testing
+if test_config is not None and test_config['is_random_enformer']:
+    if allele == constants.AlleleType.ALT:
+        enformer = Enformer(is_random=True, lamda=2)
+    else:
+        enformer = Enformer(is_random=True, lamda=10)
+else:
+    enformer = Enformer()
 enformer.predict(dl, batch_size=model_config['batch_size'], filepath=pathlib.Path(output['prediction_path']),
                  num_output_bins=model_config['num_output_bins'])

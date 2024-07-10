@@ -21,7 +21,7 @@ def output_dir():
 
 @pytest.fixture
 def gtex_tissue_mapper_path():
-    return Path('assets/gtex_enformer_lm_models_pseudocount1.pkl')
+    return Path('example_files/gtex_enformer_lm_models_pseudocount1.pkl')
 
 
 @pytest.fixture
@@ -40,4 +40,5 @@ def chr22_example_files():
         'gtex_expression': base / 'gtex_samples/transcripts_tpms.zarr',
         'gtex_variants': base / 'gtex_samples/rare_variants.vcf.parquet',
         'gtex_annotation': base / 'gtex_samples/benchmark_with_annotation.parquet',
+        'gtex_folds': base / 'gtex_samples/folds.parquet',
     }

@@ -34,6 +34,8 @@ dependencies:
   - latexify-py=0.4.3
   - xarray=2024.5.0
   - zarr=2.18.2
+  - jupyter_contrib_nbextensions=0.7.0
   - pip:
       - "git+https://github.com/gtsitsiridis/kipoiseq.git@master"
+      - "git+https://github.com/gagneurlab/rep.git@master"
       - snakemk-util

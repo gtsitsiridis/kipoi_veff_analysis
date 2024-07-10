@@ -7,6 +7,7 @@ from kipoiseq import Interval, Variant
 from kipoiseq.transforms.functional import one_hot_dna
 import pathlib
 
+
 def get_tss_from_transcript(transcript_start: int, transcript_end: int, is_on_negative_strand: bool) -> (int, int):
     """
     Get region-of-interest for Enformer in relation to the TSS of a transcript
@@ -145,8 +146,13 @@ class RandomModel(tf.keras.Model):
     A random model for testing purposes.
     """
 
+    def __init__(self, lamda=10):
+        super().__init__()
+        self.lamda = lamda
+
     def predict_on_batch(self, input_tensor):
-        tf.random.set_seed(42)
-        return {'human': tf.abs(tf.random.normal((input_tensor.shape[0], 896, 5313))),
-                'mouse': tf.abs(tf.random.normal((input_tensor.shape[0], 896, 1643))),
-                }
+        # tf.random.set_seed(42)
+        return {
+            'human': tf.abs(tf.random.poisson((input_tensor.shape[0], 896, 5313,), lam=self.lamda)),
+            'mouse': tf.abs(tf.random.poisson((input_tensor.shape[0], 896, 1643), lam=self.lamda)),
+        }

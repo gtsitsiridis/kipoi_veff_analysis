@@ -3,6 +3,7 @@ import pathlib
 # the path to the output folder
 benchmark_path = pathlib.Path(config["output_path"]) / 'benchmark.parquet'
 veff_path = pathlib.Path(config["output_path"]) / 'veff.parquet'
+evaluation_path = pathlib.Path(config["output_path"]) / 'evaluation'
 
 module veff_workflow:
     snakefile: "veff.smk"
@@ -38,3 +39,23 @@ rule benchmark:
         veff_path=benchmark_input
     script:
         '../scripts/common/benchmark.py'
+
+rule evaluation:
+    priority: 1
+    resources:
+        mem_mb=lambda wildcards, attempt, threads: 60000 + (1000 * attempt)
+    log:
+        notebook=evaluation_path / 'notebooks/{predictor}-{run_key}.ipynb'
+    output:
+        prc_path = evaluation_path / 'prc.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
+        prc_tissue_path = evaluation_path / 'prc_tissue.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
+        prc_tissue_type_path = evaluation_path / 'prc_tissue_type.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
+        prc_fold_path = evaluation_path / 'prc_fold.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
+        r2_path= evaluation_path / 'r2.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
+        r2_tissue_path= evaluation_path / 'r2_tissue.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
+        r2_tissue_type_path= evaluation_path / 'r2_tissue_type.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
+        r2_fold_path= evaluation_path / 'r2_fold.parquet' / 'predictor={predictor}/run={run_key}/data.parquet',
+    input:
+        benchmark_path=rules.benchmark.output.benchmark_path
+    notebook:
+        "../notebooks/evaluation.py.ipynb"

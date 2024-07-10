@@ -23,7 +23,8 @@ def variant_effects_paths(chr22_example_files, output_dir: Path,
 @pytest.fixture
 def benchmark(chr22_example_files):
     return VeffBenchmark(annotation_path=chr22_example_files['gtex_annotation'],
-                         genotypes_path=chr22_example_files['gtex_variants'])
+                         genotypes_path=chr22_example_files['gtex_variants'],
+                         folds_path=chr22_example_files['gtex_folds'],)
 
 
 @pytest.mark.parametrize("predictor", [
