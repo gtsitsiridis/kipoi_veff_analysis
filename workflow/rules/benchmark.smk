@@ -43,7 +43,7 @@ rule benchmark:
 rule evaluation:
     priority: 1
     resources:
-        mem_mb=lambda wildcards, attempt, threads: 60000 + (1000 * attempt)
+        mem_mb=lambda wildcards, attempt, threads: 120000 + (1000 * attempt)
     log:
         notebook=evaluation_path / 'notebooks/{predictor}-{run_key}.ipynb'
     output:

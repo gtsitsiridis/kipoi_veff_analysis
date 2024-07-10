@@ -183,6 +183,7 @@ pred_df = benchmark_df.filter(~pl.col('is_obvious_outlier'))
 r2_notobv = r2_score(pred_df["zscore"], pred_df["y_pred"])
 
 pd.DataFrame(dict(type_=['total', 'obvious', 'not_obvious'], r2=[r2_total, r2_obv, r2_notobv])).to_parquet(output['r2_path'])
+del pred_df
 
 # %%
 gg1 = (pn.ggplot(benchmark_df, pn.aes(x='y_pred', y='zscore')) + 
@@ -212,9 +213,10 @@ gg2 = (pn.ggplot(benchmark_df, pn.aes(x='y_pred', y='zscore')) +
  )
 )
 
-if benchmark_df['y_pred'].unique().count() > 1:
-    gg1.show()
-    gg2.show()
+# todo show hex2bin plot
+# if benchmark_df['y_pred'].unique().count() > 1:
+#     gg1.show()
+#     gg2.show()
 
 # %%
 # PR curve
@@ -225,6 +227,9 @@ obvious_prc_df = calc_prc_df(benchmark_df.filter(pl.col('is_obvious_outlier')).t
 notobvious_prc_df = calc_prc_df(benchmark_df.filter(~pl.col('is_obvious_outlier')).to_pandas(), true_col='y_true', pred_col='y_pred'). \
     assign(type_='not_obvious')
 prc_df = pd.concat([total_prc_df, obvious_prc_df, notobvious_prc_df])
+
+# %%
+prc_df[['type_', 'auc']]
 
 # %%
 # save to parquet
