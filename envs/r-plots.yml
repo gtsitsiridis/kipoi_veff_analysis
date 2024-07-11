@@ -1,0 +1,25 @@
+name: kipoi-expression-prediction-r
+channels:
+  - conda-forge
+dependencies:
+  - r-arrow
+  - r-data.table
+  - r-tidyr
+  - r-yaml
+  - r-stringr
+  - r-irkernel
+  - r-ggplot2
+  - r-hms
+  - r-xml
+  - r-ggrepel
+  - r-ggthemes
+  - r-cowplot
+  - r-patchwork
+  - r-ggtext
+  - r-cairo
+  - r-ggnetwork
+  - r-zoo
+  - r-tidyverse
+  - r-ggnewscale
+  - jpeg
+  - cmake

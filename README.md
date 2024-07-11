@@ -2,11 +2,12 @@
 
 ## Setup:
 
-### Create conda environment
+### Create conda environments
 
 ```bash
-mamba env create -f envs/conda-env.yml -n kipoi-enformer-<your_name>
-conda activate kipoi-enformer-<your_name>
+conda env create -f envs/main.yml
+conda env create -f envs/r-plots.yml
+conda activate kipoi-expression-prediction
 pip install -e .
 ```
 
