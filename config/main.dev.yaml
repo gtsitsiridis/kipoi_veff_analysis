@@ -14,60 +14,65 @@ benchmark:
   fdr_cutoff: 0.2
 
 runs:
-  enformer:
-    veff1:
-      alternative: alt1
-      mapper: elasticnet_cage
-      isoform_file: example_files/isoform_proportions.tsv
-      aggregation_mode: logsumexp
-      upstream_tss: 2000
-      downstream_tss: 500
-    veff2:
-      alternative: alt1
-      mapper: elasticnet_cage
-      isoform_file: null
-      aggregation_mode: canonical
-      upstream_tss: 2000
-      downstream_tss: 500
-    veff3:
-      alternative: alt1
-      mapper: lightgbm_cage
-      isoform_file: example_files/isoform_proportions.tsv
-      aggregation_mode: logsumexp
-      upstream_tss: 2000
-      downstream_tss: 500
-    veff4:
-      alternative: alt1
-      mapper: lightgbm_cage
-      isoform_file: null
-      aggregation_mode: canonical
-      upstream_tss: 2000
-      downstream_tss: 500
-    veff5:
-      alternative: alt1
-      mapper: lightgbm_cage
-      isoform_file: example_files/isoform_proportions.tsv
-      aggregation_mode: logsumexp
-      upstream_tss: 100
-      downstream_tss: 500
-    veff6:
-      alternative: alt1
-      mapper: lightgbm_cage
-      isoform_file: null
-      aggregation_mode: canonical
-      upstream_tss: 100
-      downstream_tss: 500
-    veff7:
-      alternative: alt1
-      mapper: lightgbm_cage
-      isoform_file: null
-      aggregation_mode: canonical
-      upstream_tss: null
-      downstream_tss: null
+  enformer_veff1:
+    predictor: enformer
+    alternative: alt1
+    mapper: elasticnet_cage
+    isoform_file: example_files/isoform_proportions.tsv
+    aggregation_mode: logsumexp
+    upstream_tss: 2000
+    downstream_tss: 500
+  enformer_veff2:
+    predictor: enformer
+    alternative: alt1
+    mapper: elasticnet_cage
+    isoform_file: null
+    aggregation_mode: canonical
+    upstream_tss: 2000
+    downstream_tss: 500
+  enformer_veff3:
+    predictor: enformer
+    alternative: alt1
+    mapper: lightgbm_cage
+    isoform_file: example_files/isoform_proportions.tsv
+    aggregation_mode: logsumexp
+    upstream_tss: 2000
+    downstream_tss: 500
+  enformer_veff4:
+    predictor: enformer
+    alternative: alt1
+    mapper: lightgbm_cage
+    isoform_file: null
+    aggregation_mode: canonical
+    upstream_tss: 2000
+    downstream_tss: 500
+  enformer_veff5:
+    predictor: enformer
+    alternative: alt1
+    mapper: lightgbm_cage
+    isoform_file: example_files/isoform_proportions.tsv
+    aggregation_mode: logsumexp
+    upstream_tss: 100
+    downstream_tss: 500
+  enformer_veff6:
+    predictor: enformer
+    alternative: alt1
+    mapper: lightgbm_cage
+    isoform_file: null
+    aggregation_mode: canonical
+    upstream_tss: 100
+    downstream_tss: 500
+  enformer_veff7:
+    predictor: enformer
+    alternative: alt1
+    mapper: lightgbm_cage
+    isoform_file: null
+    aggregation_mode: canonical
+    upstream_tss: null
+    downstream_tss: null
 
 comparisons:
   dev1:
-    runs:
-      - veff1
-      - veff2
-      - veff3
+    - enformer_veff1
+    - enformer_veff2
+    - enformer_veff3

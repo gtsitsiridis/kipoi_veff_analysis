@@ -27,6 +27,6 @@ def get_config_runs():
 rule all:
     default_target: True
     input:
-        expand(rules.evaluation.output,**get_config_runs())
+        expand(rules.evaluation.output, run_key=config['runs'].keys())
     log: output_path / 'config.yaml'
     script: 'scripts/write_config.py'

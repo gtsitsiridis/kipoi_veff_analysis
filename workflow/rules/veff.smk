@@ -12,7 +12,7 @@ use rule * from enfomer_workflow as enformer_ *
 
 def enformer_variant_effect_input(wildcards):
     run_key, vcf_name = wildcards['run_key'], wildcards['vcf_name']
-    run_config = config['runs']['enformer'][run_key]
+    run_config = config['runs'][run_key]
     alternative_config = config['enformer']['alternatives'][run_config['alternative']]
     reference_config = config['enformer']['references'][alternative_config['reference']]
     genome_config = config['genomes'][reference_config['genome']]
@@ -33,21 +33,30 @@ def enformer_variant_effect_input(wildcards):
     }
 
 
-rule enformer_variant_effect:
+def variant_effect_input(wildcards):
+    predictor = config['runs'][wildcards['run_key']]['predictor']
+    if predictor == 'enformer':
+        return enformer_variant_effect_input(wildcards)
+    else:
+        raise ValueError(f'Predictor {predictor} not supported')
+
+
+rule variant_effect:
     priority: 2
     resources:
         tasks=1,
         mem_mb=lambda wildcards, attempt, threads: 10000 + (1000 * attempt)
     output:
-        veff_path=veff_path / 'predictor=enformer/run={run_key}/{vcf_name}.parquet',
+        veff_path=veff_path / 'run={run_key}/{vcf_name}.parquet',
     input:
-        unpack(enformer_variant_effect_input)
+        unpack(variant_effect_input)
     wildcard_constraints:
         vcf_name='.*\.vcf\.gz'
     params:
-        isoform_file=lookup(dpath='runs/enformer/{run_key}/isoform_file',within=config),
-        aggregation_mode=lookup(dpath='runs/enformer/{run_key}/aggregation_mode',within=config),
-        upstream_tss=lookup(dpath='runs/enformer/{run_key}/upstream_tss',within=config),
-        downstream_tss=lookup(dpath='runs/enformer/{run_key}/downstream_tss',within=config),
+        isoform_file=lookup(dpath='runs/{run_key}/isoform_file',within=config),
+        aggregation_mode=lookup(dpath='runs/{run_key}/aggregation_mode',within=config),
+        upstream_tss=lookup(dpath='runs/{run_key}/upstream_tss',within=config),
+        downstream_tss=lookup(dpath='runs/{run_key}/downstream_tss',within=config),
+        predictor=lookup(dpath='runs/{run_key}/predictor',within=config),
     script:
-        '../scripts/enformer/veff.py'
+        '../scripts/common/veff.py'

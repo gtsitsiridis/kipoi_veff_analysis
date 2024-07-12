@@ -5,8 +5,8 @@
 ### Create conda environments
 
 ```bash
-conda env create -f envs/main.yml
-conda env create -f envs/r-plots.yml
+conda env create -f envs/kipoi-expression-prediction.yml
+conda env create -f envs/kipoi-expression-prediction-r.yml
 conda activate kipoi-expression-prediction
 pip install -e .
 ```
