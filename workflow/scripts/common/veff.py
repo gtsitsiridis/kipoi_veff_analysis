@@ -8,7 +8,7 @@ config = snakemake.config
 input_ = snakemake.input
 output = snakemake.output
 wildcards = snakemake.wildcards
-params = snakemake.params
+params = config['runs'][wildcards['run_key']]
 
 if config.get('debug', False):
     logger = setup_logger(logging.DEBUG)

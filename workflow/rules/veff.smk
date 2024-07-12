@@ -52,11 +52,5 @@ rule variant_effect:
         unpack(variant_effect_input)
     wildcard_constraints:
         vcf_name='.*\.vcf\.gz'
-    params:
-        isoform_file=lookup(dpath='runs/{run_key}/isoform_file',within=config),
-        aggregation_mode=lookup(dpath='runs/{run_key}/aggregation_mode',within=config),
-        upstream_tss=lookup(dpath='runs/{run_key}/upstream_tss',within=config),
-        downstream_tss=lookup(dpath='runs/{run_key}/downstream_tss',within=config),
-        predictor=lookup(dpath='runs/{run_key}/predictor',within=config),
     script:
         '../scripts/common/veff.py'
