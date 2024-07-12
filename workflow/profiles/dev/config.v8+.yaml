@@ -3,3 +3,5 @@ configfile:
   - config/components.dev.yaml
 cores: 1
 rerun-incomplete: true
+use-conda: true
+conda-frontend: conda

@@ -8,7 +8,8 @@ rerun-triggers: mtime
 keep-going: true
 restart-times: 0
 show-failed-logs: true
-
+use-conda: true
+conda-frontend: conda
 default-resources:
   slurm_extra: "'--exclude=ouga[01-04] --no-requeue'"
   slurm_partition: lowprio

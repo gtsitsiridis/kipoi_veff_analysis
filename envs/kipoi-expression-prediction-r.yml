@@ -2,6 +2,7 @@ name: kipoi-expression-prediction-r
 channels:
   - conda-forge
 dependencies:
+  - r
   - r-arrow
   - r-data.table
   - r-tidyr
