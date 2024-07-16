@@ -25,5 +25,6 @@ dependencies:
   - jpeg
   - cmake
   - r-rstatix
+  - r-ggpubr
   - jupyter
   - jupyterlab_code_formatter
