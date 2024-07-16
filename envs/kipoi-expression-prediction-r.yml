@@ -28,3 +28,5 @@ dependencies:
   - r-ggpubr
   - jupyter
   - jupyterlab_code_formatter
+  - nbconvert
+  - jupyter_contrib_nbextensions

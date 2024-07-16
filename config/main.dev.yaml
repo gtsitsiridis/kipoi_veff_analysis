@@ -70,9 +70,18 @@ runs:
     aggregation_mode: canonical
     upstream_tss: null
     downstream_tss: null
+  enformer_veff8:
+    predictor: enformer
+    alternative: alt1
+    mapper: ridge_cage
+    isoform_file: null
+    aggregation_mode: canonical
+    upstream_tss: null
+    downstream_tss: null
 
 comparisons:
   dev1:
     - enformer_veff1
     - enformer_veff2
     - enformer_veff3
+    - enformer_veff8

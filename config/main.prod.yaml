@@ -85,6 +85,38 @@ runs:
     aggregation_mode: canonical
     upstream_tss: null
     downstream_tss: null
+  enformer_gtexv8_ridge_dnase_cage_logsumexp:
+    predictor: enformer
+    alternative: GRCh37_short__gtexv8_2000-500
+    mapper: ridge_dnase_cage_gtexv8
+    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
+    aggregation_mode: logsumexp
+    upstream_tss: null
+    downstream_tss: null
+  enformer_gtexv8_ridge_cage_logsumexp:
+    predictor: enformer
+    alternative: GRCh37_short__gtexv8_2000-500
+    mapper: ridge_cage_gtexv8
+    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
+    aggregation_mode: logsumexp
+    upstream_tss: null
+    downstream_tss: null
+  enformer_gtexv8_ridge_dnase_cage_canonical:
+    predictor: enformer
+    alternative: GRCh37_short__gtexv8_2000-500
+    mapper: ridge_dnase_cage_gtexv8
+    isoform_file: null
+    aggregation_mode: canonical
+    upstream_tss: null
+    downstream_tss: null
+  enformer_gtexv8_ridge_cage_canonical:
+    predictor: enformer
+    alternative: GRCh37_short__gtexv8_2000-500
+    mapper: ridge_cage_gtexv8
+    isoform_file: null
+    aggregation_mode: canonical
+    upstream_tss: null
+    downstream_tss: null
 
 comparisons:
   elasticnet:
@@ -97,3 +129,8 @@ comparisons:
     - enformer_gtexv8_lightgbm_cage_logsumexp
     - enformer_gtexv8_lightgbm_dnase_cage_canonical
     - enformer_gtexv8_lightgbm_cage_canonical
+  ridge:
+    - enformer_gtexv8_ridge_dnase_cage_logsumexp
+    - enformer_gtexv8_ridge_cage_logsumexp
+    - enformer_gtexv8_ridge_dnase_cage_canonical
+    - enformer_gtexv8_ridge_cage_canonical

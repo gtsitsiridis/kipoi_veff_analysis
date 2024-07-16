@@ -36,6 +36,8 @@ model_params = mapper_config.get('params', {})
 if mapper_config['type'] == 'ElasticNet':
     model = sklearn.linear_model.ElasticNetCV(cv=model_params.get('cv', 5),
                                               max_iter=model_params.get('max_iter', 1000), )
+elif mapper_config['type'] == 'Ridge':
+    model = sklearn.linear_model.RidgeCV(**model_params)
 elif mapper_config['type'] == 'LightGBM':
     model = lgb.LGBMRegressor(**model_params)
 else:
