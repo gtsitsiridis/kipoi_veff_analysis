@@ -167,24 +167,49 @@ runs:
     downstream_tss: null
 
 comparisons:
-  elasticnet:
+  enformer_elasticnet:
     - enformer_gtexv8_elasticnet_dnase_cage_logsumexp
     - enformer_gtexv8_elasticnet_cage_logsumexp
     - enformer_gtexv8_elasticnet_dnase_cage_canonical
     - enformer_gtexv8_elasticnet_cage_canonical
     - enformer_gtexv8_elasticnet_total_logsumexp
     - enformer_gtexv8_elasticnet_total_canonical
-  lightgbm:
+  enformer_lightgbm:
     - enformer_gtexv8_lightgbm_dnase_cage_logsumexp
     - enformer_gtexv8_lightgbm_cage_logsumexp
     - enformer_gtexv8_lightgbm_dnase_cage_canonical
     - enformer_gtexv8_lightgbm_cage_canonical
     - enformer_gtexv8_lightgbm_total_logsumexp
     - enformer_gtexv8_lightgbm_total_canonical
-  ridge:
+  enformer_ridge:
     - enformer_gtexv8_ridge_dnase_cage_logsumexp
     - enformer_gtexv8_ridge_cage_logsumexp
     - enformer_gtexv8_ridge_dnase_cage_canonical
     - enformer_gtexv8_ridge_cage_canonical
     - enformer_gtexv8_ridge_total_logsumexp
     - enformer_gtexv8_ridge_total_canonical
+#  enformer_tissue_mapper_model:
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp
+#    - enformer_gtexv8_lightgbm_dnase_cage_logsumexp
+#    - enformer_gtexv8_ridge_dnase_cage_logsumexp
+#  enformer_upstream_cutoffs:
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_500
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_1600_500
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_1200_500
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_800_500
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_500_500
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_400_500
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_300_500
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_200_500
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_100_500
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_50_500
+#  enformer_downstream_cutoffs:
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_500
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_400
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_300
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_200
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_100
+#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_50
+  # Combine upstream and downstream cutoffs in this comparison
+#  enformer_cutoffs:
+
