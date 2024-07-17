@@ -1,26 +1,5 @@
-# the path to the output folder
-output_path: /s/project/promoter_prediction/kipoi_expression_prediction
-
-benchmark:
-  genotypes_path: /s/project/rep/processed/training_results_v14/gtex_v8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
-  annotation_path: /s/project/rep/processed/training_results_v14/gtex_benchmark_with_annotation.parquet/*.parquet
-  folds_path: /s/project/rep/processed/training_results_v14/gtex_v8_old_dna/folds.parquet
-  fdr_cutoff: 0.2
-
-# todo add is_canonical parameter
-# todo add ridge regression
-# todo run with all tracks and lightgbm
-# todo lightgbm with different cutoffs if it works better
-# todo ridge regression with different cutoffs
-# todo canonical yes or no?
-
-# evaluation
-# PCR curve for all tissues
-# Boxplot showing AUPRC across tissues
-# Assess position as explanatory variable for all models
-
-
 runs:
+  # Enformer elasticnet
   enformer_gtexv8_elasticnet_total_logsumexp:
     predictor: enformer
     alternative: GRCh37_short__gtexv8_2000-500
@@ -69,6 +48,7 @@ runs:
     aggregation_mode: canonical
     upstream_tss: null
     downstream_tss: null
+  # Enformer lightgbm
   enformer_gtexv8_lightgbm_total_logsumexp:
     predictor: enformer
     alternative: GRCh37_short__gtexv8_2000-500
@@ -117,6 +97,7 @@ runs:
     aggregation_mode: canonical
     upstream_tss: null
     downstream_tss: null
+  # Enformer ridge
   enformer_gtexv8_ridge_total_logsumexp:
     predictor: enformer
     alternative: GRCh37_short__gtexv8_2000-500
@@ -192,24 +173,5 @@ comparisons:
     - enformer_gtexv8_elasticnet_cage_canonical
     - enformer_gtexv8_lightgbm_dnase_cage_canonical
     - enformer_gtexv8_ridge_cage_canonical
-#  enformer_upstream_cutoffs:
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_500
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_1600_500
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_1200_500
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_800_500
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_500_500
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_400_500
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_300_500
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_200_500
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_100_500
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_50_500
-#  enformer_downstream_cutoffs:
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_500
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_400
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_300
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_200
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_100
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_50
-  # Combine upstream and downstream cutoffs in this comparison
-#  enformer_cutoffs:
+
 

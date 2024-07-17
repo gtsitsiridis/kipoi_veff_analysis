@@ -1,6 +1,7 @@
 configfile:
-  - config/main.dev.yaml
-  - config/components.dev.yaml
+  - config/dev/main.yaml
+  - config/dev/runs.yaml
+  - config/dev/components.yaml
 cores: 1
 rerun-incomplete: true
 use-conda: true

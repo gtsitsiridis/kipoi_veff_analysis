@@ -1,18 +1,3 @@
-# the path to the output folder
-output_path: output/smk
-
-debug: true
-test:
-  dataloader_size: 100
-  is_random_enformer: true
-  precomputed_enformer_mapper_path: example_files/gtex_enformer_lm_models_pseudocount1.pkl
-
-benchmark:
-  genotypes_path: example_files/gtex_samples/rare_variants.vcf.parquet
-  annotation_path: example_files/gtex_samples/benchmark_with_annotation.parquet
-  folds_path: example_files/gtex_samples/folds.parquet
-  fdr_cutoff: 0.2
-
 runs:
   enformer_veff1:
     predictor: enformer
