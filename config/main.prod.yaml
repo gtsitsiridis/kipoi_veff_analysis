@@ -188,10 +188,10 @@ comparisons:
     - enformer_gtexv8_ridge_cage_canonical
     - enformer_gtexv8_ridge_total_logsumexp
     - enformer_gtexv8_ridge_total_canonical
-#  enformer_tissue_mapper_model:
-#    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp
-#    - enformer_gtexv8_lightgbm_dnase_cage_logsumexp
-#    - enformer_gtexv8_ridge_dnase_cage_logsumexp
+  enformer_tissue_mapper_model:
+    - enformer_gtexv8_elasticnet_cage_canonical
+    - enformer_gtexv8_lightgbm_dnase_cage_canonical
+    - enformer_gtexv8_ridge_cage_canonical
 #  enformer_upstream_cutoffs:
 #    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_2000_500
 #    - enformer_gtexv8_elasticnet_dnase_cage_logsumexp_1600_500
