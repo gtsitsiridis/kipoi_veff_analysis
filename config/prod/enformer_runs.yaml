@@ -48,6 +48,14 @@ runs:
     aggregation_mode: canonical
     upstream_tss: null
     downstream_tss: null
+  enformer_gtexv8_elasticnet_dnase_canonical:
+    predictor: enformer
+    alternative: GRCh37_short__gtexv8_2000-500
+    mapper: elasticnet_dnase_gtexv8
+    isoform_file: null
+    aggregation_mode: canonical
+    upstream_tss: null
+    downstream_tss: null
   # Enformer lightgbm
   enformer_gtexv8_lightgbm_total_logsumexp:
     predictor: enformer
@@ -153,6 +161,7 @@ comparisons:
     - enformer_gtexv8_elasticnet_cage_logsumexp
     - enformer_gtexv8_elasticnet_dnase_cage_canonical
     - enformer_gtexv8_elasticnet_cage_canonical
+    - enformer_gtexv8_elasticnet_dnase_canonical
     - enformer_gtexv8_elasticnet_total_logsumexp
     - enformer_gtexv8_elasticnet_total_canonical
   enformer_lightgbm:

@@ -39,7 +39,7 @@ enformer:
     elasticnet_cage:
       num_agg_bins: 3
       expression_path: example_files/gtex_samples/transcripts_tpms.zarr
-      tracks_path: assets/enformer_tracks/cage_nonuniversal_enformer_tracks.yaml
+      tracks_path: assets/enformer_tracks/human_cage_nonuniversal_enformer_tracks.yaml
       type: ElasticNet
       params:
         cv: 2
@@ -47,10 +47,10 @@ enformer:
     lightgbm_cage:
       num_agg_bins: 3
       expression_path: example_files/gtex_samples/transcripts_tpms.zarr
-      tracks_path: assets/enformer_tracks/cage_nonuniversal_enformer_tracks.yaml
+      tracks_path: assets/enformer_tracks/human_cage_nonuniversal_enformer_tracks.yaml
       type: LightGBM
     ridge_cage:
       num_agg_bins: 3
       expression_path: example_files/gtex_samples/transcripts_tpms.zarr
-      tracks_path: assets/enformer_tracks/cage_nonuniversal_enformer_tracks.yaml
+      tracks_path: assets/enformer_tracks/human_cage_nonuniversal_enformer_tracks.yaml
       type: Ridge

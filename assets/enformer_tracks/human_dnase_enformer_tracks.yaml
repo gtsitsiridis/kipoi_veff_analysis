@@ -1,0 +1,674 @@
+DNASE:cerebellum male adult (27 years) and male adult (35 years)_0: 0
+DNASE:frontal cortex male adult (27 years) and male adult (35 years)_1: 1
+DNASE:chorion_2: 2
+DNASE:Ishikawa treated with 0.02% dimethyl sulfoxide for 1 hour_3: 3
+DNASE:GM03348_4: 4
+DNASE:GM03348 genetically modified using transduction treated with 3 ug/mL doxycycline for 10 days_5: 5
+DNASE:AG08395_6: 6
+DNASE:AG08396_7: 7
+DNASE:AG20443_8: 8
+DNASE:frontal cortex female adult (67 years) and female adult (80 years)_9: 9
+DNASE:H54_10: 10
+DNASE:GM10248_11: 11
+DNASE:GM12878_12: 12
+DNASE:GM12891_13: 13
+DNASE:GM12892_14: 14
+DNASE:GM18507_15: 15
+DNASE:GM19238_16: 16
+DNASE:GM19239_17: 17
+DNASE:GM19240_18: 18
+DNASE:H1-hESC_19: 19
+DNASE:H7-hESC_20: 20
+DNASE:H9_21: 21
+DNASE:heart male adult (27 years) and male adult (35 years)_22: 22
+DNASE:HEK293T_23: 23
+DNASE:HeLa-S3 treated with interferon alpha for 4 hours_24: 24
+DNASE:HeLa-S3_25: 25
+DNASE:hepatocyte_26: 26
+DNASE:HepG2_27: 27
+DNASE:HTR-8/SVneo_28: 28
+DNASE:endothelial cell of umbilical vein newborn_29: 29
+DNASE:CWRU1 male_30: 30
+DNASE:iPS-NIHi11 male adult (71 year) originated from AG20443_31: 31
+DNASE:iPS-NIHi7 female adult (85 years) originated from AG08395_32: 32
+DNASE:K562 treated with 1 uM vorinostat for 72 hours_33: 33
+DNASE:K562 G2 phase_34: 34
+DNASE:K562 G1 phase_35: 35
+DNASE:LNCaP clone FGC_36: 36
+DNASE:LNCaP clone FGC treated with 1 nM 17B-hydroxy-17-methylestra-4,9,11-trien-3-one for 12 hours_37: 37
+DNASE:MCF-7 originated from MCF-7_38: 38
+DNASE:medulloblastoma_39: 39
+DNASE:epidermal melanocyte_40: 40
+DNASE:CD14-positive monocyte female_41: 41
+DNASE:keratinocyte female_42: 42
+DNASE:osteoblast_43: 43
+DNASE:psoas muscle male adult (27 years) and male adult (35 years)_44: 44
+DNASE:T47D treated with 10 nM 17B-estradiol for 30 minutes_45: 45
+DNASE:urothelium cell line_46: 46
+DNASE:A549_47: 47
+DNASE:AG04449_48: 48
+DNASE:AG04450_49: 49
+DNASE:AG09309_50: 50
+DNASE:AG09319_51: 51
+DNASE:AG10803_52: 52
+DNASE:fibroblast of the aortic adventitia female_53: 53
+DNASE:BE2C_54: 54
+DNASE:BJ_55: 55
+DNASE:HS-27A_56: 56
+DNASE:HS-5_57: 57
+DNASE:stromal cell of bone marrow male_58: 58
+DNASE:Caco-2_59: 59
+DNASE:B cell female adult (43 years)_60: 60
+DNASE:hematopoietic multipotent progenitor cell_61: 61
+DNASE:naive thymus-derived CD4-positive, alpha-beta T cell male adult (26 years)_62: 62
+DNASE:CMK_63: 63
+DNASE:GM04503_64: 64
+DNASE:GM04504_65: 65
+DNASE:GM06990_66: 66
+DNASE:GM12864_67: 67
+DNASE:GM12865_68: 68
+DNASE:GM12878_69: 69
+DNASE:H1-hESC_70: 70
+DNASE:cardiac mesoderm_71: 71
+DNASE:cardiac mesoderm_72: 72
+DNASE:cardiac mesoderm_73: 73
+DNASE:cardiac mesoderm_74: 74
+DNASE:H7-hESC_75: 75
+DNASE:astrocyte of the hippocampus_76: 76
+DNASE:astrocyte of the spinal cord_77: 77
+DNASE:astrocyte of the cerebellum_78: 78
+DNASE:amniotic epithelial cell_79: 79
+DNASE:brain microvascular endothelial cell_80: 80
+DNASE:brain pericyte_81: 81
+DNASE:smooth muscle cell of the brain vasculature female_82: 82
+DNASE:cardiac fibroblast_83: 83
+DNASE:cardiac fibroblast female_84: 84
+DNASE:cardiac muscle cell_85: 85
+DNASE:fibroblast of the conjunctiva_86: 86
+DNASE:choroid plexus epithelial cell_87: 87
+DNASE:HCT116_88: 88
+DNASE:epithelial cell of esophagus_89: 89
+DNASE:HeLa-S3 G1b phase_90: 90
+DNASE:HepG2_91: 91
+DNASE:foreskin fibroblast male newborn_92: 92
+DNASE:HFF-Myc originated from foreskin fibroblast_93: 93
+DNASE:fibroblast of gingiva_94: 94
+DNASE:iris pigment epithelial cell_95: 95
+DNASE:HL-60_96: 96
+DNASE:mammary epithelial cell female_97: 97
+DNASE:fibroblast of mammary gland female_98: 98
+DNASE:dermis blood vessel endothelial cell female adult_99: 99
+DNASE:dermis blood vessel endothelial cell female adult_100: 100
+DNASE:dermis blood vessel endothelial cell male newborn_101: 101
+DNASE:dermis microvascular lymphatic vessel endothelial cell female_102: 102
+DNASE:dermis microvascular lymphatic vessel endothelial cell male_103: 103
+DNASE:dermis blood vessel endothelial cell male newborn_104: 104
+DNASE:lung microvascular endothelial cell female_105: 105
+DNASE:lung microvascular endothelial cell female_106: 106
+DNASE:non-pigmented ciliary epithelial cell_107: 107
+DNASE:pulmonary artery endothelial cell female_108: 108
+DNASE:fibroblast of pulmonary artery_109: 109
+DNASE:fibroblast of peridontal ligament male_110: 110
+DNASE:fibroblast of lung_111: 111
+DNASE:renal cortical epithelial cell_112: 112
+DNASE:kidney epithelial cell_113: 113
+DNASE:glomerular endothelial cell_114: 114
+DNASE:retinal pigment epithelial cell_115: 115
+DNASE:skeletal muscle myoblast_116: 116
+DNASE:myotube originated from skeletal muscle myoblast_117: 117
+DNASE:endothelial cell of umbilical vein newborn_118: 118
+DNASE:fibroblast of villous mesenchyme_119: 119
+DNASE:Jurkat clone E61_120: 120
+DNASE:K562_121: 121
+DNASE:K562_122: 122
+DNASE:K562_123: 123
+DNASE:myocyte originated from LHCN-M2_124: 124
+DNASE:LHCN-M2_125: 125
+DNASE:LNCaP clone FGC_126: 126
+DNASE:M059J_127: 127
+DNASE:MCF-7_128: 128
+DNASE:MCF-7 treated with 100 nM estradiol for 1 hour_129: 129
+DNASE:MCF-7_130: 130
+DNASE:CD14-positive monocyte female_131: 131
+DNASE:NB4_132: 132
+DNASE:astrocyte_133: 133
+DNASE:bronchial epithelial cell female treated with retinoic acid_134: 134
+DNASE:fibroblast of dermis female adult_135: 135
+DNASE:foreskin fibroblast male newborn_136: 136
+DNASE:keratinocyte female_137: 137
+DNASE:fibroblast of lung male adult (45 years)_138: 138
+DNASE:NT2/D1_139: 139
+DNASE:Panc1_140: 140
+DNASE:epithelial cell of prostate_141: 141
+DNASE:RPMI-7951_142: 142
+DNASE:epithelial cell of proximal tubule_143: 143
+DNASE:bronchial epithelial cell_144: 144
+DNASE:SK-N-MC_145: 145
+DNASE:SK-N-SH treated with 6 uM all-trans-retinoic acid for 48 hours_146: 146
+DNASE:skeletal muscle cell_147: 147
+DNASE:T47D_148: 148
+DNASE:T-helper 1 cell_149: 149
+DNASE:T-helper 1 cell female adult (26 years)_150: 150
+DNASE:T-helper 1 cell male adult (33 years)_151: 151
+DNASE:T-helper 17 cell_152: 152
+DNASE:T-helper 2 cell_153: 153
+DNASE:T-helper 2 cell female adult (26 years)_154: 154
+DNASE:T-helper 2 cell male adult (33 years)_155: 155
+DNASE:regulatory T cell female adult (35 years)_156: 156
+DNASE:regulatory T cell male adult (28 years)_157: 157
+DNASE:WERI-Rb-1_158: 158
+DNASE:WI38 genetically modified using stable transfection originated from WI38 treated with 20 nM afimoxifene for 72 hours_159: 159
+DNASE:WI38 genetically modified using stable transfection originated from WI38_160: 160
+DNASE:HT1080_161: 161
+DNASE:SK-MEL-5_162: 162
+DNASE:SJCRH30_163: 163
+DNASE:NCI-H460_164: 164
+DNASE:SK-N-DZ treated with dimethyl sulfoxide for 72 hours_165: 165
+DNASE:GM23338 male adult (53 years) originated from GM23248_166: 166
+DNASE:lung embryo (112 days)_167: 167
+DNASE:SK-MEL-5_168: 168
+DNASE:muscle of back female embryo (113 days)_169: 169
+DNASE:iPS DF 4.7 male newborn_170: 170
+DNASE:right renal cortex interstitium male embryo (105 days)_171: 171
+DNASE:caudate nucleus male adult (78 years)_172: 172
+DNASE:left renal pelvis male embryo (105 days)_173: 173
+DNASE:H9 S1 phase genetically modified using stable transfection_174: 174
+DNASE:right kidney female embryo (87 days)_175: 175
+DNASE:Karpas-422_176: 176
+DNASE:CD8-positive, alpha-beta T cell male adult (21 year)_177: 177
+DNASE:renal cortex interstitium female embryo (96 days)_178: 178
+DNASE:brain female embryo (85 days)_179: 179
+DNASE:muscle of leg male embryo (97 days)_180: 180
+DNASE:muscle of back female embryo (105 days)_181: 181
+DNASE:placenta female embryo (113 days)_182: 182
+DNASE:foreskin keratinocyte male newborn_183: 183
+DNASE:right kidney female embryo (107 days)_184: 184
+DNASE:RCC 7860_185: 185
+DNASE:colon epithelial cell line_186: 186
+DNASE:left renal cortex interstitium male embryo (120 days)_187: 187
+DNASE:T-cell_188: 188
+DNASE:large intestine male embryo (113 days)_189: 189
+DNASE:PC-3_190: 190
+DNASE:muscle of leg male embryo (96 days)_191: 191
+DNASE:adrenal gland embryo (96 days)_192: 192
+DNASE:coronary artery female adult (53 years)_193: 193
+DNASE:stomach female embryo (105 days)_194: 194
+DNASE:muscle of arm female embryo (115 days)_195: 195
+DNASE:heart female embryo (91 day)_196: 196
+DNASE:kidney embryo (80 days)_197: 197
+DNASE:heart left ventricle female adult (53 years)_198: 198
+DNASE:muscle of back female embryo (98 days)_199: 199
+DNASE:lung male embryo (108 days)_200: 200
+DNASE:tibial artery female adult (53 years)_201: 201
+DNASE:adrenal gland male embryo (101 day)_202: 202
+DNASE:kidney female embryo (121 day)_203: 203
+DNASE:stomach female embryo (107 days)_204: 204
+DNASE:small intestine female embryo (110 days)_205: 205
+DNASE:MG63_206: 206
+DNASE:skin of body female embryo (82 days)_207: 207
+DNASE:left renal cortex interstitium male embryo (105 days)_208: 208
+DNASE:stomach male embryo (58 days) and male embryo (76 days)_209: 209
+DNASE:left kidney female embryo (59 days) and male embryo (91 day)_210: 210
+DNASE:hematopoietic multipotent progenitor cell_211: 211
+DNASE:kidney female embryo (120 days)_212: 212
+DNASE:muscle of back female embryo (115 days)_213: 213
+DNASE:hematopoietic multipotent progenitor cell male adult (25 years) treated with erythropoietin for 20 days, hydrocortisone succinate for 20 days, kit ligand for 20 days, interleukin-3 for 20 days_214: 214
+DNASE:small intestine female embryo (120 days)_215: 215
+DNASE:brain embryo (112 days)_216: 216
+DNASE:stomach female embryo (105 days)_217: 217
+DNASE:left kidney female embryo (98 days)_218: 218
+DNASE:trophoblast cell embryo (21 week)_219: 219
+DNASE:common myeloid progenitor, CD34-positive female adult (27 years)_220: 220
+DNASE:eye female embryo (76 days)_221: 221
+DNASE:renal cortex interstitium male embryo (108 days)_222: 222
+DNASE:placenta female embryo (108 days)_223: 223
+DNASE:stomach female adult (53 years)_224: 224
+DNASE:small intestine female embryo (107 days)_225: 225
+DNASE:large intestine female embryo (120 days)_226: 226
+DNASE:kidney glomerular epithelial cell male adult (43 years) and male adult (62 years)_227: 227
+DNASE:renal pelvis female embryo (96 days)_228: 228
+DNASE:lung female embryo (76 days)_229: 229
+DNASE:muscle of back male embryo (104 days)_230: 230
+DNASE:lung female embryo (85 days)_231: 231
+DNASE:spinal cord male embryo (105 days)_232: 232
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 4 days, kit ligand for 4 days, hydrocortisone succinate for 4 days, erythropoietin for 4 days_233: 233
+DNASE:HepG2_234: 234
+DNASE:foreskin fibroblast male newborn_235: 235
+DNASE:omental fat pad female adult (53 years)_236: 236
+DNASE:large intestine female embryo (110 days)_237: 237
+DNASE:heart female embryo (105 days)_238: 238
+DNASE:renal cortex interstitium male embryo (113 days)_239: 239
+DNASE:brain female embryo (96 days)_240: 240
+DNASE:thyroid gland male adult (37 years)_241: 241
+DNASE:liver embryo (59 days) and embryo (80 days)_242: 242
+DNASE:stomach male adult (54 years)_243: 243
+DNASE:thymus male embryo (127 days)_244: 244
+DNASE:upper lobe of left lung male adult (37 years)_245: 245
+DNASE:endodermal cell_246: 246
+DNASE:forelimb muscle female embryo (108 days)_247: 247
+DNASE:CD4-positive, alpha-beta T cell male adult (37 years)_248: 248
+DNASE:muscle of leg male embryo (101 day)_249: 249
+DNASE:gastrocnemius medialis male adult (37 years)_250: 250
+DNASE:gastrocnemius medialis male adult (54 years)_251: 251
+DNASE:stomach male embryo (91 day)_252: 252
+DNASE:muscle of back male embryo (101 day)_253: 253
+DNASE:heart female embryo (117 days)_254: 254
+DNASE:kidney tubule cell female adult (80 years) and male adult (62 years)_255: 255
+DNASE:fibroblast of skin of abdomen male embryo (97 days)_256: 256
+DNASE:pancreas male adult (34 years)_257: 257
+DNASE:trophoblast cell originated from H1-hESC_258: 258
+DNASE:left kidney male embryo (96 days)_259: 259
+DNASE:skin fibroblast male embryo (97 days)_260: 260
+DNASE:brain female embryo (142 days)_261: 261
+DNASE:small intestine male embryo (105 days)_262: 262
+DNASE:heart female embryo (110 days)_263: 263
+DNASE:common myeloid progenitor, CD34-positive female_264: 264
+DNASE:adrenal gland male adult (37 years)_265: 265
+DNASE:muscle of back female embryo (85 days)_266: 266
+DNASE:muscle of leg female embryo (85 days)_267: 267
+DNASE:Peyer's patch male adult (54 years)_268: 268
+DNASE:amniotic stem cell_269: 269
+DNASE:stomach female embryo (98 days)_270: 270
+DNASE:large intestine female embryo (91 day)_271: 271
+DNASE:lung female embryo (120 days)_272: 272
+DNASE:skin fibroblast male embryo (97 days)_273: 273
+DNASE:SW480_274: 274
+DNASE:GM23248_275: 275
+DNASE:muscle of trunk female embryo (120 days)_276: 276
+DNASE:islet precursor cell_277: 277
+DNASE:medulla oblongata male adult (78 years) and male adult (84 years)_278: 278
+DNASE:right lung male embryo (115 days)_279: 279
+DNASE:body of pancreas male adult (54 years)_280: 280
+DNASE:mammary epithelial cell female adult (18 years)_281: 281
+DNASE:gastrocnemius medialis female adult (51 year)_282: 282
+DNASE:uterus female adult (53 years)_283: 283
+DNASE:ELR_284: 284
+DNASE:omental fat pad female adult (51 year)_285: 285
+DNASE:stomach male child (3 years)_286: 286
+DNASE:B cell male adult (37 years)_287: 287
+DNASE:foreskin fibroblast male newborn_288: 288
+DNASE:renal cortex interstitium male embryo (91 day)_289: 289
+DNASE:ACHN_290: 290
+DNASE:kidney tubule cell female adult (80 years) treated with 5 uM cisplatin_291: 291
+DNASE:left renal pelvis male embryo (105 days)_292: 292
+DNASE:iPS DF 6.9 male newborn_293: 293
+DNASE:kidney male embryo (87 days)_294: 294
+DNASE:right lung female embryo (91 day)_295: 295
+DNASE:NCI-H226_296: 296
+DNASE:right renal cortex interstitium male embryo (105 days)_297: 297
+DNASE:G401_298: 298
+DNASE:muscle of arm male embryo (113 days)_299: 299
+DNASE:common myeloid progenitor, CD34-positive male adult_300: 300
+DNASE:muscle of leg female embryo (113 days)_301: 301
+DNASE:arm bone male embryo (81 day)_302: 302
+DNASE:H9_303: 303
+DNASE:testis male embryo_304: 304
+DNASE:neural stem progenitor cell originated from H1-hESC_305: 305
+DNASE:right atrium auricular region female adult (51 year)_306: 306
+DNASE:common myeloid progenitor, CD34-positive male adult (49 years)_307: 307
+DNASE:stomach female embryo (121 day)_308: 308
+DNASE:muscle of leg female embryo (105 days)_309: 309
+DNASE:muscle of leg male embryo (97 days)_310: 310
+DNASE:left kidney female embryo (87 days)_311: 311
+DNASE:muscle of back male embryo (97 days)_312: 312
+DNASE:muscle of leg male embryo (96 days)_313: 313
+DNASE:right lung female embryo (105 days)_314: 314
+DNASE:NAMALWA treated with Sendai virus for 2 hours_315: 315
+DNASE:renal pelvis male embryo (127 days)_316: 316
+DNASE:muscle of arm male embryo (96 days)_317: 317
+DNASE:heart male child (3 years)_318: 318
+DNASE:brain female embryo (117 days)_319: 319
+DNASE:muscle of arm female embryo (85 days)_320: 320
+DNASE:heart male embryo (110 days)_321: 321
+DNASE:L1-S8_322: 322
+DNASE:CD8-positive, alpha-beta T cell male adult (37 years)_323: 323
+DNASE:muscle of back male embryo (91 day)_324: 324
+DNASE:left renal pelvis male embryo (105 days)_325: 325
+DNASE:middle frontal gyrus male adult (78 years)_326: 326
+DNASE:lung male embryo (103 days)_327: 327
+DNASE:heart male embryo (105 days)_328: 328
+DNASE:left renal pelvis male embryo (120 days)_329: 329
+DNASE:common myeloid progenitor, CD34-positive female adult (50 years)_330: 330
+DNASE:Peyer's patch female adult (53 years)_331: 331
+DNASE:skin fibroblast male embryo (97 days)_332: 332
+DNASE:hematopoietic multipotent progenitor cell_333: 333
+DNASE:right kidney male embryo (87 days)_334: 334
+DNASE:tibial artery male adult (37 years)_335: 335
+DNASE:renal cell carcinoma_336: 336
+DNASE:thymus female embryo (113 days)_337: 337
+DNASE:brain female embryo (109 days)_338: 338
+DNASE:Daoy_339: 339
+DNASE:A673_340: 340
+DNASE:muscle of arm male embryo (101 day)_341: 341
+DNASE:muscle of arm female embryo (120 days)_342: 342
+DNASE:muscle of back male embryo (105 days)_343: 343
+DNASE:skin fibroblast male embryo (97 days)_344: 344
+DNASE:ecto neural progenitor cell originated from H9_345: 345
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 17 days, kit ligand for 17 days, hydrocortisone succinate for 17 days, erythropoietin for 17 days_346: 346
+DNASE:hepatocyte originated from H9_347: 347
+DNASE:renal pelvis male embryo (97 days)_348: 348
+DNASE:heart embryo (101 day)_349: 349
+DNASE:large intestine male embryo (115 days)_350: 350
+DNASE:T-cell male adult (37 years)_351: 351
+DNASE:skin fibroblast male embryo (97 days)_352: 352
+DNASE:CD1c-positive myeloid dendritic cell_353: 353
+DNASE:B cell male adult (21 year)_354: 354
+DNASE:superior temporal gyrus male adult (84 years)_355: 355
+DNASE:skin fibroblast male embryo (97 days)_356: 356
+DNASE:iPS DF 19.11 male newborn_357: 357
+DNASE:hindlimb muscle male embryo (120 days)_358: 358
+DNASE:MCF 10A treated with 1 uM tamoxifen for 6 hours_359: 359
+DNASE:sigmoid colon male adult (54 years)_360: 360
+DNASE:heart male embryo (120 days)_361: 361
+DNASE:tibial nerve female adult (51 year)_362: 362
+DNASE:adipocyte_363: 363
+DNASE:muscle of trunk female embryo (121 day)_364: 364
+DNASE:left cardiac atrium female embryo (101 day)_365: 365
+DNASE:T-cell male adult (21 year)_366: 366
+DNASE:right kidney male embryo (108 days)_367: 367
+DNASE:adrenal gland female embryo (108 days)_368: 368
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 11 day, kit ligand for 11 day, hydrocortisone succinate for 11 day, erythropoietin for 11 day_369: 369
+DNASE:brain male embryo (105 days)_370: 370
+DNASE:body of pancreas female adult (53 years)_371: 371
+DNASE:left kidney female embryo (147 days)_372: 372
+DNASE:CD4-positive, alpha-beta T cell male adult (37 years)_373: 373
+DNASE:KBM-7_374: 374
+DNASE:psoas muscle male child (3 years)_375: 375
+DNASE:ovary female embryo_376: 376
+DNASE:RKO_377: 377
+DNASE:leg bone male embryo (81 day)_378: 378
+DNASE:glomerular visceral epithelial cell child (3 years)_379: 379
+DNASE:foreskin melanocyte male newborn_380: 380
+DNASE:embryonic facial prominence embryo (53 days) and embryo (58 days)_381: 381
+DNASE:vagina female adult (53 years)_382: 382
+DNASE:kidney female embryo (85 days)_383: 383
+DNASE:muscle of back male embryo (96 days)_384: 384
+DNASE:muscle of trunk female embryo (113 days)_385: 385
+DNASE:iPS DF 19.7 male newborn_386: 386
+DNASE:right lung female embryo (110 days)_387: 387
+DNASE:left lung male embryo (87 days)_388: 388
+DNASE:large intestine female embryo (105 days)_389: 389
+DNASE:right lung female embryo (98 days)_390: 390
+DNASE:leg bone male embryo (81 day)_391: 391
+DNASE:CD14-positive monocyte male adult (21 year)_392: 392
+DNASE:muscle of arm male embryo (120 days)_393: 393
+DNASE:Peyer's patch male adult (37 years)_394: 394
+DNASE:common myeloid progenitor, CD34-positive male adult (36 years)_395: 395
+DNASE:left lung female embryo (108 days)_396: 396
+DNASE:small intestine female embryo (91 day)_397: 397
+DNASE:MM.1S_398: 398
+DNASE:sigmoid colon female adult (51 year)_399: 399
+DNASE:left lung female embryo (105 days)_400: 400
+DNASE:common myeloid progenitor, CD34-positive female adult (33 years)_401: 401
+DNASE:retina embryo (125 days) and male embryo (103 days)_402: 402
+DNASE:brain male embryo (72 days) and male embryo (76 days)_403: 403
+DNASE:muscle of back male embryo (108 days)_404: 404
+DNASE:IMR-90_405: 405
+DNASE:lung female embryo (108 days)_406: 406
+DNASE:left lung male embryo (113 days)_407: 407
+DNASE:OCI-LY7_408: 408
+DNASE:upper lobe of left lung female adult (51 year)_409: 409
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 18 days, kit ligand for 18 days, hydrocortisone succinate for 18 days, erythropoietin for 18 days_410: 410
+DNASE:putamen male adult (78 years)_411: 411
+DNASE:common myeloid progenitor, CD34-positive male adult (42 years)_412: 412
+DNASE:placenta embryo (53 days)_413: 413
+DNASE:kidney male embryo (105 days)_414: 414
+DNASE:heart left ventricle female embryo (136 days)_415: 415
+DNASE:small intestine female embryo (108 days)_416: 416
+DNASE:LoVo_417: 417
+DNASE:cerebellar cortex male adult (78 years) and male adult (84 years)_418: 418
+DNASE:lung embryo (67 days)_419: 419
+DNASE:transverse colon female adult (53 years)_420: 420
+DNASE:brain embryo (80 days)_421: 421
+DNASE:stomach female embryo (108 days)_422: 422
+DNASE:umbilical cord embryo (59 days) and male embryo (76 days)_423: 423
+DNASE:muscle of leg male embryo (105 days)_424: 424
+DNASE:Caki2_425: 425
+DNASE:muscle of arm female embryo (105 days)_426: 426
+DNASE:foreskin melanocyte male newborn_427: 427
+DNASE:stomach male embryo (108 days)_428: 428
+DNASE:body of pancreas male adult (37 years)_429: 429
+DNASE:renal cortex interstitium female embryo (120 days)_430: 430
+DNASE:body of pancreas female adult (51 year)_431: 431
+DNASE:large intestine male embryo (105 days)_432: 432
+DNASE:limb embryo (58 days) and embryo (59 days)_433: 433
+DNASE:heart female embryo (147 days)_434: 434
+DNASE:heart male embryo (96 days)_435: 435
+DNASE:right renal pelvis male embryo (120 days)_436: 436
+DNASE:left lung female embryo (117 days)_437: 437
+DNASE:thymus female embryo (98 days)_438: 438
+DNASE:ovary female adult (53 years)_439: 439
+DNASE:left kidney male embryo (115 days)_440: 440
+DNASE:thymus male embryo (113 days)_441: 441
+DNASE:placenta female embryo (105 days)_442: 442
+DNASE:EH_443: 443
+DNASE:renal cortex interstitium male embryo (97 days)_444: 444
+DNASE:placenta embryo (102 days)_445: 445
+DNASE:placenta embryo (56 days) and embryo (59 days)_446: 446
+DNASE:renal pelvis female embryo (103 days)_447: 447
+DNASE:right lobe of liver female adult (53 years)_448: 448
+DNASE:skin fibroblast male embryo (97 days)_449: 449
+DNASE:tongue male embryo (72 days)_450: 450
+DNASE:skin fibroblast male embryo (97 days)_451: 451
+DNASE:liver female embryo (101 day) and female embryo (113 days)_452: 452
+DNASE:large intestine female embryo (107 days)_453: 453
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 6 days, kit ligand for 6 days, hydrocortisone succinate for 6 days, erythropoietin for 6 days_454: 454
+DNASE:common myeloid progenitor, CD34-positive male_455: 455
+DNASE:small intestine female embryo (98 days)_456: 456
+DNASE:CD4-positive, alpha-beta T cell male adult (21 year)_457: 457
+DNASE:brain male embryo (101 day)_458: 458
+DNASE:placenta female embryo (101 day) and male embryo (105 days)_459: 459
+DNASE:renal pelvis male embryo (91 day)_460: 460
+DNASE:lung embryo (80 days) and male embryo (76 days)_461: 461
+DNASE:Ammon's horn male adult (84 years)_462: 462
+DNASE:muscle of back female embryo (105 days)_463: 463
+DNASE:lung male embryo (82 days)_464: 464
+DNASE:left renal cortex interstitium male embryo (105 days)_465: 465
+DNASE:trophoblast cell embryo (17 weeks) and embryo (18 weeks)_466: 466
+DNASE:RPMI8226_467: 467
+DNASE:small intestine male embryo (91 day)_468: 468
+DNASE:brain embryo (56 days) and male embryo (58 days)_469: 469
+DNASE:pancreas female adult (30 years)_470: 470
+DNASE:adrenal gland female adult (53 years)_471: 471
+DNASE:breast epithelium female adult (51 year)_472: 472
+DNASE:left kidney male embryo (87 days)_473: 473
+DNASE:renal pelvis female embryo (96 days)_474: 474
+DNASE:stomach male embryo (127 days)_475: 475
+DNASE:CD8-positive, alpha-beta T cell female adult (34 years)_476: 476
+DNASE:spinal cord female embryo (89 days)_477: 477
+DNASE:muscle of arm male embryo (97 days)_478: 478
+DNASE:renal pelvis female embryo (105 days)_479: 479
+DNASE:HAP-1_480: 480
+DNASE:SJSA1_481: 481
+DNASE:retina embryo (74 days) and embryo (85 days)_482: 482
+DNASE:muscle of leg male embryo (127 days)_483: 483
+DNASE:fibroblast of skin of abdomen male embryo (97 days)_484: 484
+DNASE:bipolar neuron originated from GM23338 treated with 0.5 ug/mL doxycycline hyclate for 4 days_485: 485
+DNASE:stomach female embryo (147 days)_486: 486
+DNASE:lung male embryo (54 days) and male embryo (58 days)_487: 487
+DNASE:T-cell male adult (36 years)_488: 488
+DNASE:T-cell male adult (21 year)_489: 489
+DNASE:HK-2_490: 490
+DNASE:NCI-H460_491: 491
+DNASE:left lung male embryo (96 days)_492: 492
+DNASE:common myeloid progenitor, CD34-positive male adult (23 years)_493: 493
+DNASE:stomach female adult (51 year)_494: 494
+DNASE:CD4-positive, alpha-beta T cell female adult (33 years)_495: 495
+DNASE:kidney female embryo (113 days)_496: 496
+DNASE:skin fibroblast male embryo (97 days)_497: 497
+DNASE:placenta female embryo (85 days)_498: 498
+DNASE:brain male embryo (122 days)_499: 499
+DNASE:muscle of arm male embryo (97 days)_500: 500
+DNASE:renal cortex interstitium female embryo (103 days)_501: 501
+DNASE:thyroid gland female adult (51 year)_502: 502
+DNASE:NAMALWA_503: 503
+DNASE:heart embryo (59 days) and female embryo (76 days)_504: 504
+DNASE:large intestine male embryo (105 days)_505: 505
+DNASE:skin fibroblast male embryo (97 days)_506: 506
+DNASE:right kidney male embryo (96 days)_507: 507
+DNASE:CD14-positive monocyte male adult (37 years)_508: 508
+DNASE:ELF-1_509: 509
+DNASE:spinal cord female embryo (113 days)_510: 510
+DNASE:spleen embryo (112 days)_511: 511
+DNASE:left lung female embryo (107 days)_512: 512
+DNASE:thymus female embryo_513: 513
+DNASE:CD4-positive, alpha-beta T cell male adult (21 year)_514: 514
+DNASE:stomach female embryo (96 days)_515: 515
+DNASE:EL_516: 516
+DNASE:CD14-positive monocyte female adult (34 years)_517: 517
+DNASE:thyroid gland female adult (53 years)_518: 518
+DNASE:adrenal gland female embryo (113 days)_519: 519
+DNASE:muscle of back male embryo (96 days)_520: 520
+DNASE:SJCRH30_521: 521
+DNASE:natural killer cell male adult (21 year)_522: 522
+DNASE:heart male embryo (72 days) and male embryo (76 days)_523: 523
+DNASE:midbrain male adult (78 years) and male adult (84 years)_524: 524
+DNASE:ovary female adult (30 years)_525: 525
+DNASE:mesendoderm originated from H1-hESC_526: 526
+DNASE:natural killer cell male adult (37 years)_527: 527
+DNASE:natural killer cell female adult (34 years)_528: 528
+DNASE:foreskin keratinocyte male newborn_529: 529
+DNASE:stomach female embryo_530: 530
+DNASE:adrenal gland male embryo (108 days)_531: 531
+DNASE:testis male embryo_532: 532
+DNASE:mesenchymal stem cell originated from H1-hESC_533: 533
+DNASE:vagina female adult (51 year)_534: 534
+DNASE:common myeloid progenitor, CD34-positive male adult (43 years)_535: 535
+DNASE:heart right ventricle female embryo (101 day) and female embryo (103 days)_536: 536
+DNASE:L1-S8R_537: 537
+DNASE:heart female embryo (116 days) and female embryo (98 days)_538: 538
+DNASE:MCF 10A treated with 1 uM tamoxifen for 24 hours_539: 539
+DNASE:right renal pelvis male embryo (105 days)_540: 540
+DNASE:muscle of arm female embryo (98 days)_541: 541
+DNASE:H9 G1 phase genetically modified using stable transfection_542: 542
+DNASE:tibial nerve male adult (37 years)_543: 543
+DNASE:kidney male embryo (85 days)_544: 544
+DNASE:tongue female embryo (59 days) and female embryo (76 days)_545: 545
+DNASE:transverse colon female adult (51 year)_546: 546
+DNASE:right renal pelvis male embryo (105 days)_547: 547
+DNASE:large intestine male embryo (91 day)_548: 548
+DNASE:right kidney female embryo (117 days)_549: 549
+DNASE:right kidney male embryo (91 day)_550: 550
+DNASE:skin fibroblast male embryo (97 days)_551: 551
+DNASE:globus pallidus male adult (78 years) and male adult (84 years)_552: 552
+DNASE:kidney female embryo (105 days)_553: 553
+DNASE:right atrium auricular region female adult (53 years)_554: 554
+DNASE:thymus female embryo (147 days)_555: 555
+DNASE:stomach male adult (34 years)_556: 556
+DNASE:eye embryo (56 days) and male embryo (76 days)_557: 557
+DNASE:esophagus squamous epithelium male adult (37 years)_558: 558
+DNASE:glomerular visceral epithelial cell child (3 years)_559: 559
+DNASE:muscle of back male embryo (127 days)_560: 560
+DNASE:spinal cord male embryo (96 days)_561: 561
+DNASE:MCF 10A_562: 562
+DNASE:transverse colon male adult (54 years)_563: 563
+DNASE:kidney embryo (59 days) and female embryo (59 days)_564: 564
+DNASE:H1-hESC_565: 565
+DNASE:large intestine female embryo (98 days)_566: 566
+DNASE:large intestine female embryo (103 days)_567: 567
+DNASE:placenta male embryo (85 days)_568: 568
+DNASE:left lung female embryo (91 day)_569: 569
+DNASE:heart embryo (80 days)_570: 570
+DNASE:femur female embryo (98 days)_571: 571
+DNASE:H4_572: 572
+DNASE:trophoblast cell embryo (23 weeks)_573: 573
+DNASE:urinary bladder male embryo (76 days)_574: 574
+DNASE:HT-29_575: 575
+DNASE:limb embryo (53 days) and embryo (56 days)_576: 576
+DNASE:retina female embryo (89 days)_577: 577
+DNASE:dedifferentiated amniotic fluid mesenchymal stem cell_578: 578
+DNASE:upper lobe of left lung female adult (53 years)_579: 579
+DNASE:brain female embryo (105 days)_580: 580
+DNASE:muscle of arm embryo (101 day)_581: 581
+DNASE:renal cortex interstitium male embryo (108 days)_582: 582
+DNASE:pons male adult (78 years)_583: 583
+DNASE:thymus female embryo (105 days)_584: 584
+DNASE:CD8-positive, alpha-beta T cell female adult (33 years)_585: 585
+DNASE:cardiac muscle cell_586: 586
+DNASE:CD8-positive, alpha-beta T cell male adult (21 year)_587: 587
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 8 days, kit ligand for 8 days, hydrocortisone succinate for 8 days, erythropoietin for 8 days_588: 588
+DNASE:right lung female embryo (117 days)_589: 589
+DNASE:right lung male embryo (105 days)_590: 590
+DNASE:lung female embryo (96 days)_591: 591
+DNASE:adrenal gland male adult (54 years)_592: 592
+DNASE:renal cortex interstitium male embryo (127 days)_593: 593
+DNASE:spleen male adult (54 years)_594: 594
+DNASE:renal cortex interstitium female embryo (89 days)_595: 595
+DNASE:ascending aorta female adult (51 year)_596: 596
+DNASE:ovary female adult (51 year)_597: 597
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 13 days, kit ligand for 13 days, hydrocortisone succinate for 13 days, erythropoietin for 13 days_598: 598
+DNASE:cardiac fibroblast female embryo (94 days) and female embryo (98 days)_599: 599
+DNASE:adrenal gland male embryo (85 days)_600: 600
+DNASE:large intestine male embryo (108 days)_601: 601
+DNASE:occipital lobe male adult (84 years)_602: 602
+DNASE:right lung female embryo (107 days)_603: 603
+DNASE:small intestine female embryo (105 days)_604: 604
+DNASE:muscle of leg male embryo (104 days)_605: 605
+DNASE:lower leg skin female adult (53 years)_606: 606
+DNASE:adrenal gland female adult (51 year)_607: 607
+DNASE:adrenal gland female embryo (85 days)_608: 608
+DNASE:muscle of arm male embryo (115 days)_609: 609
+DNASE:right kidney female embryo (147 days)_610: 610
+DNASE:kidney female embryo (76 days) and male embryo (76 days)_611: 611
+DNASE:large intestine female embryo (108 days)_612: 612
+DNASE:right kidney female embryo (98 days)_613: 613
+DNASE:right renal cortex interstitium male embryo (120 days)_614: 614
+DNASE:muscle of arm male embryo (96 days)_615: 615
+DNASE:thymus male embryo (108 days)_616: 616
+DNASE:B cell female adult (34 years)_617: 617
+DNASE:thyroid gland male adult (54 years)_618: 618
+DNASE:spinal cord female embryo (59 days) and male embryo (72 days)_619: 619
+DNASE:heart embryo (96 days)_620: 620
+DNASE:renal pelvis female embryo (89 days)_621: 621
+DNASE:renal pelvis male embryo (108 days)_622: 622
+DNASE:heart female embryo (103 days)_623: 623
+DNASE:H9_624: 624
+DNASE:K562_625: 625
+DNASE:left renal cortex interstitium male embryo (105 days)_626: 626
+DNASE:right lung female embryo (108 days)_627: 627
+DNASE:stomach female embryo (96 days)_628: 628
+DNASE:small intestine male adult (34 years)_629: 629
+DNASE:renal cortex interstitium female embryo (96 days)_630: 630
+DNASE:A172_631: 631
+DNASE:left lung male embryo (115 days)_632: 632
+DNASE:muscle of leg male embryo (115 days)_633: 633
+DNASE:hematopoietic multipotent progenitor cell treated with interleukin-3 for 15 days, kit ligand for 15 days, hydrocortisone succinate for 15 days, erythropoietin for 15 days_634: 634
+DNASE:muscle of leg female embryo (115 days)_635: 635
+DNASE:PC-9_636: 636
+DNASE:kidney female embryo (108 days)_637: 637
+DNASE:stomach embryo (101 day)_638: 638
+DNASE:H9 G2 phase genetically modified using stable transfection_639: 639
+DNASE:esophagus muscularis mucosa male adult (37 years)_640: 640
+DNASE:small intestine male embryo (108 days)_641: 641
+DNASE:heart left ventricle female embryo (101 day) and female embryo (103 days)_642: 642
+DNASE:SK-N-DZ_643: 643
+DNASE:brain male embryo (104 days)_644: 644
+DNASE:right lung male embryo (87 days)_645: 645
+DNASE:muscle of arm male embryo (105 days)_646: 646
+DNASE:muscle of arm male embryo (104 days)_647: 647
+DNASE:kidney female embryo (105 days)_648: 648
+DNASE:left lung male embryo (105 days)_649: 649
+DNASE:left kidney female embryo (107 days)_650: 650
+DNASE:Peyer's patch male adult (37 years)_651: 651
+DNASE:renal pelvis male embryo (113 days)_652: 652
+DNASE:prostate gland male adult (37 years)_653: 653
+DNASE:HeLa-S3_654: 654
+DNASE:left lung female embryo (110 days)_655: 655
+DNASE:thymus male embryo (104 days)_656: 656
+DNASE:neural progenitor cell originated from H9_657: 657
+DNASE:trophoblast cell embryo (39 weeks) and embryo (40 weeks)_658: 658
+DNASE:right lung male embryo (96 days)_659: 659
+DNASE:H9 G1 phase genetically modified using stable transfection_660: 660
+DNASE:small intestine male embryo (87 days)_661: 661
+DNASE:spinal cord female embryo (87 days)_662: 662
+DNASE:left kidney female embryo (110 days)_663: 663
+DNASE:arm bone male embryo (81 day)_664: 664
+DNASE:testis male adult (54 years)_665: 665
+DNASE:transverse colon male adult (37 years)_666: 666
+DNASE:right renal pelvis male embryo (105 days)_667: 667
+DNASE:lung embryo (101 day)_668: 668
+DNASE:inferior parietal cortex male adult (84 years)_669: 669
+DNASE:kidney capillary endothelial cell female embryo (113 days)_670: 670
+DNASE:placenta male embryo (91 day)_671: 671
+DNASE:right kidney male embryo (115 days)_672: 672
+DNASE:coronary artery female adult (51 year)_673: 673

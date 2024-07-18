@@ -1,7 +1,7 @@
 configfile:
   - config/prod/main.yaml
   - config/prod/components.yaml
-  - config/prod/enformer_runs_tm.yaml
+  - config/prod/enformer_runs.yaml
   - config/prod/enformer_runs_ridge_cutoffs.yaml
   - config/prod/enformer_runs_elasticnet_cutoffs.yaml
 executor: slurm

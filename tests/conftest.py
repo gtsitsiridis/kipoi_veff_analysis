@@ -26,7 +26,7 @@ def gtex_tissue_mapper_path():
 
 @pytest.fixture
 def enformer_tracks_path():
-    return Path('assets/enformer_tracks/cage_nonuniversal_enformer_tracks.yaml')
+    return Path('assets/enformer_tracks/human_cage_nonuniversal_enformer_tracks.yaml')
 
 
 @pytest.fixture
