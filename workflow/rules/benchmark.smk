@@ -62,7 +62,7 @@ rule evaluation:
 rule comparison:
     priority: 1
     resources:
-        mem_mb=lambda wildcards, attempt, threads: 120000 + (1000 * attempt)
+        mem_mb=lambda wildcards, attempt, threads: 2000 + (1000 * attempt)
     log:
         notebook=comparison_path / 'notebooks/{comparison_id}.r.ipynb'
     input:
