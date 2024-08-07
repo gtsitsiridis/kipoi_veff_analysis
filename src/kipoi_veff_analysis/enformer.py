@@ -311,8 +311,12 @@ class EnformerTissueMapper:
         dfs = []
         for tissue, lm in self.tissue_mapper_lm_dict.items():
             tissue_df = enformer_df.select(pl.exclude('tracks'))
-            tissue_df = tissue_df.with_columns(pl.Series(name='score', values=lm.predict(scores)),
-                                               pl.lit(tissue).alias('tissue'))
+            if len(scores) == 0:
+                res = []
+            else:
+                res = lm.predict(scores)
+            tissue_df = tissue_df.with_columns(pl.Series(name='score', values=res),
+                                           pl.lit(tissue).alias('tissue'))
             dfs.append(tissue_df)
         enformer_df = pl.concat(dfs)
         enformer_df.write_parquet(output_path)
