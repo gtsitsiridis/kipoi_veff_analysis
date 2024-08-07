@@ -8,7 +8,7 @@ conda env create -f envs/kipoi-veff-analysis-py.yml
 conda env create -f envs/kipoi-veff-analysis-r.yml
 conda activate kipoi-veff-analysis-py
 # for GPU support
-conda install tensorflow-gpu==2.16.1
+#conda install tensorflow-gpu==2.16.1
 ```
 
 ### Install the package
