@@ -378,7 +378,7 @@ class EnformerVeff:
 
         logger.debug(f'Calculating the variant effect for {alt_path}')
 
-        ref_ldf = pl.concat([pl.scan_parquet(path).rename({'score': 'ref_score'}) for path in ref_paths])
+        ref_ldf = pl.concat([pl.scan_parquet(path, hive_partitioning=True).rename({'score': 'ref_score'}) for path in ref_paths])
         alt_ldf = pl.scan_parquet(alt_path).rename({'score': 'alt_score'})
 
         on = ['tss', 'chrom', 'strand', 'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
