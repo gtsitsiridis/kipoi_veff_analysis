@@ -4,7 +4,7 @@ import tensorflow_hub as hub
 import tensorflow as tf
 from .dataloader import TSSDataloader
 from .utils import RandomModel, gtf_to_pandas
-from kipoi_enformer.logger import logger
+from .logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
 from tqdm.autonotebook import tqdm

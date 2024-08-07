@@ -1,5 +1,5 @@
 from pathlib import Path
-from kipoi_enformer.logger import logger
+from .logger import logger
 import polars as pl
 
 

@@ -3,16 +3,22 @@
 ## Setup:
 
 ### Create conda environments
-
 ```bash
-conda env create -f envs/kipoi-expression-prediction.yml
-conda env create -f envs/kipoi-expression-prediction-r.yml
-conda activate kipoi-expression-prediction
-pip install -e .
+conda env create -f envs/kipoi-veff-analysis-py.yml
+conda env create -f envs/kipoi-veff-analysis-r.yml
+conda activate kipoi-veff-analysis-py
+# for GPU support
+conda install tensorflow-gpu==2.16.1
+```
+
+### Install the package
+```bash
+pip install .
+# or for development mode
+#pip install -e '.[dev]'
 ```
 
 ### Pytest
-
 To run the tests, execute the following command:
 
 ```bash
@@ -26,6 +32,7 @@ pytest tests/
 To run the snakemake workflow locally using the dev config, execute the following command:
 
 ```bash
+conda activate kipoi-veff-analysis-py
 snakemake --workflow-profile=workflow/profiles/dev
 ```
 
@@ -34,7 +41,7 @@ snakemake --workflow-profile=workflow/profiles/dev
 To run the snakemake workflow on a slurm cluster using the production config, execute the following command:
 
 ```bash
-conda activate kipoi-enformer-<your_name>
+conda activate kipoi-veff-analysis-py
 CONDA_OVERRIDE_CUDA="11.8" snakemake --workflow-profile=workflow/profiles/prod
 ```
 

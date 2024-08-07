@@ -1,4 +1,4 @@
-name: kipoi-expression-prediction-r
+name: kipoi-veff-analysis-r
 channels:
   - conda-forge
 dependencies:

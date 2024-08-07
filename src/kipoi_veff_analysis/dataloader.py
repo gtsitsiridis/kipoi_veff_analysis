@@ -9,7 +9,7 @@ import pyarrow as pa
 import numpy as np
 from .utils import get_tss_from_genome_annotation, extract_sequences_around_tss
 from .constants import AlleleType
-from kipoi_enformer.logger import logger
+from .logger import logger
 
 __all__ = ['TSSDataloader', 'RefTSSDataloader', 'VCFTSSDataloader']
 

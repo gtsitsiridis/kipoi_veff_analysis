@@ -1,7 +1,7 @@
 import pyranges as pr
 import pandas as pd
 import logging
-from kipoi_enformer.logger import setup_logger
+from kipoi_veff_analysis.logger import setup_logger
 
 # SNAKEMAKE SCRIPT
 params = snakemake.params

@@ -1,7 +1,7 @@
 import pytest
 
-from kipoi_enformer.dataloader import VCFTSSDataloader, RefTSSDataloader
-from kipoi_enformer.utils import get_tss_from_genome_annotation
+from kipoi_veff_analysis.dataloader import VCFTSSDataloader, RefTSSDataloader
+from kipoi_veff_analysis.utils import get_tss_from_genome_annotation
 from kipoiseq.transforms.functional import one_hot2string
 
 UPSTREAM_TSS = 10

@@ -1,5 +1,5 @@
 import pytest
-from kipoi_enformer.benchmark import VeffBenchmark
+from kipoi_veff_analysis.benchmark import VeffBenchmark
 from pathlib import Path
 import test_enformer
 

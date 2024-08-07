@@ -1,9 +1,9 @@
 import pathlib
 
-from kipoi_enformer.enformer import Enformer, EnformerAggregator
-from kipoi_enformer.dataloader import TSSDataloader
-from kipoi_enformer.logger import setup_logger
-from kipoi_enformer import constants
+from kipoi_veff_analysis.enformer import Enformer, EnformerAggregator
+from kipoi_veff_analysis.dataloader import TSSDataloader
+from kipoi_veff_analysis.logger import setup_logger
+from kipoi_veff_analysis import constants
 import logging
 import pandas as pd
 

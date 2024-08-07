@@ -1,6 +1,6 @@
 import logging
 
-__all__ = ['logger']
+__all__ = ['logger', 'setup_logger']
 
 logger = logging.getLogger('kipoi_enformer')
 

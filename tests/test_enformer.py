@@ -1,14 +1,14 @@
 import pytest
 
-from kipoi_enformer.dataloader import TSSDataloader, RefTSSDataloader, VCFTSSDataloader
-from kipoi_enformer.enformer import Enformer, EnformerAggregator, EnformerTissueMapper, EnformerVeff
+from kipoi_veff_analysis.dataloader import TSSDataloader, RefTSSDataloader, VCFTSSDataloader
+from kipoi_veff_analysis.enformer import Enformer, EnformerAggregator, EnformerTissueMapper, EnformerVeff
 from pathlib import Path
 import pyarrow.parquet as pq
-from kipoi_enformer.logger import logger
+from kipoi_veff_analysis.logger import logger
 import numpy as np
 import pickle
 import polars as pl
-from kipoi_enformer.constants import AlleleType
+from kipoi_veff_analysis.constants import AlleleType
 from shutil import rmtree
 from sklearn import linear_model
 import lightgbm as lgb

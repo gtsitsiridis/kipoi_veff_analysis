@@ -1,6 +1,6 @@
 import pytest
 import logging
-from kipoi_enformer.logger import logger
+from kipoi_veff_analysis.logger import logger
 from pathlib import Path
 
 

@@ -1,7 +1,7 @@
 import pyranges as pr
 import logging
-from kipoi_enformer.logger import setup_logger
-from kipoi_enformer.benchmark import VeffBenchmark
+from kipoi_veff_analysis.logger import setup_logger
+from kipoi_veff_analysis.benchmark import VeffBenchmark
 
 # SNAKEMAKE SCRIPT
 params = snakemake.params
