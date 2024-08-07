@@ -72,6 +72,8 @@ class Enformer:
         total_batches = math.ceil(len(dataloader) / batch_size)
         if total_batches == 0:
             logger.info('The dataloader is empty. No predictions to make.')
+            writer = pq.ParquetWriter(filepath, schema)
+            writer.close()
             return
 
         with pq.ParquetWriter(filepath, schema) as writer:
