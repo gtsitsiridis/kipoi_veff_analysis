@@ -463,7 +463,7 @@ class EnformerVeff:
             veff_ldf = veff_ldf.filter(pl.col('transcript_id').is_in(self.canonical_transcripts))
             veff_ldf = veff_ldf.with_columns(
                 ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
-            veff_ldf = veff_ldf.groupby(['chrom', 'strand', 'gene_id', 'variant_start',
+            veff_ldf = veff_ldf.group_by(['chrom', 'strand', 'gene_id', 'variant_start',
                                          'variant_end', 'ref', 'alt', 'tissue', ]).agg(
                 pl.col(['enformer_start', 'enformer_end', 'tss', 'transcript_id', 'transcript_start', 'transcript_end',
                         'ref_score', 'alt_score', 'log2fc']).first(),
@@ -482,7 +482,7 @@ class EnformerVeff:
         elif aggregation_mode == 'median':
             veff_ldf = veff_ldf.with_columns(
                 ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
-            veff_ldf = veff_ldf.groupby(['chrom', 'strand', 'gene_id', 'variant_start',
+            veff_ldf = veff_ldf.group_by(['chrom', 'strand', 'gene_id', 'variant_start',
                                          'variant_end', 'ref', 'alt', 'tissue', ]).agg(pl.col('log2fc').median())
             veff_df = veff_ldf.collect()
         else:
