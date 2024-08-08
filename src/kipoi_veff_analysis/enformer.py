@@ -316,7 +316,7 @@ class EnformerTissueMapper:
             else:
                 res = lm.predict(scores)
             tissue_df = tissue_df.with_columns(pl.Series(name='score', values=res),
-                                           pl.lit(tissue).alias('tissue'))
+                                               pl.lit(tissue).alias('tissue'))
             dfs.append(tissue_df)
         enformer_df = pl.concat(dfs)
         enformer_df.write_parquet(output_path)
@@ -378,8 +378,19 @@ class EnformerVeff:
 
         logger.debug(f'Calculating the variant effect for {alt_path}')
 
-        ref_ldf = pl.concat([pl.scan_parquet(path, hive_partitioning=True).rename({'score': 'ref_score'}) for path in ref_paths])
+        ref_ldf = pl.concat(
+            [pl.scan_parquet(path, hive_partitioning=True).rename({'score': 'ref_score'}) for path in ref_paths])
         alt_ldf = pl.scan_parquet(alt_path).rename({'score': 'alt_score'})
+
+        # check if alt_ldf is empty and write empty file if that's the case
+        if alt_ldf.select(pl.len()).collect().item() == 0:
+            logger.warning('The alternate scores are empty. No variant effect to calculate.')
+            veff_ldf = (alt_ldf.select(['chrom', 'strand', 'gene_id', 'variant_start',
+                                        'variant_end', 'ref', 'alt', 'tissue', ]).
+                        with_columns(pl.Series('log2fc', [], dtype=pl.Float32)).
+                        collect())
+            veff_ldf.write_parquet(output_path)
+            return
 
         on = ['tss', 'chrom', 'strand', 'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
               'enformer_start', 'enformer_end', 'tissue']
@@ -464,7 +475,7 @@ class EnformerVeff:
             veff_ldf = veff_ldf.with_columns(
                 ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
             veff_ldf = veff_ldf.group_by(['chrom', 'strand', 'gene_id', 'variant_start',
-                                         'variant_end', 'ref', 'alt', 'tissue', ]).agg(
+                                          'variant_end', 'ref', 'alt', 'tissue', ]).agg(
                 pl.col(['enformer_start', 'enformer_end', 'tss', 'transcript_id', 'transcript_start', 'transcript_end',
                         'ref_score', 'alt_score', 'log2fc']).first(),
                 pl.len().alias('num_transcripts')
@@ -483,7 +494,7 @@ class EnformerVeff:
             veff_ldf = veff_ldf.with_columns(
                 ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
             veff_ldf = veff_ldf.group_by(['chrom', 'strand', 'gene_id', 'variant_start',
-                                         'variant_end', 'ref', 'alt', 'tissue', ]).agg(pl.col('log2fc').median())
+                                          'variant_end', 'ref', 'alt', 'tissue', ]).agg(pl.col('log2fc').median())
             veff_df = veff_ldf.collect()
         else:
             raise ValueError(f'Unknown mode: {aggregation_mode}')
