@@ -7,9 +7,9 @@ import pyranges as pr
 from kipoiseq.extractors import MultiSampleVCF
 import pyarrow as pa
 import numpy as np
-from .utils import get_tss_from_genome_annotation, extract_sequences_around_tss
-from .constants import AlleleType
-from .logger import logger
+from kipoi_veff_analysis.utils import get_tss_from_genome_annotation, extract_sequences_around_tss
+from kipoi_veff_analysis.constants import AlleleType
+from kipoi_veff_analysis.logger import logger
 
 __all__ = ['TSSDataloader', 'RefTSSDataloader', 'VCFTSSDataloader']
 
