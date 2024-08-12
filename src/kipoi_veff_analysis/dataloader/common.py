@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
 
-import pandas as pd
 from kipoi.data import SampleGenerator
-from kipoiseq.extractors import FastaStringExtractor
 import pyarrow as pa
+import math
+import pandas as pd
+from kipoiseq.extractors import VariantSeqExtractor, FastaStringExtractor
+from kipoiseq import Interval, Variant
+from kipoiseq.transforms.functional import one_hot_dna
+from kipoi_veff_analysis.utils import gtf_to_pandas
 
 
 class Dataloader(SampleGenerator, ABC):
@@ -69,3 +73,153 @@ class Dataloader(SampleGenerator, ABC):
                 "sequences": sequences,
                 "metadata": metadata
             }
+
+
+def get_tss_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | None = None,
+                                   protein_coding_only: bool = False, canonical_only: bool = False,
+                                   gene_ids: list | None = None):
+    """
+    Get TSS from genome annotation
+    :return: genome_annotation with additional columns tss (0-based), transcript_start (0-based), transcript_end (1-based)
+    """
+    roi = get_roi_from_genome_annotation(gtf, chromosome, protein_coding_only, canonical_only, gene_ids)
+
+    def adjust_row(row):
+        if row.Strand == '-':
+            # convert 1-based to 0-based
+            tss = row.End - 1
+        else:
+            tss = row.Start
+
+        row.Start = tss
+        row.End = tss + 1
+        return row
+
+    roi = roi.apply(adjust_row, axis=1)
+    roi['tss'] = roi["Start"]
+    return roi
+
+
+def get_cse_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | None = None,
+                                   protein_coding_only: bool = False, canonical_only: bool = False,
+                                   gene_ids: list | None = None):
+    """
+    Get CSE from genome annotation
+    :return: genome_annotation with additional columns cse (0-based), transcript_start (0-based), transcript_end (1-based)
+    """
+    roi = get_roi_from_genome_annotation(gtf, chromosome, protein_coding_only, canonical_only, gene_ids)
+
+    # todo modify to extract cse
+    def adjust_row(row):
+        if row.Strand == '-':
+            # convert 1-based to 0-based
+            tss = row.End - 1
+        else:
+            tss = row.Start
+
+        row.Start = tss
+        row.End = tss + 1
+        return row
+
+    roi = roi.apply(adjust_row, axis=1)
+    roi['tss'] = roi["Start"]
+    return roi
+
+
+def get_roi_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | None = None,
+                                   protein_coding_only: bool = False, canonical_only: bool = False,
+                                   gene_ids: list | None = None):
+    """
+    Get ROI from genome annotation
+    :return: filtered genome_annotation
+    """
+    if not isinstance(gtf, pd.DataFrame):
+        genome_annotation = gtf_to_pandas(gtf)
+    else:
+        genome_annotation = gtf.copy()
+    if gene_ids is not None:
+        genome_annotation = genome_annotation[genome_annotation['gene_id'].str.contains('|'.join(gene_ids))]
+    if chromosome is not None:
+        genome_annotation = genome_annotation.query("`Chromosome` == @chromosome")
+    roi = genome_annotation.query("`Feature` == 'transcript'")
+    if protein_coding_only:
+        roi = roi.query("`gene_type` == 'protein_coding'")
+    if canonical_only:
+        # check if Ensembl_canonical is in the set of tags
+        roi = roi[roi['tag'].apply(lambda x: False if pd.isna(x) else ('Ensembl_canonical' in x.split(',')))]
+    if len(roi) == 0:
+        return None
+
+    roi = roi.assign(
+        transcript_start=roi["Start"],
+        transcript_end=roi["End"],
+    )
+
+    return roi
+
+
+def construct_interval(chrom, strand, anchor, seq_length):
+    # input interval without shift
+    # if the sequence length is even, the tss is closer to the end of the sequence
+    # if the sequence length is odd, the tss is in the middle of the sequence
+    five_end_len = math.floor(seq_length / 2)
+    three_end_len = math.ceil(seq_length / 2)
+
+    # WARNING: kipoiseq.Interval has a 0-based end!
+    interval = Interval(chrom=chrom,
+                        start=anchor - five_end_len,
+                        end=anchor + three_end_len,
+                        strand=strand)
+
+    assert (interval.width()) == seq_length, \
+        f"interval width must be {seq_length} but got {interval.width()}"
+    assert (anchor - interval.start) == seq_length // 2, \
+        f"tss must be in the middle of the interval but got {anchor - interval.start}"
+    return interval
+
+
+def extract_sequences_around_anchor(shifts, chromosome, strand, anchor, seq_length,
+                                    ref_seq_extractor: FastaStringExtractor,
+                                    variant_extractor: VariantSeqExtractor | None = None,
+                                    variant: Variant | None = None):
+    assert variant_extractor is None or (variant is not None and variant_extractor is not None), \
+        "variant_extractor must be provided if variant is not None"
+    chrom_len = len(ref_seq_extractor.fasta.records[chromosome])
+
+    # WARNING: kipoiseq.Interval has a 0-based end!
+    interval = construct_interval(chromosome, strand, anchor, seq_length)
+    sequences = []
+    # shift intervals and extract sequences
+    for shift in shifts:
+        shifted_interval = interval.shift(shift, use_strand=False)
+        five_end_pad = 0
+        three_end_pad = 0
+        if shifted_interval.start < 0:
+            five_end_pad = abs(shifted_interval.start)
+        if shifted_interval.end >= chrom_len:
+            three_end_pad = shifted_interval.end - chrom_len + 1
+        if five_end_pad > 0 or three_end_pad > 0:
+            shifted_interval = shifted_interval.truncate(chrom_len)
+
+        if variant is not None:
+            seq = variant_extractor.extract(shifted_interval,
+                                            [variant],
+                                            anchor=anchor,
+                                            fixed_length=True,
+                                            is_padding=True,
+                                            chrom_len=chrom_len,
+                                            )
+        else:
+            seq = ref_seq_extractor.extract(shifted_interval)
+
+        if five_end_pad > 0:
+            seq = 'N' * five_end_pad + seq
+
+        if three_end_pad > 0:
+            seq = seq + 'N' * three_end_pad
+
+        assert len(seq) == seq_length, \
+            f"interval width must be {seq_length} but got {len(seq)}"
+
+        sequences.append(one_hot_dna(seq))
+    return sequences, interval

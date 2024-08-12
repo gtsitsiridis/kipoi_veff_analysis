@@ -1,7 +1,7 @@
 import pytest
 
 from kipoi_veff_analysis.dataloader import TSSDataloader, RefTSSDataloader, VCFTSSDataloader
-from kipoi_veff_analysis.enformer import Enformer, EnformerAggregator, EnformerTissueMapper, EnformerVeff
+from kipoi_veff_analysis.model.enformer import Enformer, EnformerAggregator, EnformerTissueMapper, EnformerVeff
 from pathlib import Path
 import pyarrow.parquet as pq
 from kipoi_veff_analysis.logger import logger
@@ -25,7 +25,7 @@ def run_enformer(dl: TSSDataloader, output_path, size, batch_size, num_output_bi
     table = pq.read_table(output_path)
     logger.info(table.schema)
 
-    assert table.shape == (size, 1 + len(dl.pyarrow_metadata_schema.names))
+    assert table.shape == (size, 2 + len(dl.pyarrow_metadata_schema.names))
 
     x = table['tracks'].to_pylist()
     x = np.array(x)

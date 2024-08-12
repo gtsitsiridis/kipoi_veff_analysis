@@ -392,11 +392,18 @@ class EnformerVeff:
             veff_ldf.write_parquet(output_path)
             return
 
+        # refactored dataloader
+        seq_start_col = 'seq_start'
+        seq_end_col = 'seq_end'
+        if seq_start_col not in set(alt_ldf.columns):
+            seq_start_col = 'enformer_start'
+            seq_end_col = 'enformer_end'
+
         on = ['tss', 'chrom', 'strand', 'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
-              'enformer_start', 'enformer_end', 'tissue']
+              seq_start_col, seq_end_col, 'tissue']
 
         veff_ldf = alt_ldf.join(ref_ldf, how='left', on=on)
-        veff_ldf = veff_ldf.select(['enformer_start', 'enformer_end', 'tss', 'chrom', 'strand',
+        veff_ldf = veff_ldf.select(['seq_start', 'seq_end', 'tss', 'chrom', 'strand',
                                     'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
                                     'variant_start', 'variant_end', 'ref', 'alt', 'tissue',
                                     'ref_score', 'alt_score'])
@@ -476,7 +483,7 @@ class EnformerVeff:
                 ((pl.col("alt_score") - pl.col("ref_score")) / np.log10(2)).alias('log2fc'))
             veff_ldf = veff_ldf.group_by(['chrom', 'strand', 'gene_id', 'variant_start',
                                           'variant_end', 'ref', 'alt', 'tissue', ]).agg(
-                pl.col(['enformer_start', 'enformer_end', 'tss', 'transcript_id', 'transcript_start', 'transcript_end',
+                pl.col(['tss', 'transcript_id', 'transcript_start', 'transcript_end',
                         'ref_score', 'alt_score', 'log2fc']).first(),
                 pl.len().alias('num_transcripts')
             )

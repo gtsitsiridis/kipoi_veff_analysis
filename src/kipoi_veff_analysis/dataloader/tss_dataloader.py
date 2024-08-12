@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 
 import pandas as pd
-from kipoi.data import SampleGenerator
 from kipoiseq.extractors import VariantSeqExtractor, SingleVariantMatcher, FastaStringExtractor
 import pyranges as pr
 from kipoiseq.extractors import MultiSampleVCF
 import pyarrow as pa
 import numpy as np
-from kipoi_veff_analysis.utils import get_tss_from_genome_annotation, extract_sequences_around_tss
+from .common import get_tss_from_genome_annotation, extract_sequences_around_anchor
 from kipoi_veff_analysis.constants import AlleleType
 from kipoi_veff_analysis.logger import logger
 from .common import Dataloader
@@ -30,7 +29,7 @@ class TSSDataloader(Dataloader):
         :param fasta_file: Fasta file with the reference genome
         :param gtf: GTF file with genome annotation or DataFrame with genome annotation
         :param chromosome: The chromosome to filter for. If None, all chromosomes are used.
-        :param seq_length: The length of the sequence to return. This should be the length of the Enformer input sequence.
+        :param seq_length: The length of the sequence to return.
         :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
@@ -55,29 +54,6 @@ class TSSDataloader(Dataloader):
         self.metadata = {'shifts': ';'.join([str(x) for x in self._shifts]), 'allele_type': allele_type.value,
                          'seq_length': str(self._seq_length)}
 
-    def __iter__(self):
-        """
-        Iterate over the dataset.
-
-        :return: Iterator over the dataset. Each item is a dictionary with the following
-            keys:
-            - sequences: Dictionary of sequences for each TSS shift
-            - metadata: Dictionary with metadata for the sample
-        """
-        counter = 0
-        if self._genome_annotation is None or len(self._genome_annotation) == 0:
-            return
-        for metadata, sequences in self._sample_gen():
-            # check if we reached the end of the dataset
-            if self._size is not None and counter == self._size:
-                break
-            counter += 1
-
-            yield {
-                "sequences": sequences,
-                "metadata": metadata
-            }
-
     @classmethod
     def from_allele_type(cls, allele_type: AlleleType, *args, **kwargs):
         if allele_type == AlleleType.REF:
@@ -97,7 +73,7 @@ class RefTSSDataloader(TSSDataloader):
         :param fasta_file: Fasta file with the reference genome
         :param gtf: GTF file with genome annotation or DataFrame with genome annotation
         :param chromosome: The chromosome to filter for
-        :param seq_length: The length of the sequence to return. This should be the length of the Enformer input sequence.
+        :param seq_length: The length of the sequence to return.
         :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
@@ -117,13 +93,13 @@ class RefTSSDataloader(TSSDataloader):
                 strand = row.get('Strand', '.')
                 tss = row['tss']
 
-                sequences, enformer_interval = extract_sequences_around_tss(self._shifts, chromosome, strand, tss,
-                                                                            self._seq_length,
-                                                                            ref_seq_extractor=self._reference_sequence)
+                sequences, interval = extract_sequences_around_anchor(self._shifts, chromosome, strand, tss,
+                                                                               self._seq_length,
+                                                                               ref_seq_extractor=self._reference_sequence)
 
                 metadata = {
-                    "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
-                    "enformer_end": enformer_interval.end + 1,  # 1-based stop of the enformer input sequence
+                    "seq_start": interval.start,  # 0-based start of the input sequence
+                    "seq_end": interval.end + 1,  # 1-based stop of the input sequence
                     "tss": tss,  # 0-based position of the TSS
                     "strand": strand,
                     "gene_id": row['gene_id'],
@@ -149,8 +125,8 @@ class RefTSSDataloader(TSSDataloader):
         :return: PyArrow schema for the metadata
         """
         columns = [
-            ('enformer_start', pa.int64()),
-            ('enformer_end', pa.int64()),
+            ('seq_start', pa.int64()),
+            ('seq_end', pa.int64()),
             ('tss', pa.int64()),
             ('strand', pa.string()),
             ('gene_id', pa.string()),
@@ -175,7 +151,7 @@ class VCFTSSDataloader(TSSDataloader):
         :param vcf_lazy: If True, the VCF file is read lazily
         :param variant_upstream_tss: The number of bases upstream the TSS to look for variants
         :param variant_downstream_tss: The number of bases downstream the TSS to look for variants
-        :param seq_length: The length of the sequence to return. This should be the length of the Enformer input sequence.
+        :param seq_length: The length of the sequence to return.
         :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
@@ -204,14 +180,14 @@ class VCFTSSDataloader(TSSDataloader):
                 chromosome = interval.chrom
                 strand = interval.strand
 
-                sequences, enformer_interval = extract_sequences_around_tss(self._shifts, chromosome, strand, tss,
-                                                                            self._seq_length,
-                                                                            ref_seq_extractor=self._reference_sequence,
-                                                                            variant_extractor=self._variant_seq_extractor,
-                                                                            variant=variant)
+                sequences, interval = extract_sequences_around_anchor(self._shifts, chromosome, strand, tss,
+                                                                               self._seq_length,
+                                                                               ref_seq_extractor=self._reference_sequence,
+                                                                               variant_extractor=self._variant_seq_extractor,
+                                                                               variant=variant)
                 metadata = {
-                    "enformer_start": enformer_interval.start,  # 0-based start of the enformer input sequence
-                    "enformer_end": enformer_interval.end + 1,  # 1-based stop of the enformer input sequence
+                    "seq_start": interval.start,  # 0-based start of the input sequence
+                    "seq_end": interval.end + 1,  # 1-based stop of the input sequence
                     "tss": tss,  # 0-based position of the TSS
                     "chrom": interval.chrom,
                     "strand": interval.strand,
@@ -266,8 +242,8 @@ class VCFTSSDataloader(TSSDataloader):
         """
         return pa.schema(
             [
-                ('enformer_start', pa.int64()),
-                ('enformer_end', pa.int64()),
+                ('seq_start', pa.int64()),
+                ('seq_end', pa.int64()),
                 ('tss', pa.int64()),
                 ('chrom', pa.string()),
                 ('strand', pa.string()),
