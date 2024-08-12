@@ -1,1 +1,1 @@
-from model import enformer
+from .model import enformer

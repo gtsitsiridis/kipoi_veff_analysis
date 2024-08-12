@@ -10,6 +10,7 @@ import numpy as np
 from kipoi_veff_analysis.utils import get_tss_from_genome_annotation, extract_sequences_around_tss
 from kipoi_veff_analysis.constants import AlleleType
 from kipoi_veff_analysis.logger import logger
+from .common import Dataloader
 
 __all__ = ['TSSDataloader', 'RefTSSDataloader', 'VCFTSSDataloader']
 
@@ -18,9 +19,10 @@ __all__ = ['TSSDataloader', 'RefTSSDataloader', 'VCFTSSDataloader']
 ENFORMER_SEQUENCE_LENGTH = 393_216
 
 
-class TSSDataloader(SampleGenerator, ABC):
+class TSSDataloader(Dataloader):
     def __init__(self, allele_type: AlleleType, fasta_file, gtf: pd.DataFrame | str, chromosome: str | None = None,
-                 seq_length: int = ENFORMER_SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
+                 seq_length: int = ENFORMER_SEQUENCE_LENGTH, shift: int = 43, size: int = None,
+                 canonical_only: bool = False,
                  protein_coding_only: bool = False, gene_ids: list | None = None,
                  *args, **kwargs):
         """
@@ -36,17 +38,12 @@ class TSSDataloader(SampleGenerator, ABC):
         :param gene_ids: If provided, only the gene with this ID is extracted from the genome annotation
         """
 
-        super().__init__(*args, **kwargs)
+        super().__init__(fasta_file=fasta_file, size=size, *args, **kwargs)
         assert shift >= 0, f"shift must be positive or zero but got {shift}"
         assert shift < seq_length, f"shift must be smaller than seq_length but got {shift} >= {seq_length}"
 
-        self._reference_sequence = FastaStringExtractor(fasta_file, use_strand=True)
-        if not self._reference_sequence.use_strand:
-            raise ValueError(
-                "Reference sequence fetcher does not use strand but this is needed to obtain correct sequences!")
         self._canonical_only = canonical_only
         self._protein_coding_only = protein_coding_only
-        self._size = size
         self._seq_length = seq_length
         self.chromosome = chromosome
         logger.debug(f"Loading genome annotation")
@@ -57,27 +54,6 @@ class TSSDataloader(SampleGenerator, ABC):
         self._shifts = (0,) if shift == 0 else (-shift, 0, shift)
         self.metadata = {'shifts': ';'.join([str(x) for x in self._shifts]), 'allele_type': allele_type.value,
                          'seq_length': str(self._seq_length)}
-
-    @abstractmethod
-    def __len__(self):
-        raise NotImplementedError("The length of the dataset is not known.")
-
-    @abstractmethod
-    def _sample_gen(self):
-        """
-        Generate samples for the dataset. The generator should return a tuple of metadata and sequences.
-        :return:
-        """
-        raise NotImplementedError("The sample generator is not implemented.")
-
-    @property
-    @abstractmethod
-    def pyarrow_metadata_schema(self) -> pa.schema:
-        """
-        Get the pyarrow schema for the metadata.
-        :return: PyArrow schema for the metadata
-        """
-        raise NotImplementedError("The metadata schema is not implemented.")
 
     def __iter__(self):
         """
@@ -114,7 +90,8 @@ class TSSDataloader(SampleGenerator, ABC):
 
 class RefTSSDataloader(TSSDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str,
-                 seq_length: int = ENFORMER_SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
+                 seq_length: int = ENFORMER_SEQUENCE_LENGTH, shift: int = 43, size: int = None,
+                 canonical_only: bool = False,
                  protein_coding_only: bool = False, gene_ids: list | None = None, *args, **kwargs):
         """
         :param fasta_file: Fasta file with the reference genome
@@ -186,7 +163,8 @@ class RefTSSDataloader(TSSDataloader):
 
 class VCFTSSDataloader(TSSDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, vcf_lazy=True,
-                 variant_upstream_tss: int = 10, variant_downstream_tss: int = 10, seq_length: int = ENFORMER_SEQUENCE_LENGTH,
+                 variant_upstream_tss: int = 10, variant_downstream_tss: int = 10,
+                 seq_length: int = ENFORMER_SEQUENCE_LENGTH,
                  shift: int = 43, size: int = None, canonical_only: bool = False, protein_coding_only: bool = False,
                  gene_ids: list | None = None, *args, **kwargs):
         """

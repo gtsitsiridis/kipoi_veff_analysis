@@ -1,1 +1,1 @@
-from tss_dataloader import TSSDataloader, VCFTSSDataloader, RefTSSDataloader
+from .tss_dataloader import TSSDataloader, VCFTSSDataloader, RefTSSDataloader
