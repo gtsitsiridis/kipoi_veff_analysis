@@ -22,10 +22,10 @@ def run_enformer(dl: TSSDataloader, output_path, size, batch_size, num_output_bi
     enformer = Enformer(is_random=True)
 
     enformer.predict(dl, batch_size=batch_size, filepath=output_path, num_output_bins=num_output_bins)
-    table = pq.read_table(output_path)
+    table = pq.read_table(output_path, partitioning=None)
     logger.info(table.schema)
 
-    assert table.shape == (size, 2 + len(dl.pyarrow_metadata_schema.names))
+    assert table.shape == (size, 1 + len(dl.pyarrow_metadata_schema.names))
 
     x = table['tracks'].to_pylist()
     x = np.array(x)
@@ -148,7 +148,7 @@ def test_predict_tissue_mapper(allele_type: str, chr22_example_files, output_dir
     with open(gtex_tissue_mapper_path, 'rb') as f:
         num_tissues = len(pickle.load(f))
 
-    tbl = pl.read_parquet(enformer_tissue_filepath)
+    tbl = pl.read_parquet(enformer_tissue_filepath, hive_partitioning=True)
 
     if allele_type == 'REF':
         assert tbl.shape == (num_tissues * size, 9 + 2)
