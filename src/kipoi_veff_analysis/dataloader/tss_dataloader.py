@@ -15,12 +15,12 @@ __all__ = ['TSSDataloader', 'RefTSSDataloader', 'VCFTSSDataloader']
 
 # length of sequence which enformer gets as input
 # ═════┆═════┆════════════════════════┆═════┆═════
-SEQUENCE_LENGTH = 393_216
+ENFORMER_SEQUENCE_LENGTH = 393_216
 
 
 class TSSDataloader(SampleGenerator, ABC):
     def __init__(self, allele_type: AlleleType, fasta_file, gtf: pd.DataFrame | str, chromosome: str | None = None,
-                 seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
+                 seq_length: int = ENFORMER_SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
                  protein_coding_only: bool = False, gene_ids: list | None = None,
                  *args, **kwargs):
         """
@@ -114,7 +114,7 @@ class TSSDataloader(SampleGenerator, ABC):
 
 class RefTSSDataloader(TSSDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str,
-                 seq_length: int = SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
+                 seq_length: int = ENFORMER_SEQUENCE_LENGTH, shift: int = 43, size: int = None, canonical_only: bool = False,
                  protein_coding_only: bool = False, gene_ids: list | None = None, *args, **kwargs):
         """
         :param fasta_file: Fasta file with the reference genome
@@ -186,7 +186,7 @@ class RefTSSDataloader(TSSDataloader):
 
 class VCFTSSDataloader(TSSDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, vcf_lazy=True,
-                 variant_upstream_tss: int = 10, variant_downstream_tss: int = 10, seq_length: int = SEQUENCE_LENGTH,
+                 variant_upstream_tss: int = 10, variant_downstream_tss: int = 10, seq_length: int = ENFORMER_SEQUENCE_LENGTH,
                  shift: int = 43, size: int = None, canonical_only: bool = False, protein_coding_only: bool = False,
                  gene_ids: list | None = None, *args, **kwargs):
         """
