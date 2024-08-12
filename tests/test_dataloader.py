@@ -264,7 +264,7 @@ def test_vcf_dataloader(chr22_example_files, variants):
         variant_downstream_tss=10,
         variant_upstream_tss=10,
         seq_length=21,
-        shift=0,
+        shifts=[0],
     )
     total = 0
     checked_variants = dict()
@@ -291,7 +291,7 @@ def test_ref_dataloader(chr22_example_files, references):
         fasta_file=chr22_example_files['fasta'],
         gtf=chr22_example_files['gtf'],
         seq_length=21,
-        shift=0,
+        shifts=[0],
         chromosome='chr22',
     )
     total = 0

@@ -84,7 +84,7 @@ def test_enformer_ref(chr22_example_files, output_dir: Path, size, batch_size, n
     args = {
         'fasta_file': chr22_example_files['fasta'],
         'gtf': chr22_example_files['gtf'],
-        'shift': 43,
+        'shifts': [-43, 0, 43],
         'seq_length': 393_216,
         'size': size,
         'chromosome': 'chr22',
@@ -105,7 +105,7 @@ def test_enformer_alt(chr22_example_files, output_dir: Path, size, batch_size, n
     args = {
         'fasta_file': chr22_example_files['fasta'],
         'gtf': chr22_example_files['gtf'],
-        'shift': 43,
+        'shifts': [-43, 0, 43],
         'seq_length': 393_216,
         'size': size,
         'vcf_file': chr22_example_files['vcf'],

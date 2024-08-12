@@ -61,8 +61,9 @@ elif params.type == 'alternative':
 else:
     raise ValueError(f'invalid allele type {params["type"]}')
 
+shift = model_config['shift']
 dl_args = dl_args | {'fasta_file': genome_config['fasta_file'],
-                     'shift': model_config['shift'],
+                     'shifts': [0] if shift == 0 else [-shift, 0, shift],
                      'protein_coding_only': genome_config['protein_coding_only'],
                      'canonical_only': genome_config['canonical_only'],
                      'size': None if test_config is None else test_config['dataloader_size'],

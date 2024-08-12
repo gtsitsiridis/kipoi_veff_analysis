@@ -20,7 +20,7 @@ ENFORMER_SEQUENCE_LENGTH = 393_216
 
 class TSSDataloader(Dataloader):
     def __init__(self, allele_type: AlleleType, fasta_file, gtf: pd.DataFrame | str, chromosome: str | None = None,
-                 seq_length: int = ENFORMER_SEQUENCE_LENGTH, shift: int = 43, size: int = None,
+                 seq_length: int = ENFORMER_SEQUENCE_LENGTH, shifts: list[int] = (-43, 0, 43), size: int = None,
                  canonical_only: bool = False,
                  protein_coding_only: bool = False, gene_ids: list | None = None,
                  *args, **kwargs):
@@ -30,7 +30,7 @@ class TSSDataloader(Dataloader):
         :param gtf: GTF file with genome annotation or DataFrame with genome annotation
         :param chromosome: The chromosome to filter for. If None, all chromosomes are used.
         :param seq_length: The length of the sequence to return.
-        :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
+        :param shifts: The shifts in relation to the TSS.
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
@@ -38,8 +38,8 @@ class TSSDataloader(Dataloader):
         """
 
         super().__init__(fasta_file=fasta_file, size=size, *args, **kwargs)
-        assert shift >= 0, f"shift must be positive or zero but got {shift}"
-        assert shift < seq_length, f"shift must be smaller than seq_length but got {shift} >= {seq_length}"
+        for shift in shifts:
+            assert abs(shift) < seq_length, f"shift must be smaller than seq_length but got {shift} >= {seq_length}"
 
         self._canonical_only = canonical_only
         self._protein_coding_only = protein_coding_only
@@ -50,7 +50,7 @@ class TSSDataloader(Dataloader):
                                                                  canonical_only=canonical_only,
                                                                  protein_coding_only=protein_coding_only,
                                                                  gene_ids=gene_ids)
-        self._shifts = (0,) if shift == 0 else (-shift, 0, shift)
+        self._shifts = shifts
         self.metadata = {'shifts': ';'.join([str(x) for x in self._shifts]), 'allele_type': allele_type.value,
                          'seq_length': str(self._seq_length)}
 
@@ -66,7 +66,7 @@ class TSSDataloader(Dataloader):
 
 class RefTSSDataloader(TSSDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str,
-                 seq_length: int = ENFORMER_SEQUENCE_LENGTH, shift: int = 43, size: int = None,
+                 seq_length: int = ENFORMER_SEQUENCE_LENGTH, shifts: list[int] = (-43, 0, 43), size: int = None,
                  canonical_only: bool = False,
                  protein_coding_only: bool = False, gene_ids: list | None = None, *args, **kwargs):
         """
@@ -74,7 +74,7 @@ class RefTSSDataloader(TSSDataloader):
         :param gtf: GTF file with genome annotation or DataFrame with genome annotation
         :param chromosome: The chromosome to filter for
         :param seq_length: The length of the sequence to return.
-        :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
+        :param shifts: The shifts in relation to the TSS.
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
@@ -82,7 +82,7 @@ class RefTSSDataloader(TSSDataloader):
         """
         assert chromosome is not None, 'A chromosome should be provided'
         super().__init__(AlleleType.REF, chromosome=chromosome, fasta_file=fasta_file, gtf=gtf,
-                         seq_length=seq_length, shift=shift, size=size, canonical_only=canonical_only,
+                         seq_length=seq_length, shifts=shifts, size=size, canonical_only=canonical_only,
                          protein_coding_only=protein_coding_only, gene_ids=gene_ids, *args, **kwargs)
         logger.debug(f"Dataloader is ready for chromosome {chromosome}")
 
@@ -94,8 +94,8 @@ class RefTSSDataloader(TSSDataloader):
                 tss = row['tss']
 
                 sequences, interval = extract_sequences_around_anchor(self._shifts, chromosome, strand, tss,
-                                                                               self._seq_length,
-                                                                               ref_seq_extractor=self._reference_sequence)
+                                                                      self._seq_length,
+                                                                      ref_seq_extractor=self._reference_sequence)
 
                 metadata = {
                     "seq_start": interval.start,  # 0-based start of the input sequence
@@ -140,8 +140,8 @@ class RefTSSDataloader(TSSDataloader):
 class VCFTSSDataloader(TSSDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, vcf_lazy=True,
                  variant_upstream_tss: int = 10, variant_downstream_tss: int = 10,
-                 seq_length: int = ENFORMER_SEQUENCE_LENGTH,
-                 shift: int = 43, size: int = None, canonical_only: bool = False, protein_coding_only: bool = False,
+                 seq_length: int = ENFORMER_SEQUENCE_LENGTH, shifts: list[int] = (-43, 0, 43),
+                 size: int = None, canonical_only: bool = False, protein_coding_only: bool = False,
                  gene_ids: list | None = None, *args, **kwargs):
         """
 
@@ -152,7 +152,7 @@ class VCFTSSDataloader(TSSDataloader):
         :param variant_upstream_tss: The number of bases upstream the TSS to look for variants
         :param variant_downstream_tss: The number of bases downstream the TSS to look for variants
         :param seq_length: The length of the sequence to return.
-        :param shift: For each sequence, we have 3 shifts, -shift, 0, shift, in relation to the TSS.
+        :param shifts: The shifts in relation to the TSS.
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
@@ -160,10 +160,12 @@ class VCFTSSDataloader(TSSDataloader):
         """
 
         super().__init__(AlleleType.ALT, fasta_file=fasta_file, gtf=gtf, chromosome=None,
-                         seq_length=seq_length, shift=shift, size=size, canonical_only=canonical_only,
+                         seq_length=seq_length, shifts=shifts, size=size, canonical_only=canonical_only,
                          protein_coding_only=protein_coding_only, gene_ids=gene_ids, *args, **kwargs)
-        assert shift < variant_downstream_tss + variant_upstream_tss + 1, \
-            f"shift must be smaller than downstream_tss + upstream_tss + 1 but got {shift} >= {variant_downstream_tss + variant_upstream_tss + 1}"
+        for shift in shifts:
+            assert abs(shift) < variant_downstream_tss + variant_upstream_tss + 1, \
+                (f"shift must be smaller than downstream_tss + upstream_tss + 1 but got "
+                 f"{shift} >= {variant_downstream_tss + variant_upstream_tss + 1}")
 
         self._variant_seq_extractor = VariantSeqExtractor(reference_sequence=self._reference_sequence)
         self.vcf_file = vcf_file
@@ -181,10 +183,10 @@ class VCFTSSDataloader(TSSDataloader):
                 strand = interval.strand
 
                 sequences, interval = extract_sequences_around_anchor(self._shifts, chromosome, strand, tss,
-                                                                               self._seq_length,
-                                                                               ref_seq_extractor=self._reference_sequence,
-                                                                               variant_extractor=self._variant_seq_extractor,
-                                                                               variant=variant)
+                                                                      self._seq_length,
+                                                                      ref_seq_extractor=self._reference_sequence,
+                                                                      variant_extractor=self._variant_seq_extractor,
+                                                                      variant=variant)
                 metadata = {
                     "seq_start": interval.start,  # 0-based start of the input sequence
                     "seq_end": interval.end + 1,  # 1-based stop of the input sequence
