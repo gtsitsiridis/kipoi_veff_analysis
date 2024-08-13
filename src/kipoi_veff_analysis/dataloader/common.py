@@ -109,20 +109,21 @@ def get_cse_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | No
     """
     roi = get_roi_from_genome_annotation(gtf, chromosome, protein_coding_only, canonical_only, gene_ids)
 
-    # todo modify to extract cse
     def adjust_row(row):
         if row.Strand == '-':
-            # convert 1-based to 0-based
-            tss = row.End - 1
+            # CSE is likely 30bp upstream of the cut site,
+            # 0-based
+            cse = row.Start + 30
         else:
-            tss = row.Start
+            # convert 1-based to 0-based
+            cse = row.End - 1 - 30
 
-        row.Start = tss
-        row.End = tss + 1
+        row.Start = cse
+        row.End = cse + 1
         return row
 
     roi = roi.apply(adjust_row, axis=1)
-    roi['tss'] = roi["Start"]
+    roi['cse'] = roi["Start"]
     return roi
 
 
@@ -191,7 +192,7 @@ def extract_sequences_around_anchor(shifts, chromosome, strand, anchor, seq_leng
     sequences = []
     # shift intervals and extract sequences
     for shift in shifts:
-        shifted_interval = interval.shift(shift, use_strand=False)
+        shifted_interval = interval.shift(shift, use_strand=True)
         five_end_pad = 0
         three_end_pad = 0
         if shifted_interval.start < 0:
