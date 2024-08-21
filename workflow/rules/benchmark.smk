@@ -68,6 +68,6 @@ rule comparison:
     input:
         expand(rules.evaluation.output, run_key=lookup('comparisons/{comparison_id}', within=config))
     conda:
-        "../../envs/plotting-r"
+        "../envs/plotting-r"
     notebook:
         "../notebooks/comparison.r.ipynb"
