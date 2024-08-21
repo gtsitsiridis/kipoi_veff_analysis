@@ -1,4 +1,4 @@
-name: kipoi-veff-analysis-r
+name: plotting-r
 channels:
   - conda-forge
 dependencies:

@@ -1,9 +1,9 @@
 import pathlib
 
-from kipoi_veff_analysis.model.enformer import Enformer
-from kipoi_veff_analysis.dataloader import TSSDataloader
-from kipoi_veff_analysis.logger import setup_logger
-from kipoi_veff_analysis import constants
+from kipoi_enformer.enformer import Enformer
+from kipoi_enformer.dataloader import TSSDataloader
+from kipoi_enformer.logger import setup_logger
+from kipoi_enformer import constants
 import logging
 import pandas as pd
 
@@ -14,11 +14,7 @@ output = snakemake.output
 wildcards = snakemake.wildcards
 params = snakemake.params
 
-if config.get('debug', False):
-    logger = setup_logger(logging.DEBUG)
-else:
-    logger = setup_logger()
-
+logger = setup_logger()
 test_config = config.get('test', None)
 
 genome_df = pd.read_parquet(input_['genome_path'])

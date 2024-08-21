@@ -1,5 +1,5 @@
-from kipoi_veff_analysis.model.enformer import EnformerTissueMapper
-from kipoi_veff_analysis.logger import setup_logger
+from kipoi_enformer.enformer import EnformerTissueMapper
+from kipoi_enformer.logger import setup_logger
 import logging
 import sklearn
 import lightgbm as lgb
@@ -12,11 +12,7 @@ output = snakemake.output
 wildcards = snakemake.wildcards
 params = snakemake.params
 
-if config.get('debug', False):
-    logger = setup_logger(logging.DEBUG)
-else:
-    logger = setup_logger()
-
+logger = setup_logger()
 test_config = config.get('test', None)
 
 # For developing and testing purposes, we can use a precomputed mapper

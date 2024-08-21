@@ -1,5 +1,5 @@
-from kipoi_veff_analysis.model.enformer import EnformerTissueMapper
-from kipoi_veff_analysis.logger import setup_logger
+from kipoi_enformer.enformer import EnformerTissueMapper
+from kipoi_enformer.logger import setup_logger
 import logging
 
 # SNAKEMAKE SCRIPT
@@ -8,10 +8,7 @@ input_ = snakemake.input
 output = snakemake.output
 wildcards = snakemake.wildcards
 
-if config.get('debug', False):
-    logger = setup_logger(logging.DEBUG)
-else:
-    logger = setup_logger()
+logger = setup_logger()
 
 mapper_config = config['enformer']['mappers'][wildcards['mapper_key']]
 tissue_mapper = EnformerTissueMapper(tracks_path=mapper_config['tracks_path'],

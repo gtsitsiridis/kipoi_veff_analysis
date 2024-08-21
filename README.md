@@ -2,37 +2,19 @@
 
 ## Setup:
 
-### Create conda environments
+### Create main conda environment
 ```bash
-conda env create -f envs/kipoi-veff-analysis-py.yml
-conda env create -f envs/kipoi-veff-analysis-r.yml
-conda activate kipoi-veff-analysis-py
-# for GPU support
-#conda install tensorflow-gpu==2.16.1
+conda env create -f workflow/envs/kipoi-veff-analysis
+conda activate kipoi-veff-analysis
 ```
-
-### Install the package
-```bash
-pip install .
-# or for development mode
-#pip install -e '.[dev]'
-```
-
-### Pytest
-To run the tests, execute the following command:
-
-```bash
-pytest tests/
-````
 
 ### Snakemake workflow
-
 #### Local profile
 
 To run the snakemake workflow locally using the dev config, execute the following command:
 
 ```bash
-conda activate kipoi-veff-analysis-py
+conda activate kipoi-veff-analysis
 snakemake --workflow-profile=workflow/profiles/dev
 ```
 
@@ -41,13 +23,15 @@ snakemake --workflow-profile=workflow/profiles/dev
 To run the snakemake workflow on a slurm cluster using the production config, execute the following command:
 
 ```bash
-conda activate kipoi-veff-analysis-py
+conda activate kipoi-veff-analysis
 CONDA_OVERRIDE_CUDA="11.8" snakemake --workflow-profile=workflow/profiles/prod
 ```
 
 ## Predictors
 
 ### Enformer
+
+TODO add package dev info
 
 Karollus et al. (cite Karollus) have shown that Enformer is able to capture gene expression determinants in promoters.
 Enformer is a transformer-based model that takes as input one-hot encoded DNA sequence of 393,216 bp and predicts 5,313

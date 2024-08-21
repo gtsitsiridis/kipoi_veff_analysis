@@ -1,7 +1,7 @@
 # the path to the output folder
 output_path: output/smk
+use_gpu: false
 
-debug: true
 test:
   dataloader_size: 100
   is_random_enformer: true

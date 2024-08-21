@@ -6,11 +6,11 @@ veff_path = pathlib.Path(config["output_path"]) / 'veff.parquet'
 evaluation_path = pathlib.Path(config["output_path"]) / 'evaluation'
 comparison_path = pathlib.Path(config["output_path"]) / 'comparison'
 
-module veff_workflow:
-    snakefile: "veff.smk"
+module enfomer_workflow:
+    snakefile: "enformer.smk"
     config: config
 
-use rule * from veff_workflow
+use rule * from enfomer_workflow as enformer_*
 
 
 def vcfs(vcf_key):
@@ -24,7 +24,7 @@ def benchmark_input(wildcards):
     predictor = run_config['predictor']
     vcf_key = config[predictor]['alternatives'][run_config['alternative']]['vcf']
 
-    return expand(rules.variant_effect.output,run_key=run_key,vcf_name=vcfs(vcf_key))
+    return [*expand(rules.enformer_variant_effect.output,run_key=run_key,vcf_name=vcfs(vcf_key))]
 
 
 rule benchmark:
@@ -68,6 +68,6 @@ rule comparison:
     input:
         expand(rules.evaluation.output, run_key=lookup('comparisons/{comparison_id}', within=config))
     conda:
-        "kipoi-veff-analysis-r"
+        "../../envs/plotting-r"
     notebook:
         "../notebooks/comparison.r.ipynb"

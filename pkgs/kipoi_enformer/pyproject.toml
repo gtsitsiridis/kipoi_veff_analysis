@@ -3,7 +3,7 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kipoi-veff-analysis"
+name = "kipoi-enformer"
 version = "0.0.1"
 description = "Kipoi-based variant effect prediction"
 authors = [

@@ -1,6 +1,4 @@
 import pyranges as pr
-import logging
-from kipoi_veff_analysis.logger import setup_logger
 
 # SNAKEMAKE SCRIPT
 params = snakemake.params
@@ -10,12 +8,7 @@ wildcards = snakemake.wildcards
 config = snakemake.config
 genome_config = config['genomes'][wildcards['genome']]
 
-if config.get('debug', False):
-    logger = setup_logger(logging.DEBUG)
-else:
-    logger = setup_logger()
-
-logger.info('Reading GTF file: %s', input_['gtf_file'])
+print('Reading GTF file: %s', input_['gtf_file'])
 gtf = pr.read_gtf(input_['gtf_file'], as_df=True, duplicate_attr=True)
 chromosomes = genome_config['chromosomes']
 gtf = gtf.query('`Chromosome`.isin(@chromosomes)')
