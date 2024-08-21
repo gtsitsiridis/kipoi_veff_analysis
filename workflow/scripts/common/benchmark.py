@@ -41,7 +41,7 @@ class VeffBenchmark:
         ).with_columns(
             (pl.col('veff_score').abs() == pl.col('veff_score').abs().max())
             .over(['gene_id', 'tissue', 'individual']).alias('top')
-        ).filter(pl.col('top')).groupby(['gene_id', 'tissue', 'individual']).agg(
+        ).filter(pl.col('top')).group_by(['gene_id', 'tissue', 'individual']).agg(
             pl.exclude('top').first()
         )
 
