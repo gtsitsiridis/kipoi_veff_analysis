@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kipoi-aparent2"
+version = "0.0.1"
+description = "Kipoi-based variant effect prediction around the CSE using APARENT2"
+authors = [
+    { name = "Florian Hölzlwimmer", email = "git.ich@frhoelzlwimmer.de" },
+    { name = "George Tsitsiridis", email = "gtsitsiridis@gmail.com" },
+]
+readme = "README.md"
+requires-python = "~=3.7"
+license = { text = "MIT licence" }
+keywords = ["model zoo", "deep learning", "enformer", "aparent2",
+    "computational biology", "bioinformatics", "genomics"]
+dependencies = [
+    "tensorflow==1.14.0 ",
+    "keras==2.2.4",
+    "h5py==2.10.0",
+    "kipoiseq @ git+https://github.com/gtsitsiridis/kipoiseq.git@master",
+    "scipy",
+    "cyvcf2",
+    "pyarrow",
+    "pyranges",
+]
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+gpu = [
+    "tensorflow-gpu==1.14.0"
+]
