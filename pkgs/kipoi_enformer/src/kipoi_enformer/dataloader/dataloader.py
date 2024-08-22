@@ -148,8 +148,6 @@ def get_roi_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | No
     if canonical_only:
         # check if Ensembl_canonical is in the set of tags
         roi = roi[roi['tag'].apply(lambda x: False if pd.isna(x) else ('Ensembl_canonical' in x.split(',')))]
-    if len(roi) == 0:
-        return None
 
     roi = roi.assign(
         transcript_start=roi["Start"],
