@@ -114,3 +114,4 @@ slurm*out
 logs
 output/**
 tfhub_cache/**
+tmp/**

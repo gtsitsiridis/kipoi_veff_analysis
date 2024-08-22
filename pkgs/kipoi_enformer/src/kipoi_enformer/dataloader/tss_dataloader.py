@@ -209,7 +209,7 @@ class VCFTSSDataloader(TSSDataloader):
                 raise e
 
     def __len__(self):
-        if self._genome_annotation is None:
+        if self._genome_annotation is None or len(self._genome_annotation) == 0:
             return 0
         tmp_matcher = self._get_single_variant_matcher(vcf_lazy=False)
         total = sum(1 for _, _ in tmp_matcher)
@@ -218,6 +218,8 @@ class VCFTSSDataloader(TSSDataloader):
         return total
 
     def _get_single_variant_matcher(self, vcf_lazy=True):
+        if len(self) == 0:
+            return iter([])
         # reads the genome annotation
         # start and end are transformed to 0-based and 1-based respectively
         roi = pr.PyRanges(self._genome_annotation)
