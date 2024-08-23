@@ -20,14 +20,8 @@ def output_dir():
 
 
 @pytest.fixture
-def gtex_tissue_mapper_path():
-    return Path('../../../example_files/gtex_enformer_lm_models_pseudocount1.pkl')
-
-
-@pytest.fixture
-def enformer_tracks_path():
-    return Path('../../../assets/enformer_tracks/human_cage_nonuniversal_enformer_tracks.yaml')
-
+def aparent2_model_path():
+    return Path('../../../assets/aparent_all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop.h5')
 
 @pytest.fixture
 def chr22_example_files():

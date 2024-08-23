@@ -220,7 +220,7 @@ class VCFCSEDataloader(CSEDataloader):
         return total
 
     def _get_single_variant_matcher(self, vcf_lazy=True):
-        if len(self) == 0:
+        if self._genome_annotation is None or len(self._genome_annotation) == 0:
             return iter([])
         # reads the genome annotation
         # start and end are transformed to 0-based and 1-based respectively
