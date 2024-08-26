@@ -387,7 +387,7 @@ class EnformerVeff:
             logger.warning('The alternate scores are empty. No variant effect to calculate.')
             veff_ldf = (alt_ldf.select(['chrom', 'strand', 'gene_id', 'variant_start',
                                         'variant_end', 'ref', 'alt', 'tissue', ]).
-                        with_columns(pl.Series('log2fc', [], dtype=pl.Float32)).
+                        with_columns(pl.Series('veff_score', [], dtype=pl.Float32)).
                         collect())
             veff_ldf.write_parquet(output_path)
             return
