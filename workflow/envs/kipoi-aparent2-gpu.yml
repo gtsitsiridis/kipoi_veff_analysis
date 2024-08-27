@@ -11,6 +11,7 @@ dependencies:
   - cyvcf2
   - pyarrow
   - pyranges
+  - polars
   - pip
   - setuptools>=61.0.0 # setuptools using pyproject.toml
   - tensorflow-gpu==1.14.0 # the aparent model was trained in tensorflow 1; the lambdas don't work as they are in TF2

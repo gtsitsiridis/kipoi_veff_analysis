@@ -16,10 +16,11 @@ license = { text = "MIT licence" }
 keywords = ["model zoo", "deep learning", "enformer", "aparent2",
     "computational biology", "bioinformatics", "genomics"]
 dependencies = [
-    "tensorflow==1.14.0 ",
+    "tensorflow==1.14.0",
     "keras==2.2.4",
     "h5py==2.10.0",
     "kipoiseq @ git+https://github.com/gtsitsiridis/kipoiseq.git@master",
+    "polars",
     "scipy",
     "cyvcf2",
     "pyarrow",
