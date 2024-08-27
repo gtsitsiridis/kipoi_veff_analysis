@@ -174,10 +174,10 @@ def test_vcf_dataloader(chr22_example_files, variants):
         fasta_file=chr22_example_files['fasta'],
         gtf=chr22_example_files['gtf'],
         vcf_file=chr22_example_files['vcf'],
-        variant_downstream_tss=10,
-        variant_upstream_tss=10,
+        variant_downstream_cse=10,
+        variant_upstream_cse=2,
         seq_length=21,
-        shifts=[8],  # 21 // 2 - 2; In this case the CSE is placed on position 2 of the sequence
+        cse_pos_index=2, # In this case the CSE is placed on position 2 of the sequence (zero-based)
     )
     total = 0
     checked_variants = dict()
@@ -190,7 +190,7 @@ def test_vcf_dataloader(chr22_example_files, variants):
                   f'{metadata["transcript_id"]}')
         variant = variants.get(var_id, None)
         if variant is not None:
-            assert one_hot2string(i['sequences'])[0] == variant['alt_seq']
+            assert one_hot2string(i['sequence'][None, :, :])[0] == variant['alt_seq']
             checked_variants[var_id] = 2
 
     # check that all variants in my list were found and checked
@@ -203,7 +203,7 @@ def test_ref_dataloader(chr22_example_files, references):
         fasta_file=chr22_example_files['fasta'],
         gtf=chr22_example_files['gtf'],
         seq_length=21,
-        shifts=[8],
+        cse_pos_index=2, # In this case the CSE is placed on position 2 of the sequence (zero-based)
         chromosome='chr22',
     )
     total = 0
@@ -215,7 +215,7 @@ def test_ref_dataloader(chr22_example_files, references):
         ref_id = f'chr22:{metadata["transcript_id"]}'
         ref = references.get(ref_id)
         if ref is not None:
-            assert one_hot2string(i['sequences'])[0] == ref['seq']
+            assert one_hot2string(i['sequence'][None, :, :])[0] == ref['seq']
             checked_refs[ref_id] = 2
 
     # check that all variants in my list were found and checked

@@ -65,14 +65,14 @@ class Dataloader(SampleGenerator, ABC):
             - metadata:
         """
         counter = 0
-        for metadata, sequences in self._sample_gen():
+        for metadata, sequence in self._sample_gen():
             # check if we reached the end of the dataset
             if self._size is not None and counter == self._size:
                 break
             counter += 1
 
             yield {
-                "sequences": sequences,
+                "sequence": sequence,
                 "metadata": metadata
             }
 
@@ -155,48 +155,44 @@ def construct_interval(chrom, strand, anchor, seq_length):
     return interval
 
 
-def extract_sequences_around_anchor(shifts, chromosome, strand, anchor, seq_length,
-                                    ref_seq_extractor: FastaStringExtractor,
-                                    variant_extractor: VariantSeqExtractor | None = None,
-                                    variant: Variant | None = None):
+def extract_sequence_around_anchor(shift, chromosome, strand, anchor, seq_length,
+                                   ref_seq_extractor: FastaStringExtractor,
+                                   variant_extractor: VariantSeqExtractor | None = None,
+                                   variant: Variant | None = None):
     assert variant_extractor is None or (variant is not None and variant_extractor is not None), \
         "variant_extractor must be provided if variant is not None"
     chrom_len = len(ref_seq_extractor.fasta.records[chromosome])
 
     # WARNING: kipoiseq.Interval has a 0-based end!
-    interval = construct_interval(chromosome, strand, anchor, seq_length)
-    sequences = []
-    # shift intervals and extract sequences
-    for shift in shifts:
-        shifted_interval = interval.shift(shift, use_strand=True)
-        five_end_pad = 0
-        three_end_pad = 0
-        if shifted_interval.start < 0:
-            five_end_pad = abs(shifted_interval.start)
-        if shifted_interval.end >= chrom_len:
-            three_end_pad = shifted_interval.end - chrom_len + 1
-        if five_end_pad > 0 or three_end_pad > 0:
-            shifted_interval = shifted_interval.truncate(chrom_len)
+    # shift interval and extract sequence
+    interval = construct_interval(chromosome, strand, anchor, seq_length).shift(shift, use_strand=True)
+    five_end_pad = 0
+    three_end_pad = 0
+    if interval.start < 0:
+        five_end_pad = abs(interval.start)
+    if interval.end >= chrom_len:
+        three_end_pad = interval.end - chrom_len + 1
+    if five_end_pad > 0 or three_end_pad > 0:
+        interval = interval.truncate(chrom_len)
 
-        if variant is not None:
-            seq = variant_extractor.extract(shifted_interval,
-                                            [variant],
-                                            anchor=anchor,
-                                            fixed_length=True,
-                                            is_padding=True,
-                                            chrom_len=chrom_len,
-                                            )
-        else:
-            seq = ref_seq_extractor.extract(shifted_interval)
+    if variant is not None:
+        seq = variant_extractor.extract(interval,
+                                        [variant],
+                                        anchor=anchor,
+                                        fixed_length=True,
+                                        is_padding=True,
+                                        chrom_len=chrom_len,
+                                        )
+    else:
+        seq = ref_seq_extractor.extract(interval)
 
-        if five_end_pad > 0:
-            seq = 'N' * five_end_pad + seq
+    if five_end_pad > 0:
+        seq = 'N' * five_end_pad + seq
 
-        if three_end_pad > 0:
-            seq = seq + 'N' * three_end_pad
+    if three_end_pad > 0:
+        seq = seq + 'N' * three_end_pad
 
-        assert len(seq) == seq_length, \
-            f"interval width must be {seq_length} but got {len(seq)}"
+    assert len(seq) == seq_length, \
+        f"interval width must be {seq_length} but got {len(seq)}"
 
-        sequences.append(one_hot_dna(seq))
-    return sequences, interval
+    return one_hot_dna(seq), interval

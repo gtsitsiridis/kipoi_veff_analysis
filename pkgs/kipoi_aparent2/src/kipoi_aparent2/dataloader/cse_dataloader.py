@@ -6,7 +6,7 @@ import pyranges as pr
 from kipoiseq.extractors import MultiSampleVCF
 import pyarrow as pa
 import numpy as np
-from .dataloader import get_cse_from_genome_annotation, extract_sequences_around_anchor
+from .dataloader import get_cse_from_genome_annotation, extract_sequence_around_anchor
 from kipoi_aparent2.constants import AlleleType
 from kipoi_aparent2.logger import logger
 from .dataloader import Dataloader
@@ -16,13 +16,11 @@ __all__ = ['CSEDataloader', 'RefCSEDataloader', 'VCFCSEDataloader']
 # length of sequence which APARENT2 gets as input
 # ═════┆═════┆════════════════════════┆═════┆═════
 APARENT2_SEQUENCE_LENGTH = 205
-# CSE should be roughly around position 70 of the sequence.
-APARENT2_SHIFT = APARENT2_SEQUENCE_LENGTH // 2 - 70
-
+CSE_POS_INDEX = 70 # CSE should be roughly around position 70 of the sequence. (zero-based)
 
 class CSEDataloader(Dataloader):
     def __init__(self, allele_type: AlleleType, fasta_file, gtf: pd.DataFrame | str, chromosome: str | None = None,
-                 seq_length: int = APARENT2_SEQUENCE_LENGTH, shifts: list[int] = (APARENT2_SHIFT,), size: int = None,
+                 seq_length: int = APARENT2_SEQUENCE_LENGTH, cse_pos_index: int = CSE_POS_INDEX, size: int = None,
                  canonical_only: bool = False, protein_coding_only: bool = False, gene_ids: list | None = None, *args,
                  **kwargs):
         """
@@ -31,7 +29,7 @@ class CSEDataloader(Dataloader):
         :param gtf: GTF file with genome annotation or DataFrame with genome annotation
         :param chromosome: The chromosome to filter for. If None, all chromosomes are used.
         :param seq_length: The length of the sequence to return.
-        :param shifts: The shifts in relation to the CSE.
+        :param cse_pos_index: The position of the CSE in the sequence. (0-based)
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
@@ -39,9 +37,9 @@ class CSEDataloader(Dataloader):
         """
 
         super().__init__(fasta_file=fasta_file, size=size, *args, **kwargs)
-        for shift in shifts:
-            assert abs(shift) < seq_length, f"shift must be smaller than seq_length but got {shift} >= {seq_length}"
+        assert 0 <= cse_pos_index < seq_length, f"cse_pos_index must be between 0 and seq_length but got {cse_pos_index}"
 
+        self._canonical_only = canonical_only
         self._canonical_only = canonical_only
         self._protein_coding_only = protein_coding_only
         self._seq_length = seq_length
@@ -51,8 +49,8 @@ class CSEDataloader(Dataloader):
                                                                  canonical_only=canonical_only,
                                                                  protein_coding_only=protein_coding_only,
                                                                  gene_ids=gene_ids)
-        self._shifts = shifts
-        self.metadata = {'shifts': ';'.join([str(x) for x in self._shifts]), 'allele_type': allele_type.value,
+        self._shift = seq_length // 2 - cse_pos_index
+        self.metadata = {'cse_pos_index': str(cse_pos_index), 'allele_type': allele_type.value,
                          'seq_length': str(self._seq_length)}
 
     @classmethod
@@ -67,7 +65,7 @@ class CSEDataloader(Dataloader):
 
 class RefCSEDataloader(CSEDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str,
-                 seq_length: int = APARENT2_SEQUENCE_LENGTH, shifts: list[int] = (APARENT2_SHIFT,), size: int = None,
+                 seq_length: int = APARENT2_SEQUENCE_LENGTH, cse_pos_index: int = CSE_POS_INDEX, size: int = None,
                  canonical_only: bool = False,
                  protein_coding_only: bool = False, gene_ids: list | None = None, *args, **kwargs):
         """
@@ -75,7 +73,7 @@ class RefCSEDataloader(CSEDataloader):
         :param gtf: GTF file with genome annotation or DataFrame with genome annotation
         :param chromosome: The chromosome to filter for
         :param seq_length: The length of the sequence to return.
-        :param shifts: The shifts in relation to the CSE.
+        :param cse_pos_index: The position of the CSE in the sequence. (0-based)
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
@@ -83,7 +81,7 @@ class RefCSEDataloader(CSEDataloader):
         """
         assert chromosome is not None, 'A chromosome should be provided'
         super().__init__(AlleleType.REF, chromosome=chromosome, fasta_file=fasta_file, gtf=gtf,
-                         seq_length=seq_length, shifts=shifts, size=size, canonical_only=canonical_only,
+                         seq_length=seq_length, cse_pos_index=cse_pos_index, size=size, canonical_only=canonical_only,
                          protein_coding_only=protein_coding_only, gene_ids=gene_ids, *args, **kwargs)
         logger.debug(f"Dataloader is ready for chromosome {chromosome}")
 
@@ -94,9 +92,9 @@ class RefCSEDataloader(CSEDataloader):
                 strand = row.get('Strand', '.')
                 cse = row['cse']
 
-                sequences, interval = extract_sequences_around_anchor(self._shifts, chromosome, strand, cse,
-                                                                      self._seq_length,
-                                                                      ref_seq_extractor=self._reference_sequence)
+                sequence, interval = extract_sequence_around_anchor(self._shift, chromosome, strand, cse,
+                                                                    self._seq_length,
+                                                                    ref_seq_extractor=self._reference_sequence)
 
                 metadata = {
                     "seq_start": interval.start,  # 0-based start of the input sequence
@@ -109,7 +107,7 @@ class RefCSEDataloader(CSEDataloader):
                     "transcript_end": row['transcript_end'],  # 1-based
                 }
 
-                yield metadata, np.stack(sequences)
+                yield metadata, sequence
             except Exception as e:
                 logger.error(f"Error processing row: {row}")
                 raise e
@@ -141,7 +139,7 @@ class RefCSEDataloader(CSEDataloader):
 class VCFCSEDataloader(CSEDataloader):
     def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, vcf_lazy=True,
                  variant_upstream_cse: int = 10, variant_downstream_cse: int = 10,
-                 seq_length: int = APARENT2_SEQUENCE_LENGTH, shifts: list[int] = (APARENT2_SHIFT,), size: int = None,
+                 seq_length: int = APARENT2_SEQUENCE_LENGTH, cse_pos_index: int = CSE_POS_INDEX, size: int = None,
                  canonical_only: bool = False, protein_coding_only: bool = False,
                  gene_ids: list | None = None, *args, **kwargs):
         """
@@ -153,7 +151,7 @@ class VCFCSEDataloader(CSEDataloader):
         :param variant_upstream_cse: The number of bases upstream the CSE to look for variants
         :param variant_downstream_cse: The number of bases downstream the CSE to look for variants
         :param seq_length: The length of the sequence to return.
-        :param shifts: The shifts in relation to the CSE.
+        :param cse_pos_index: The position of the CSE in the sequence. (0-based)
         :param size: The number of samples to return. If None, all samples are returned.
         :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
         :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
@@ -161,12 +159,14 @@ class VCFCSEDataloader(CSEDataloader):
         """
 
         super().__init__(AlleleType.ALT, fasta_file=fasta_file, gtf=gtf, chromosome=None,
-                         seq_length=seq_length, shifts=shifts, size=size, canonical_only=canonical_only,
+                         seq_length=seq_length, cse_pos_index=cse_pos_index, size=size, canonical_only=canonical_only,
                          protein_coding_only=protein_coding_only, gene_ids=gene_ids, *args, **kwargs)
-        for shift in shifts:
-            assert abs(shift) < variant_downstream_cse + variant_upstream_cse + 1, \
-                (f"shift must be smaller than downstream_cse + upstream_tss + 1 but got "
-                 f"{shift} >= {variant_downstream_cse + variant_upstream_cse + 1}")
+        assert 0 <= variant_upstream_cse <= cse_pos_index, \
+            (f"variant_upstream_cse must be between 0 and {cse_pos_index} but got "
+             f"{variant_upstream_cse}")
+        assert 0 <= variant_downstream_cse <= self._seq_length - cse_pos_index - 1, \
+            (f"variant_downstream_cse must be between 0 and {seq_length - cse_pos_index - 1} but got "
+                f"{variant_downstream_cse}")
 
         self._variant_seq_extractor = VariantSeqExtractor(reference_sequence=self._reference_sequence)
         self.vcf_file = vcf_file
@@ -183,11 +183,11 @@ class VCFCSEDataloader(CSEDataloader):
                 chromosome = interval.chrom
                 strand = interval.strand
 
-                sequences, interval = extract_sequences_around_anchor(self._shifts, chromosome, strand, cse,
-                                                                      self._seq_length,
-                                                                      ref_seq_extractor=self._reference_sequence,
-                                                                      variant_extractor=self._variant_seq_extractor,
-                                                                      variant=variant)
+                sequence, interval = extract_sequence_around_anchor(self._shift, chromosome, strand, cse,
+                                                                    self._seq_length,
+                                                                    ref_seq_extractor=self._reference_sequence,
+                                                                    variant_extractor=self._variant_seq_extractor,
+                                                                    variant=variant)
                 metadata = {
                     "seq_start": interval.start,  # 0-based start of the input sequence
                     "seq_end": interval.end + 1,  # 1-based stop of the input sequence
@@ -203,7 +203,7 @@ class VCFCSEDataloader(CSEDataloader):
                     "ref": variant.ref,
                     "alt": variant.alt,
                 }
-                yield metadata, np.stack(sequences)
+                yield metadata, sequence
             except Exception as e:
                 logger.error(f"Error processing variant-interval")
                 logger.error(f"Interval: {interval}")
