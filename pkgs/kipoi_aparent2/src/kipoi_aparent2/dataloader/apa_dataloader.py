@@ -5,50 +5,39 @@ from kipoiseq.extractors import VariantSeqExtractor, SingleVariantMatcher
 import pyranges as pr
 from kipoiseq.extractors import MultiSampleVCF
 import pyarrow as pa
-import numpy as np
-from .dataloader import get_cse_from_genome_annotation, extract_sequence_around_anchor
+from .dataloader import extract_sequence_around_anchor
+from .apa_annotation import EnsemblAPAAnnotation, APAAnnotation
 from kipoi_aparent2.constants import AlleleType
 from kipoi_aparent2.logger import logger
 from .dataloader import Dataloader
 
-__all__ = ['CSEDataloader', 'RefCSEDataloader', 'VCFCSEDataloader']
+__all__ = ['ApaDataloader', 'RefApaDataloader', 'VCFApaDataloader']
 
 # length of sequence which APARENT2 gets as input
 # ═════┆═════┆════════════════════════┆═════┆═════
 APARENT2_SEQUENCE_LENGTH = 205
-CSE_POS_INDEX = 70 # CSE should be roughly around position 70 of the sequence. (zero-based)
+CSE_POS_INDEX = 70  # CSE should be roughly around position 70 of the sequence. (zero-based)
 
-class CSEDataloader(Dataloader):
-    def __init__(self, allele_type: AlleleType, fasta_file, gtf: pd.DataFrame | str, chromosome: str | None = None,
+
+class ApaDataloader(Dataloader):
+    def __init__(self, allele_type: AlleleType, fasta_file, apa_annotation: APAAnnotation,
                  seq_length: int = APARENT2_SEQUENCE_LENGTH, cse_pos_index: int = CSE_POS_INDEX, size: int = None,
-                 canonical_only: bool = False, protein_coding_only: bool = False, gene_ids: list | None = None, *args,
-                 **kwargs):
+                 *args, **kwargs):
         """
 
         :param fasta_file: Fasta file with the reference genome
-        :param gtf: GTF file with genome annotation or DataFrame with genome annotation
-        :param chromosome: The chromosome to filter for. If None, all chromosomes are used.
+        :param apa_annotation: Genome annotation with the APA sites
         :param seq_length: The length of the sequence to return.
         :param cse_pos_index: The position of the CSE in the sequence. (0-based)
         :param size: The number of samples to return. If None, all samples are returned.
-        :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
-        :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
-        :param gene_ids: If provided, only the gene with this ID is extracted from the genome annotation
         """
 
         super().__init__(fasta_file=fasta_file, size=size, *args, **kwargs)
         assert 0 <= cse_pos_index < seq_length, f"cse_pos_index must be between 0 and seq_length but got {cse_pos_index}"
 
-        self._canonical_only = canonical_only
-        self._canonical_only = canonical_only
-        self._protein_coding_only = protein_coding_only
         self._seq_length = seq_length
-        self.chromosome = chromosome
         logger.debug(f"Loading genome annotation")
-        self._genome_annotation = get_cse_from_genome_annotation(gtf, chromosome=self.chromosome,
-                                                                 canonical_only=canonical_only,
-                                                                 protein_coding_only=protein_coding_only,
-                                                                 gene_ids=gene_ids)
+        self._apa_annotation = apa_annotation.get_annotation().to_pandas()
         self._shift = seq_length // 2 - cse_pos_index
         self.metadata = {'cse_pos_index': str(cse_pos_index), 'allele_type': allele_type.value,
                          'seq_length': str(self._seq_length)}
@@ -56,41 +45,33 @@ class CSEDataloader(Dataloader):
     @classmethod
     def from_allele_type(cls, allele_type: AlleleType, *args, **kwargs):
         if allele_type == AlleleType.REF:
-            return RefCSEDataloader(*args, **kwargs)
+            return RefApaDataloader(*args, **kwargs)
         elif allele_type == AlleleType.ALT:
-            return VCFCSEDataloader(*args, **kwargs)
+            return VCFApaDataloader(*args, **kwargs)
         else:
             raise ValueError(f"Unknown allele type: {allele_type}")
 
 
-class RefCSEDataloader(CSEDataloader):
-    def __init__(self, fasta_file, gtf: pd.DataFrame | str, chromosome: str,
-                 seq_length: int = APARENT2_SEQUENCE_LENGTH, cse_pos_index: int = CSE_POS_INDEX, size: int = None,
-                 canonical_only: bool = False,
-                 protein_coding_only: bool = False, gene_ids: list | None = None, *args, **kwargs):
+class RefApaDataloader(ApaDataloader):
+    def __init__(self, fasta_file, apa_annotation: APAAnnotation, seq_length: int = APARENT2_SEQUENCE_LENGTH,
+                 cse_pos_index: int = CSE_POS_INDEX, size: int = None,
+                 *args, **kwargs):
         """
         :param fasta_file: Fasta file with the reference genome
-        :param gtf: GTF file with genome annotation or DataFrame with genome annotation
-        :param chromosome: The chromosome to filter for
+        :param apa_annotation: Genome annotation with the APA sites
         :param seq_length: The length of the sequence to return.
         :param cse_pos_index: The position of the CSE in the sequence. (0-based)
         :param size: The number of samples to return. If None, all samples are returned.
-        :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
-        :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
-        :param gene_id: If provided, only the gene with this ID is extracted from the genome annotation
         """
-        assert chromosome is not None, 'A chromosome should be provided'
-        super().__init__(AlleleType.REF, chromosome=chromosome, fasta_file=fasta_file, gtf=gtf,
-                         seq_length=seq_length, cse_pos_index=cse_pos_index, size=size, canonical_only=canonical_only,
-                         protein_coding_only=protein_coding_only, gene_ids=gene_ids, *args, **kwargs)
-        logger.debug(f"Dataloader is ready for chromosome {chromosome}")
+        super().__init__(AlleleType.REF, fasta_file=fasta_file, apa_annotation=apa_annotation,
+                         seq_length=seq_length, cse_pos_index=cse_pos_index, size=size, *args, **kwargs)
 
     def _sample_gen(self):
-        for _, row in self._genome_annotation.iterrows():
+        for _, row in self._apa_annotation.iterrows():
             try:
                 chromosome = row['Chromosome']
                 strand = row.get('Strand', '.')
-                cse = row['cse']
+                cse = row['cse_pos']
 
                 sequence, interval = extract_sequence_around_anchor(self._shift, chromosome, strand, cse,
                                                                     self._seq_length,
@@ -99,12 +80,12 @@ class RefCSEDataloader(CSEDataloader):
                 metadata = {
                     "seq_start": interval.start,  # 0-based start of the input sequence
                     "seq_end": interval.end + 1,  # 1-based stop of the input sequence
-                    "cse": cse,  # 0-based position of the CSE
+                    "pas_pos": row['pas_pos'],  # 0-based position of the PAS
+                    "cse_pos": cse,  # 0-based position of the CSE
                     "strand": strand,
+                    "pas_id": row['pas_id'],
                     "gene_id": row['gene_id'],
-                    "transcript_id": row['transcript_id'],
-                    "transcript_start": row['transcript_start'],  # 0-based
-                    "transcript_end": row['transcript_end'],  # 1-based
+                    "transcript_id": ';'.join(row['transcript_id']),
                 }
 
                 yield metadata, sequence
@@ -113,9 +94,9 @@ class RefCSEDataloader(CSEDataloader):
                 raise e
 
     def __len__(self):
-        if self._genome_annotation is None:
+        if self._apa_annotation is None:
             return 0
-        return len(self._genome_annotation) if self._size is None else min(self._size, len(self._genome_annotation))
+        return len(self._apa_annotation) if self._size is None else min(self._size, len(self._apa_annotation))
 
     @property
     def pyarrow_metadata_schema(self):
@@ -126,26 +107,25 @@ class RefCSEDataloader(CSEDataloader):
         columns = [
             ('seq_start', pa.int64()),
             ('seq_end', pa.int64()),
-            ('cse', pa.int64()),
+            ('pas_pos', pa.int64()),
+            ('cse_pos', pa.int64()),
             ('strand', pa.string()),
+            ('pas_id', pa.string()),
             ('gene_id', pa.string()),
-            ('transcript_id', pa.string()),
-            ('transcript_start', pa.int64()),
-            ('transcript_end', pa.int64()), ]
+            ('transcript_id', pa.string()), ]
 
         return pa.schema(columns, metadata=self.metadata)
 
 
-class VCFCSEDataloader(CSEDataloader):
-    def __init__(self, fasta_file, gtf: pd.DataFrame | str, vcf_file, vcf_lazy=True,
+class VCFApaDataloader(ApaDataloader):
+    def __init__(self, fasta_file, apa_annotation: APAAnnotation, vcf_file, vcf_lazy=True,
                  variant_upstream_cse: int = 10, variant_downstream_cse: int = 10,
                  seq_length: int = APARENT2_SEQUENCE_LENGTH, cse_pos_index: int = CSE_POS_INDEX, size: int = None,
-                 canonical_only: bool = False, protein_coding_only: bool = False,
-                 gene_ids: list | None = None, *args, **kwargs):
+                 *args, **kwargs):
         """
 
         :param fasta_file: Fasta file with the reference genome
-        :param gtf: GTF file with genome annotation or DataFrame with genome annotation
+        :param apa_annotation: Genome annotation with the APA sites
         :param vcf_file: VCF file with variants
         :param vcf_lazy: If True, the VCF file is read lazily
         :param variant_upstream_cse: The number of bases upstream the CSE to look for variants
@@ -153,20 +133,16 @@ class VCFCSEDataloader(CSEDataloader):
         :param seq_length: The length of the sequence to return.
         :param cse_pos_index: The position of the CSE in the sequence. (0-based)
         :param size: The number of samples to return. If None, all samples are returned.
-        :param canonical_only: If True, only Ensembl canonical transcripts are extracted from the genome annotation
-        :param protein_coding_only: If True, only protein coding transcripts are extracted from the genome annotation
-        :param gene_id: If provided, only the gene with this ID is extracted from the genome annotation
         """
 
-        super().__init__(AlleleType.ALT, fasta_file=fasta_file, gtf=gtf, chromosome=None,
-                         seq_length=seq_length, cse_pos_index=cse_pos_index, size=size, canonical_only=canonical_only,
-                         protein_coding_only=protein_coding_only, gene_ids=gene_ids, *args, **kwargs)
+        super().__init__(AlleleType.ALT, fasta_file=fasta_file, apa_annotation=apa_annotation, seq_length=seq_length,
+                         cse_pos_index=cse_pos_index, size=size, *args, **kwargs)
         assert 0 <= variant_upstream_cse <= cse_pos_index, \
             (f"variant_upstream_cse must be between 0 and {cse_pos_index} but got "
              f"{variant_upstream_cse}")
         assert 0 <= variant_downstream_cse <= self._seq_length - cse_pos_index - 1, \
             (f"variant_downstream_cse must be between 0 and {seq_length - cse_pos_index - 1} but got "
-                f"{variant_downstream_cse}")
+             f"{variant_downstream_cse}")
 
         self._variant_seq_extractor = VariantSeqExtractor(reference_sequence=self._reference_sequence)
         self.vcf_file = vcf_file
@@ -179,7 +155,7 @@ class VCFCSEDataloader(CSEDataloader):
         for interval, variant in self._get_single_variant_matcher(self.vcf_lazy):
             try:
                 attrs = interval.attrs
-                cse = attrs['cse']
+                cse = attrs['cse_pos']
                 chromosome = interval.chrom
                 strand = interval.strand
 
@@ -191,13 +167,13 @@ class VCFCSEDataloader(CSEDataloader):
                 metadata = {
                     "seq_start": interval.start,  # 0-based start of the input sequence
                     "seq_end": interval.end + 1,  # 1-based stop of the input sequence
-                    "cse": cse,  # 0-based position of the CSE
+                    "pas_pos": attrs['pas_pos'],  # 0-based position of the PAS
+                    "cse_pos": cse,  # 0-based position of the CSE
                     "chrom": interval.chrom,
                     "strand": interval.strand,
+                    "pas_id": attrs['pas_id'],
                     "gene_id": attrs['gene_id'],
-                    "transcript_id": attrs['transcript_id'],
-                    "transcript_start": attrs['transcript_start'],  # 0-based
-                    "transcript_end": attrs['transcript_end'],  # 1-based
+                    "transcript_id": ';'.join(attrs['transcript_id']),
                     "variant_start": variant.start,  # 0-based
                     "variant_end": variant.end,  # 1-based
                     "ref": variant.ref,
@@ -211,7 +187,7 @@ class VCFCSEDataloader(CSEDataloader):
                 raise e
 
     def __len__(self):
-        if self._genome_annotation is None or len(self._genome_annotation) == 0:
+        if self._apa_annotation is None or len(self._apa_annotation) == 0:
             return 0
         tmp_matcher = self._get_single_variant_matcher(vcf_lazy=False)
         total = sum(1 for _, _ in tmp_matcher)
@@ -220,15 +196,15 @@ class VCFCSEDataloader(CSEDataloader):
         return total
 
     def _get_single_variant_matcher(self, vcf_lazy=True):
-        if self._genome_annotation is None or len(self._genome_annotation) == 0:
+        if self._apa_annotation is None or len(self._apa_annotation) == 0:
             return iter([])
         # reads the genome annotation
         # start and end are transformed to 0-based and 1-based respectively
-        roi = pr.PyRanges(self._genome_annotation)
+        roi = pr.PyRanges(self._apa_annotation)
         roi = roi.extend(ext={"5": self.variant_upstream_cse, "3": self.variant_downstream_cse})
         # todo do assert length of roi
 
-        interval_attrs = ['gene_id', 'transcript_id', 'cse', 'transcript_start', 'transcript_end']
+        interval_attrs = ['gene_id', 'transcript_id', 'pas_id', 'cse_pos', 'pas_pos']
         for attr in interval_attrs:
             assert attr in roi.columns, f"attr must be in {roi.columns}"
         variants = MultiSampleVCF(self.vcf_file, lazy=vcf_lazy)
@@ -249,13 +225,13 @@ class VCFCSEDataloader(CSEDataloader):
             [
                 ('seq_start', pa.int64()),
                 ('seq_end', pa.int64()),
-                ('cse', pa.int64()),
+                ('pas_pos', pa.int64()),
+                ('cse_pos', pa.int64()),
                 ('chrom', pa.string()),
                 ('strand', pa.string()),
+                ('pas_id', pa.string()),
                 ('gene_id', pa.string()),
                 ('transcript_id', pa.string()),
-                ('transcript_start', pa.int64()),
-                ('transcript_end', pa.int64()),
                 ('variant_start', pa.int64()),
                 ('variant_end', pa.int64()),
                 ('ref', pa.string()),

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pathlib
 
-from kipoi_aparent2.dataloader import CSEDataloader
+from kipoi_aparent2.dataloader import ApaDataloader
 from kipoi_aparent2.logger import logger
 from keras.models import load_model
 import pyarrow as pa
@@ -26,7 +26,7 @@ class Aparent2:
         logger.debug(f'Loading model from {model_path}')
         self._model = load_model(str(model_path))
 
-    def predict(self, dataloader: CSEDataloader, batch_size: int, num_cut_sites: int, filepath: str | pathlib.Path):
+    def predict(self, dataloader: ApaDataloader, batch_size: int, num_cut_sites: int, filepath: str | pathlib.Path):
         """
         Predict on a dataloader and save the results in a parquet file
         :param filepath:
@@ -146,7 +146,16 @@ class Aparent2Veff:
                 raise ValueError('gtf must be a path or a pandas DataFrame')
 
             # only keep protein_coding transcripts
+            # save gtf as a lazy dataframe
             gtf = gtf.query("`gene_type` == 'protein_coding'")
+            self.gtf_ldf = pl.from_pandas(get_apa_from_genome_annotation(gtf)). \
+                select(
+                ['Chromosome', 'Strand', 'gene_id', 'transcript_id', 'cse']). \
+                rename({'Chromosome': 'chrom', 'Strand': 'strand'}).with_columns([
+                pl.col('gene_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('gene_id'),
+                pl.col('transcript_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('transcript_id')
+            ]).lazy()
+
             # check if Ensembl_canonical is in the set of tags
             gtf = gtf[gtf['tag'].apply(lambda x: False if pd.isna(x) else ('Ensembl_canonical' in x.split(',')))]
             self.canonical_transcripts = list(gtf['transcript_id'].str.extract(r'([^\.]+)\..+$')[0].unique())
@@ -172,8 +181,9 @@ class Aparent2Veff:
             raise ValueError(f'Unknown mode: {aggregation_mode}')
         elif aggregation_mode in ['pdui']:
             assert self.isoform_proportion_ldf is not None, 'Isoform proportions are required for this mode.'
+            assert self.gtf_ldf is not None, 'Genome annotation is required for this mode.'
         elif aggregation_mode == 'canonical':
-            assert self.canonical_transcripts is not None, 'Canonical transcripts are required for this mode.'
+            assert self.canonical_transcripts is not None, 'Genome annotation is required for this mode.'
 
         logger.debug(f'Calculating the variant effect for {alt_path}')
 
@@ -278,6 +288,44 @@ class Aparent2Veff:
                         'ref_score', 'alt_score', 'lor']).filter(pl.col('abs_lor') == pl.col('max_abs_lor')).first()
             ).rename({'lor': 'veff_score'}).drop(['abs_lor', 'max_abs_lor'])
             veff_df = veff_ldf.collect()
+        elif aggregation_mode == 'pdui':
+            pass
+            # distal_ldf = self.isoform_proportion_ldf.join(self.gtf_ldf, on=['gene_id', 'transcript_id'], how='left'). \
+            #     rename({
+            #     'transcript_id': 'distal_transcript_id', 'isoform_proportion': 'ref_pdui', 'cse': 'distal_cse'
+            # }). \
+            #     join(veff_ldf.rename({'transcript_id': 'proximal_transcript_id', 'cse': 'proximal_cse'}),
+            #          on=['chrom', 'strand', 'gene_id']). \
+            #     with_columns(
+            #     distal_transcript_distance=pl.min([
+            #         (pl.col('variant_start') - pl.col('distal_cse')).abs(),
+            #         (pl.col('variant_end') - pl.col('distal_cse')).abs()
+            #     ])
+            # ).with_columns(
+            #     lambda_=pl.when(pl.col('distal_transcript_distance') > 150).then(pl.lit(-1)).otherwise(pl.lit(1)))
+            #
+            # distal_ldf.collect().sort(
+            #     ['gene_id', 'variant_end', 'tissue', 'proximal_transcript_id', 'distal_transcript_distance',
+            #      'distal_transcript_id']).select(
+            #     ['gene_id', 'variant_end', 'tissue', 'proximal_transcript_id', 'distal_transcript_distance',
+            #      'distal_transcript_id', 'lor', 'ref_pdui'])
+
+            # veff_ldf = self.isoform_proportion_ldf.join(veff_ldf, on=['gene_id', 'transcript_id'],
+            #                                             how='left')
+            # veff_ldf = veff_ldf. \
+            #     group_by(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']). \
+            #     agg([
+            #     pl.struct(['ref_score', 'isoform_proportion']).
+            #     map_elements(
+            #         lambda x: logsumexp_udf(x.struct.field('ref_score'), x.struct.field('isoform_proportion')),
+            #         return_dtype=pl.Float64()).
+            #     alias('ref_score'),
+            #     pl.struct(['alt_score', 'isoform_proportion']).
+            #     map_elements(
+            #         lambda x: logsumexp_udf(x.struct.field('alt_score'), x.struct.field('isoform_proportion')),
+            #         return_dtype=pl.Float64()).
+            #     alias('alt_score'),
+            # ])
         else:
             raise ValueError(f'Unknown mode: {aggregation_mode}')
 

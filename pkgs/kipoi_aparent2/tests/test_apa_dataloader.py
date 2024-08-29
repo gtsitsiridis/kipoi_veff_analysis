@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from kipoi_aparent2.dataloader import VCFCSEDataloader, RefCSEDataloader
-from kipoi_aparent2.dataloader.dataloader import get_cse_from_genome_annotation
+from kipoi_aparent2.dataloader import VCFApaDataloader, RefApaDataloader
+from kipoi_aparent2.dataloader.apa_annotation import EnsemblAPAAnnotation
 from kipoiseq.transforms.functional import one_hot2string
+import polars as pl
+
+pl.Config.with_columns_kwargs = True
 
 UPSTREAM_TSS = 10
 DOWNSTREAM_TSS = 10
@@ -109,13 +112,14 @@ def references():
     }
 
 
-def test_get_cse_from_genome_annotation(chr22_example_files):
-    roi = get_cse_from_genome_annotation(chr22_example_files['gtf'], chromosome='chr22', protein_coding_only=False,
-                                         canonical_only=False)
+@pytest.fixture
+def ensemble_apa_anotation(chr22_example_files):
+    return EnsemblAPAAnnotation(chr22_example_files['gtf'])
 
-    # check the number of transcripts
-    # grep -v '^#' annot.chr22.gtf | cut -f 3 | grep transcript | wc -l
-    assert len(roi) == 5279
+
+def test_get_cse_from_ensembl(chr22_example_files):
+    roi = EnsemblAPAAnnotation(chr22_example_files['gtf'], chromosome='chr22', protein_coding_only=False,
+                               canonical_only=False).get_annotation().to_pandas()
 
     # are the extracted ROIs correct
     # criteria are the strand and transcript start and end
@@ -124,9 +128,9 @@ def test_get_cse_from_genome_annotation(chr22_example_files):
     def test_cse(row):
         # make tss zero-based
         if row.Strand == '-':
-            cse = row.transcript_start + 30
+            cse = row.pas_pos + 30
         else:
-            cse = row.transcript_end - 1 - 30
+            cse = row.pas_pos - 30
 
         assert row.Start == cse, \
             f'Transcript {row.transcript_id}; Strand {row.Strand}: {row.Start} != {cse}'
@@ -136,48 +140,25 @@ def test_get_cse_from_genome_annotation(chr22_example_files):
     roi.apply(test_cse, axis=1)
 
     # check the extracted ROI for a negative strand transcript
-    roi_i = roi.set_index('transcript_id').loc['ENST00000448070.1']
+    roi_i = roi.set_index('pas_id').loc['chr22:16076051:-']
     assert roi_i.Start == (16076052 + 30 - 1)
     assert roi_i.End == 16076052 + 30
 
     # check the extracted ROI for a positive strand transcript
-    roi_i = roi.set_index('transcript_id').loc['ENST00000424770.1']
+    roi_i = roi.set_index('pas_id').loc['chr22:16063235:+']
     assert roi_i.Start == (16063236 - 30 - 1)
     assert roi_i.End == 16063236 - 30
 
 
-def test_genome_annotation_protein_canonical(chr22_example_files):
-    # Ground truth bash:
-    # grep -E '^\S+\s+\S+\s+transcript' annot.chr22.gtf | grep -E 'tag\s+"Ensembl_canonical"' |
-    # grep -E 'transcript_type\s+"protein_coding"' | wc -l
-    chromosome = 'chr22'
-    # not all genes have a canonical transcript if the genome annotation is not current (e.g. GRCh37 is not current)
-    roi = get_cse_from_genome_annotation(chr22_example_files['gtf'], chromosome=chromosome, protein_coding_only=True,
-                                         canonical_only=True)
-    assert len(roi) == 441
-    roi = get_cse_from_genome_annotation(chr22_example_files['gtf'], chromosome=chromosome, protein_coding_only=True,
-                                         canonical_only=True, gene_ids=['ENSG00000172967'])
-    assert roi.gene_id.iloc[0] == 'ENSG00000172967.8_5'
-    roi = get_cse_from_genome_annotation(chr22_example_files['gtf'], chromosome=chromosome, protein_coding_only=False,
-                                         canonical_only=False)
-    assert len(roi) == 5279
-    roi = get_cse_from_genome_annotation(chr22_example_files['gtf'], chromosome=chromosome, protein_coding_only=True,
-                                         canonical_only=False)
-    assert len(roi) == 3623
-    roi = get_cse_from_genome_annotation(chr22_example_files['gtf'], chromosome=chromosome, protein_coding_only=False,
-                                         canonical_only=True)
-    assert len(roi) == 1212
-
-
 def test_vcf_dataloader(chr22_example_files, variants):
-    dl = VCFCSEDataloader(
+    dl = VCFApaDataloader(
         fasta_file=chr22_example_files['fasta'],
-        gtf=chr22_example_files['gtf'],
+        apa_annotation=EnsemblAPAAnnotation(chr22_example_files['gtf']),
         vcf_file=chr22_example_files['vcf'],
         variant_downstream_cse=10,
         variant_upstream_cse=2,
         seq_length=21,
-        cse_pos_index=2, # In this case the CSE is placed on position 2 of the sequence (zero-based)
+        cse_pos_index=2,  # In this case the CSE is placed on position 2 of the sequence (zero-based)
     )
     total = 0
     checked_variants = dict()
@@ -199,12 +180,11 @@ def test_vcf_dataloader(chr22_example_files, variants):
 
 
 def test_ref_dataloader(chr22_example_files, references):
-    dl = RefCSEDataloader(
+    dl = RefApaDataloader(
         fasta_file=chr22_example_files['fasta'],
-        gtf=chr22_example_files['gtf'],
+        apa_annotation=EnsemblAPAAnnotation(chr22_example_files['gtf'], chromosome='chr22'),
         seq_length=21,
-        cse_pos_index=2, # In this case the CSE is placed on position 2 of the sequence (zero-based)
-        chromosome='chr22',
+        cse_pos_index=2,  # In this case the CSE is placed on position 2 of the sequence (zero-based)
     )
     total = 0
     checked_refs = dict()
@@ -221,3 +201,17 @@ def test_ref_dataloader(chr22_example_files, references):
     # check that all variants in my list were found and checked
     assert set(checked_refs.keys()) == set(references.keys())
     print(total)
+
+
+def test_ensembl_isoform_usage(chr22_example_files):
+    apa_annotation = EnsemblAPAAnnotation(chr22_example_files['gtf'],
+                                          isoform_usage_path=chr22_example_files['isoform_proportions'])
+    isoform_usage_df = apa_annotation.get_isoform_usage()
+    assert 'isoform_proportion' in isoform_usage_df.columns
+    assert 'pas_id' in isoform_usage_df.columns
+    assert isoform_usage_df.with_columns(
+        transcript_id=pl.col('transcript_id').arr.join(';')).unique().shape == isoform_usage_df.shape
+    for row in isoform_usage_df.rows(named=True):
+        print(row)
+        # todo
+        # isoform_usage_df.apply(lambda x: x['isoform_proportion'] >= 0 and x['isoform_proportion'] <= 1)

@@ -77,64 +77,6 @@ class Dataloader(SampleGenerator, ABC):
             }
 
 
-def get_cse_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | None = None,
-                                   protein_coding_only: bool = False, canonical_only: bool = False,
-                                   gene_ids: list | None = None):
-    """
-    Get CSE from genome annotation
-    :return: genome_annotation with additional columns cse (0-based), transcript_start (0-based), transcript_end (1-based)
-    """
-    roi = get_roi_from_genome_annotation(gtf, chromosome, protein_coding_only, canonical_only, gene_ids)
-
-    def adjust_row(row):
-        if row.Strand == '-':
-            # CSE is likely 30bp upstream of the cut site,
-            # 0-based
-            cse = row.Start + 30
-        else:
-            # convert 1-based to 0-based
-            cse = row.End - 1 - 30
-
-        row.Start = cse
-        row.End = cse + 1
-        return row
-
-    if len(roi) > 0:
-        roi = roi.apply(adjust_row, axis=1)
-        roi['cse'] = roi["Start"]
-    return roi
-
-
-def get_roi_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | None = None,
-                                   protein_coding_only: bool = False, canonical_only: bool = False,
-                                   gene_ids: list | None = None):
-    """
-    Get ROI from genome annotation
-    :return: filtered genome_annotation
-    """
-    if not isinstance(gtf, pd.DataFrame):
-        genome_annotation = gtf_to_pandas(gtf)
-    else:
-        genome_annotation = gtf.copy()
-    if gene_ids is not None:
-        genome_annotation = genome_annotation[genome_annotation['gene_id'].str.contains('|'.join(gene_ids))]
-    if chromosome is not None:
-        genome_annotation = genome_annotation.query("`Chromosome` == @chromosome")
-    roi = genome_annotation.query("`Feature` == 'transcript'")
-    if protein_coding_only:
-        roi = roi.query("`gene_type` == 'protein_coding'")
-    if canonical_only:
-        # check if Ensembl_canonical is in the set of tags
-        roi = roi[roi['tag'].apply(lambda x: False if pd.isna(x) else ('Ensembl_canonical' in x.split(',')))]
-    if len(roi) > 0:
-        roi = roi.assign(
-            transcript_start=roi["Start"],
-            transcript_end=roi["End"],
-        )
-
-    return roi
-
-
 def construct_interval(chrom, strand, anchor, seq_length):
     # input interval without shift
     # if the sequence length is even, the tss is closer to the end of the sequence

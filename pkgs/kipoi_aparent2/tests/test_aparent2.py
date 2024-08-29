@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 import pytest
-from kipoi_aparent2.dataloader import CSEDataloader, RefCSEDataloader, VCFCSEDataloader
+from kipoi_aparent2.dataloader import ApaDataloader, RefApaDataloader, VCFApaDataloader
+from kipoi_aparent2.dataloader.apa_annotation import EnsemblAPAAnnotation
 from kipoi_aparent2.aparent2 import Aparent2, Aparent2Veff
 import pyarrow.parquet as pq
 from kipoi_aparent2.logger import logger
 from kipoi_aparent2.constants import AlleleType
 from shutil import rmtree
 from pathlib import Path
-import numpy as np
 
 
-def run_aparent2(dl: CSEDataloader, aparent2_model_path, output_path, size, batch_size,
+def run_aparent2(dl: ApaDataloader, aparent2_model_path, output_path, size, batch_size,
                  num_cut_sites=50):
     model = Aparent2(aparent2_model_path)
 
@@ -51,15 +51,13 @@ def get_aparent2_path(output_dir: Path, size: int, allele_type: AlleleType, rm=F
 def test_aparent2_ref(chr22_example_files, aparent2_model_path, output_dir: Path, size, batch_size):
     args = {
         'fasta_file': chr22_example_files['fasta'],
-        'gtf': chr22_example_files['gtf'],
+        'apa_annotation': EnsemblAPAAnnotation(chr22_example_files['gtf'], chromosome='chr22', canonical_only=True,
+                                               protein_coding_only=True),
         'size': size,
-        'chromosome': 'chr22',
-        'canonical_only': True,
-        'protein_coding_only': True,
     }
 
     aparent2_filepath = get_aparent2_path(output_dir, size, AlleleType.REF, rm=True)
-    dl = RefCSEDataloader(**args)
+    dl = RefApaDataloader(**args)
     run_aparent2(dl, aparent2_model_path, aparent2_filepath, size, batch_size=batch_size)
 
 
@@ -70,7 +68,8 @@ def test_aparent2_ref(chr22_example_files, aparent2_model_path, output_dir: Path
 def test_aparent2_alt(chr22_example_files, aparent2_model_path, output_dir: Path, size, batch_size):
     args = {
         'fasta_file': chr22_example_files['fasta'],
-        'gtf': chr22_example_files['gtf'],
+        'apa_annotation': EnsemblAPAAnnotation(chr22_example_files['gtf'], chromosome='chr22', canonical_only=True,
+                                               protein_coding_only=True),
         'size': size,
         'vcf_file': chr22_example_files['vcf'],
         'variant_downstream_cse': 134,
@@ -80,12 +79,12 @@ def test_aparent2_alt(chr22_example_files, aparent2_model_path, output_dir: Path
     }
 
     aparent2_filepath = get_aparent2_path(output_dir, size, AlleleType.ALT, rm=True)
-    dl = VCFCSEDataloader(**args)
+    dl = VCFApaDataloader(**args)
     run_aparent2(dl, aparent2_model_path, aparent2_filepath, size, batch_size=batch_size)
 
 
 @pytest.mark.parametrize("aggregation_mode, upstream_cse, downstream_cse", [
-    ('canonical', 70, 134), ('max_abs_lor', 70, 134),
+    ('pdui', 70, 134), ('canonical', 70, 134), ('max_abs_lor', 70, 134),
 ])
 def test_calculate_veff(chr22_example_files, output_dir: Path, aparent2_model_path,
                         aggregation_mode, downstream_cse,
@@ -110,5 +109,6 @@ def test_calculate_veff(chr22_example_files, output_dir: Path, aparent2_model_pa
 
     enformer_veff = Aparent2Veff(isoforms_path=chr22_example_files['isoform_proportions'],
                                  gtf=chr22_example_files['gtf'])
-    enformer_veff.run([ref_filepath], alt_filepath, output_path, aggregation_mode=aggregation_mode, downstream_cse=downstream_cse, upstream_cse=upstream_cse)
+    enformer_veff.run([ref_filepath], alt_filepath, output_path, aggregation_mode=aggregation_mode,
+                      downstream_cse=downstream_cse, upstream_cse=upstream_cse)
     return output_path
