@@ -39,7 +39,7 @@ class EnsemblAPAAnnotation(APAAnnotation):
                 pl.col('transcript_id')).with_columns(cse_pos=pl.col('pas_pos') + 30)
         ]).with_columns(Start=pl.col('cse_pos'), End=pl.col('cse_pos') + 1,
                         pas_id=pl.col('Chromosome') + ':' + pl.col('pas_pos') + ':' + pl.col('Strand'))
-
+        self._isoform_proportion_df = None
         if isoform_usage_path is not None:
             self._isoform_proportion_df = (pl.read_csv(isoform_usage_path, sep='\t').
                                            select(['gene', 'transcript', 'tissue', 'median_transcript_proportions']).
@@ -52,14 +52,16 @@ class EnsemblAPAAnnotation(APAAnnotation):
 
     def get_isoform_usage(self):
         if self._isoform_proportion_df is None:
-            raise ValueError("No isoform usage data provided.")
+            return None
         annot_df = self._annotation_df.explode('transcript_id').with_columns(
             gene_id=pl.col('gene_id').str.replace(r'([^\.]+)\..+$', "${1}"),
             transcript_id=pl.col('transcript_id').str.replace(r'([^\.]+)\..+$', "${1}")
         )
-        return self._isoform_proportion_df.join(annot_df, on=['transcript_id', 'gene_id'], how='left'). \
+        return self._isoform_proportion_df.join(annot_df, on=['transcript_id', 'gene_id'], how='inner'). \
             groupby(['Chromosome', 'Strand', 'gene_id', 'pas_pos', 'pas_id', 'cse_pos', 'tissue']).agg(
-            [pl.col('transcript_id'), pl.col('isoform_proportion').sum()])
+            [pl.col('transcript_id'), pl.col('isoform_proportion').sum()]). \
+            with_columns(isoform_proportion=pl.min([1, pl.col('isoform_proportion')])). \
+            select(['gene_id', 'pas_id', 'transcript_id', 'tissue', 'isoform_proportion'])
 
 
 def get_roi_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | None = None,
@@ -78,6 +80,8 @@ def get_roi_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | No
     if chromosome is not None:
         genome_annotation = genome_annotation.query("`Chromosome` == @chromosome")
     roi = genome_annotation.query("`Feature` == 'transcript'")
+    # filter out Y chromosome equivalent transcripts
+    roi = roi[~roi['transcript_id'].str.contains("_PAR_Y")]
     if protein_coding_only:
         roi = roi.query("`gene_type` == 'protein_coding'")
     if canonical_only:

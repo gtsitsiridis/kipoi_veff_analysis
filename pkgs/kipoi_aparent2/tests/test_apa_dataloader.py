@@ -6,6 +6,7 @@ from kipoi_aparent2.dataloader import VCFApaDataloader, RefApaDataloader
 from kipoi_aparent2.dataloader.apa_annotation import EnsemblAPAAnnotation
 from kipoiseq.transforms.functional import one_hot2string
 import polars as pl
+import numpy as np
 
 pl.Config.with_columns_kwargs = True
 
@@ -211,7 +212,7 @@ def test_ensembl_isoform_usage(chr22_example_files):
     assert 'pas_id' in isoform_usage_df.columns
     assert isoform_usage_df.with_columns(
         transcript_id=pl.col('transcript_id').arr.join(';')).unique().shape == isoform_usage_df.shape
-    for row in isoform_usage_df.rows(named=True):
-        print(row)
-        # todo
-        # isoform_usage_df.apply(lambda x: x['isoform_proportion'] >= 0 and x['isoform_proportion'] <= 1)
+
+    col_index = [i for i in range(len(isoform_usage_df.columns)) if isoform_usage_df.columns[i] == 'isoform_proportion'][0]
+    for row in isoform_usage_df.rows():
+        assert 0 <= row[col_index] <= 1, f'Invalid isoform proportion: {row}'

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import pathlib
-
 from kipoi_aparent2.dataloader import ApaDataloader
+from kipoi_aparent2.dataloader.apa_annotation import APAAnnotation
 from kipoi_aparent2.logger import logger
 from keras.models import load_model
 import pyarrow as pa
@@ -10,10 +10,9 @@ import math
 import pyarrow.parquet as pq
 from tqdm.autonotebook import tqdm
 import numpy as np
-import pandas as pd
 import polars as pl
-from .utils import gtf_to_pandas
 import re
+from scipy.special import expit, logit
 
 pl.Config.with_columns_kwargs = True
 
@@ -122,43 +121,15 @@ class Aparent2:
 
 class Aparent2Veff:
 
-    def __init__(self, isoforms_path: str | pathlib.Path | None = None,
-                 gtf: pd.DataFrame | str | pathlib.Path | None = None):
+    def __init__(self, apa_annotation: APAAnnotation | None = None):
         """
-
-        :param isoforms_path: The path to the file containing the isoform proportions.
-        :param gtf: The path to the GTF file or a pandas DataFrame containing the genome annotation.
+        Initialize the Aparent2Veff object.
+        :param apa_annotation: An object that contains the genome annotation and isoform proportions.
         """
-
-        self.isoform_proportion_ldf = None
-        if isoforms_path is not None:
-            self.isoform_proportion_ldf = (pl.scan_csv(isoforms_path, sep='\t').
-                                           select(['gene', 'transcript', 'tissue', 'median_transcript_proportions']).
-                                           rename({'median_transcript_proportions': 'isoform_proportion',
-                                                   'gene': 'gene_id', 'transcript': 'transcript_id'}).
-                                           filter(~pl.col('isoform_proportion').is_null()))
-
-        # if GTF file is given, then extract the canonical transcripts for the canonical aggregation mode
-        if gtf is not None:
-            if isinstance(gtf, str) or isinstance(gtf, pathlib.Path):
-                gtf = gtf_to_pandas(gtf)
-            elif not isinstance(gtf, pd.DataFrame):
-                raise ValueError('gtf must be a path or a pandas DataFrame')
-
-            # only keep protein_coding transcripts
-            # save gtf as a lazy dataframe
-            gtf = gtf.query("`gene_type` == 'protein_coding'")
-            self.gtf_ldf = pl.from_pandas(get_apa_from_genome_annotation(gtf)). \
-                select(
-                ['Chromosome', 'Strand', 'gene_id', 'transcript_id', 'cse']). \
-                rename({'Chromosome': 'chrom', 'Strand': 'strand'}).with_columns([
-                pl.col('gene_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('gene_id'),
-                pl.col('transcript_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('transcript_id')
-            ]).lazy()
-
-            # check if Ensembl_canonical is in the set of tags
-            gtf = gtf[gtf['tag'].apply(lambda x: False if pd.isna(x) else ('Ensembl_canonical' in x.split(',')))]
-            self.canonical_transcripts = list(gtf['transcript_id'].str.extract(r'([^\.]+)\..+$')[0].unique())
+        if apa_annotation is not None:
+            self.annotation_df = apa_annotation.get_annotation()
+            self.isoform_usage_df = apa_annotation.get_isoform_usage().with_columns(
+                transcript_id=pl.col('transcript_id').arr.join(';'))
 
     def run(self, ref_paths: list[str] | list[pathlib.Path], alt_path: str | pathlib.Path,
             output_path: str | pathlib.Path, aggregation_mode: str, upstream_cse: int | None = None,
@@ -170,20 +141,19 @@ class Aparent2Veff:
         :param ref_paths: The parquet files that contains the reference scores
         :param alt_path: The parquet file that contains the alternate scores
         :param output_path: The parquet file that will contain the variant effect scores
-        :param aggregation_mode: One of ['max_abs_lor', 'pdui', 'canonical'].
+        :param aggregation_mode: One of ['lor', 'delta_pdui'].
         :param upstream_cse: Variant effects outside of the interval [-upstream_cse, downstream_cse] will be set to 0.
         :param downstream_cse: Variant effects outside of the interval [-upstream_cse, downstream_cse] will be set to 0.
         :param use_narrow_score: If True, use the narrow score for the variant effect calculation.
         :return:
         """
 
-        if aggregation_mode not in ['max_abs_lor', 'pdui', 'canonical']:
+        if aggregation_mode not in ['lor', 'delta_pdui']:
             raise ValueError(f'Unknown mode: {aggregation_mode}')
-        elif aggregation_mode in ['pdui']:
-            assert self.isoform_proportion_ldf is not None, 'Isoform proportions are required for this mode.'
-            assert self.gtf_ldf is not None, 'Genome annotation is required for this mode.'
-        elif aggregation_mode == 'canonical':
-            assert self.canonical_transcripts is not None, 'Genome annotation is required for this mode.'
+        elif aggregation_mode in ['delta_pdui']:
+            assert self.annotation_df is not None, 'Genome annotation is required.'
+            assert len(self.annotation_df) > 0, 'Genome annotation is empty.'
+            assert self.isoform_usage_df is not None, 'Isoform proportions are required.'
 
         logger.debug(f'Calculating the variant effect for {alt_path}')
 
@@ -210,17 +180,13 @@ class Aparent2Veff:
             veff_ldf.write_parquet(output_path)
             return
 
-        on = ['cse', 'chrom', 'strand', 'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
-              'seq_start', 'seq_end']
+        on = ['chrom', 'strand', 'gene_id', 'transcript_id', 'pas_id', 'cse_pos', 'pas_pos', 'seq_start', 'seq_end']
 
         veff_ldf = alt_ldf.join(ref_ldf, how='left', on=on)
-        veff_ldf = veff_ldf.select(['seq_start', 'seq_end', 'cse', 'chrom', 'strand',
-                                    'gene_id', 'transcript_id', 'transcript_start', 'transcript_end',
-                                    'variant_start', 'variant_end', 'ref', 'alt',
-                                    'ref_score', 'alt_score'])
+        veff_ldf = veff_ldf.select(['seq_start', 'seq_end', 'chrom', 'strand',
+                                    'gene_id', 'transcript_id', 'pas_id', 'cse_pos', 'pas_pos',
+                                    'variant_start', 'variant_end', 'ref', 'alt', 'ref_score', 'alt_score'])
 
-        # filter out Y chromosome equivalent transcripts
-        veff_ldf = veff_ldf.filter(~pl.col('transcript_id').str.contains('_PAR_Y'))
         # remove gene and transcript versions
         veff_ldf = veff_ldf.with_columns(
             [pl.col('gene_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('gene_id'),
@@ -231,9 +197,9 @@ class Aparent2Veff:
         if downstream_cse is not None or upstream_cse is not None:
             veff_ldf = veff_ldf.with_columns(
                 (pl.when(pl.col('strand') == '+').then(
-                    pl.col('variant_start') - pl.col('cse')
+                    pl.col('variant_start') - pl.col('cse_pos')
                 ).otherwise(
-                    pl.col('cse') - pl.col('variant_start'))
+                    pl.col('cse_pos') - pl.col('variant_start'))
                 ).alias('relative_pos'))
 
             if downstream_cse is not None:
@@ -253,43 +219,41 @@ class Aparent2Veff:
         Given a dataframe containing variant effect scores, aggregate the scores by gene, variant and tissue.
 
         :param veff_ldf: A polars dataframe containing the variant effect scores.
-        :param aggregation_mode: One of ['max_abs_lor', 'pdui', 'canonical'].
+        :param aggregation_mode: One of ['lor', 'delta_pdui'].
         :return: A pandas dataframe containing the aggregated scores.
         """
 
-        if aggregation_mode == 'canonical':
-            # Keep only the canonical transcripts
-            veff_ldf = veff_ldf.filter(pl.col('transcript_id').is_in(self.canonical_transcripts))
-            # aggregate by gene and variant
-            veff_ldf = veff_ldf.groupby(['chrom', 'strand', 'gene_id', 'variant_start',
-                                         'variant_end', 'ref', 'alt', ]).agg(
-                [pl.col(['cse', 'transcript_id', 'transcript_start', 'transcript_end',
-                         'ref_score', 'alt_score', 'lor']).first(),
-                 pl.count().alias('num_transcripts')]
-            ).rename({'lor': 'veff_score'})
-            veff_df = veff_ldf.collect()
-            # Verify that there is only one canonical transcript per gene
-            max_transcripts_per_gene = veff_df['num_transcripts'].max()
-            if max_transcripts_per_gene is not None and max_transcripts_per_gene > 1:
-                logger.error('Multiple canonical transcripts found for a gene.')
-                logger.error(veff_df[veff_df['num_transcripts'] > 1])
-                raise ValueError('Multiple canonical transcripts found for a gene.')
-
-            # Remove the num_transcripts column
-            veff_df.drop_in_place('num_transcripts')
-        elif aggregation_mode == 'max_abs_lor':
+        if aggregation_mode == 'lor':
             veff_ldf = veff_ldf.with_columns(abs_lor=pl.col('lor').abs()). \
                 with_columns(max_abs_lor=pl.col('abs_lor').max().over(['chrom', 'strand', 'gene_id', 'variant_start',
                                                                        'variant_end', 'ref', 'alt', ]))
             # aggregate by gene and variant and keep the maximum absolute LOR
             veff_ldf = veff_ldf.groupby(['chrom', 'strand', 'gene_id', 'variant_start',
                                          'variant_end', 'ref', 'alt', ]).agg(
-                pl.col(['cse', 'transcript_id', 'transcript_start', 'transcript_end',
-                        'ref_score', 'alt_score', 'lor']).filter(pl.col('abs_lor') == pl.col('max_abs_lor')).first()
+                pl.col(['transcript_id', 'pas_id', 'cse_pos', 'pas_pos', 'ref_score', 'alt_score', 'lor']).filter(
+                    pl.col('abs_lor') == pl.col('max_abs_lor')).first()
             ).rename({'lor': 'veff_score'}).drop(['abs_lor', 'max_abs_lor'])
             veff_df = veff_ldf.collect()
-        elif aggregation_mode == 'pdui':
-            pass
+
+        elif aggregation_mode == 'delta_pdui':
+            pdui_ldf = veff_ldf.drop('transcript_id').join(self.isoform_usage_df.lazy(), on=['gene_id', 'pas_id'],
+                                                           how='inner'). \
+                rename({'isoform_proportion': 'pdui_ref'}). \
+                with_columns(pdui_alt=expit(pl.col('lor') + logit(pl.col('pdui_ref')))). \
+                with_columns(delta_pdui=pl.col('pdui_alt') - pl.col('pdui_ref'))
+            veff_df = pdui_ldf.drop(['pdui_alt', 'lor']). \
+                with_columns(abs_delta_pdui=pl.col('delta_pdui').abs()). \
+                with_columns(max_abs_delta_pdui=pl.col('abs_delta_pdui').max().
+                             over(['chrom', 'strand', 'gene_id', 'tissue', 'variant_start',
+                                   'variant_end', 'ref', 'alt'])). \
+                groupby(['chrom', 'strand', 'gene_id', 'tissue', 'variant_start',
+                         'variant_end', 'ref', 'alt', ]). \
+                agg(pl.col(['transcript_id', 'pas_id', 'cse_pos', 'pas_pos', 'ref_score',
+                            'alt_score', 'delta_pdui', 'pdui_ref']). \
+                    filter(pl.col('abs_delta_pdui') == pl.col('max_abs_delta_pdui')).first()). \
+                rename({'delta_pdui': 'veff_score'}).drop(['abs_delta_pdui', 'max_abs_delta_pdui']).collect()
+        else:
+            # todo look for the effect on the distal APA site
             # distal_ldf = self.isoform_proportion_ldf.join(self.gtf_ldf, on=['gene_id', 'transcript_id'], how='left'). \
             #     rename({
             #     'transcript_id': 'distal_transcript_id', 'isoform_proportion': 'ref_pdui', 'cse': 'distal_cse'
@@ -303,30 +267,11 @@ class Aparent2Veff:
             #     ])
             # ).with_columns(
             #     lambda_=pl.when(pl.col('distal_transcript_distance') > 150).then(pl.lit(-1)).otherwise(pl.lit(1)))
-            #
             # distal_ldf.collect().sort(
             #     ['gene_id', 'variant_end', 'tissue', 'proximal_transcript_id', 'distal_transcript_distance',
             #      'distal_transcript_id']).select(
             #     ['gene_id', 'variant_end', 'tissue', 'proximal_transcript_id', 'distal_transcript_distance',
             #      'distal_transcript_id', 'lor', 'ref_pdui'])
-
-            # veff_ldf = self.isoform_proportion_ldf.join(veff_ldf, on=['gene_id', 'transcript_id'],
-            #                                             how='left')
-            # veff_ldf = veff_ldf. \
-            #     group_by(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt', 'tissue']). \
-            #     agg([
-            #     pl.struct(['ref_score', 'isoform_proportion']).
-            #     map_elements(
-            #         lambda x: logsumexp_udf(x.struct.field('ref_score'), x.struct.field('isoform_proportion')),
-            #         return_dtype=pl.Float64()).
-            #     alias('ref_score'),
-            #     pl.struct(['alt_score', 'isoform_proportion']).
-            #     map_elements(
-            #         lambda x: logsumexp_udf(x.struct.field('alt_score'), x.struct.field('isoform_proportion')),
-            #         return_dtype=pl.Float64()).
-            #     alias('alt_score'),
-            # ])
-        else:
             raise ValueError(f'Unknown mode: {aggregation_mode}')
 
         logger.debug(f'Aggregated table size: {len(veff_df)}')

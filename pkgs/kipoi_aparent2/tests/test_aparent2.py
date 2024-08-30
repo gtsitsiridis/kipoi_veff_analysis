@@ -9,6 +9,7 @@ from kipoi_aparent2.logger import logger
 from kipoi_aparent2.constants import AlleleType
 from shutil import rmtree
 from pathlib import Path
+import polars as pl
 
 
 def run_aparent2(dl: ApaDataloader, aparent2_model_path, output_path, size, batch_size,
@@ -84,7 +85,8 @@ def test_aparent2_alt(chr22_example_files, aparent2_model_path, output_dir: Path
 
 
 @pytest.mark.parametrize("aggregation_mode, upstream_cse, downstream_cse", [
-    ('pdui', 70, 134), ('canonical', 70, 134), ('max_abs_lor', 70, 134),
+    ('delta_pdui', 70, 134),
+    ('lor', 70, 134),
 ])
 def test_calculate_veff(chr22_example_files, output_dir: Path, aparent2_model_path,
                         aggregation_mode, downstream_cse,
@@ -106,9 +108,28 @@ def test_calculate_veff(chr22_example_files, output_dir: Path, aparent2_model_pa
     output_path = output_dir / f'aparent2_{"full" if not size else size}/{aggregation_mode}_{upstream_cse}_{downstream_cse}_veff.parquet'
     if output_path.exists():
         output_path.unlink()
-
-    enformer_veff = Aparent2Veff(isoforms_path=chr22_example_files['isoform_proportions'],
-                                 gtf=chr22_example_files['gtf'])
+    apa_annotation = EnsemblAPAAnnotation(chr22_example_files['gtf'], chromosome='chr22', canonical_only=True,
+                                          protein_coding_only=True,
+                                          isoform_usage_path=chr22_example_files['isoform_proportions'])
+    enformer_veff = Aparent2Veff(
+        apa_annotation=apa_annotation if aggregation_mode == 'delta_pdui' else None,
+    )
     enformer_veff.run([ref_filepath], alt_filepath, output_path, aggregation_mode=aggregation_mode,
                       downstream_cse=downstream_cse, upstream_cse=upstream_cse)
+
+    df = pl.read_parquet(output_path)
+
+    assert 'veff_score' in df.columns
+    if aggregation_mode == 'delta_pdui':
+        assert 'pdui_ref' in df.columns
+        assert df.select(['chrom', 'strand', 'gene_id', 'tissue', 'variant_start', 'variant_end', 'ref', 'alt']). \
+            unique().shape[0] == df.shape[0]
+    else:
+        assert df.select(['chrom', 'strand', 'gene_id', 'variant_start', 'variant_end', 'ref', 'alt']). \
+            unique().shape[0] == df.shape[0]
+
+    assert df['veff_score'].dtype == pl.Float64
+    assert df.filter(pl.col('veff_score').is_null()).shape[0] == 0
+    assert df.filter(pl.col('veff_score').is_nan()).shape[0] == 0
+
     return output_path
