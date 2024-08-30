@@ -39,6 +39,7 @@ class Aparent2:
 
         schema = dataloader.pyarrow_metadata_schema
         schema = (schema.
+                  insert(0, pa.field(f'cleavage_prob_bp', pa.list_(pa.float32()))).
                   insert(0, pa.field(f'cleavage_prob_narrow', pa.float32())).
                   insert(0, pa.field(f'cleavage_prob_full', pa.float32())))
         # position of the cse in the sequence
@@ -88,7 +89,8 @@ class Aparent2:
         results = {
             'metadata': batch['metadata'],
             'cleavage_prob_narrow': cleavage_probability_narrow,
-            'cleavage_prob_full': cleavage_probability_full
+            'cleavage_prob_full': cleavage_probability_full,
+            'cleavage_prob_bp': predictions,
         }
         return results
 
@@ -111,6 +113,7 @@ class Aparent2:
         formatted_results = {
             'cleavage_prob_full': pa.array(results['cleavage_prob_full'].tolist(), type=pa.float32()),
             'cleavage_prob_narrow': pa.array(results['cleavage_prob_narrow'].tolist(), type=pa.float32()),
+            'cleavage_prob_bp': pa.array(results['cleavage_prob_bp'].tolist(), type=pa.list_(pa.float32())),
             **metadata
         }
 
@@ -165,10 +168,12 @@ class Aparent2Veff:
             exclude_score = 'cleavage_prob_narrow'
 
         ref_ldf = pl.concat(
-            [pl.scan_parquet(path).select(pl.exclude(exclude_score)).rename({keep_score: 'ref_score'}).
+            [pl.scan_parquet(path).select(pl.exclude([exclude_score, 'cleavage_prob_bp'])).rename(
+                {keep_score: 'ref_score'}).
              with_columns(chrom=pl.lit(_extract_chromosome_from_parquet(path))) for path in ref_paths]
         )
-        alt_ldf = pl.scan_parquet(alt_path).select(pl.exclude(exclude_score)).rename({keep_score: 'alt_score'})
+        alt_ldf = pl.scan_parquet(alt_path).select(pl.exclude([exclude_score, 'cleavage_prob_bp'])).rename(
+            {keep_score: 'alt_score'})
 
         # check if alt_ldf is empty and write empty file if that's the case
         if alt_ldf.select(pl.count()).collect()[0, 0] == 0:

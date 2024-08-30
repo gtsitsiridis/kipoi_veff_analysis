@@ -21,12 +21,13 @@ def run_aparent2(dl: ApaDataloader, aparent2_model_path, output_path, size, batc
     logger.info(table.schema)
 
     if size is not None:
-        assert table.shape == (size, 2 + len(dl.pyarrow_metadata_schema.names))
+        assert table.shape == (size, 3 + len(dl.pyarrow_metadata_schema.names))
     else:
-        assert table.shape[1] == 2 + len(dl.pyarrow_metadata_schema.names)
+        assert table.shape[1] == 3 + len(dl.pyarrow_metadata_schema.names)
 
     assert 'cleavage_prob_full' in table.column_names
     assert 'cleavage_prob_narrow' in table.column_names
+    assert 'cleavage_prob_bp' in table.column_names
 
 
 def get_aparent2_path(output_dir: Path, size: int, allele_type: AlleleType, rm=False):
