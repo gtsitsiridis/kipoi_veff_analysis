@@ -12,26 +12,31 @@ def setup_logger():
     logger.setLevel(logging.DEBUG)
 
 
+@pytest.fixture(autouse=True)
+def change_test_dir(request, monkeypatch):
+    monkeypatch.chdir(Path(request.fspath.dirname).parent.parent.parent)
+
+
 @pytest.fixture
 def output_dir():
-    output_dir = Path('../../../output/test/')
+    output_dir = Path('output/test/')
     output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir
 
 
 @pytest.fixture
 def gtex_tissue_mapper_path():
-    return Path('../../../example_files/gtex_enformer_lm_models_pseudocount1.pkl')
+    return Path('example_files/gtex_enformer_lm_models_pseudocount1.pkl')
 
 
 @pytest.fixture
 def enformer_tracks_path():
-    return Path('../../../assets/enformer_tracks/human_cage_nonuniversal_enformer_tracks.yaml')
+    return Path('assets/enformer_tracks/human_cage_nonuniversal_enformer_tracks.yaml')
 
 
 @pytest.fixture
 def chr22_example_files():
-    base = Path("../../../example_files")
+    base = Path("example_files")
     return {
         'fasta': base / "seq.fa",
         'gtf': base / "annot.gtf.gz",
