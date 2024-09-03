@@ -14,10 +14,6 @@ from sklearn import linear_model
 import lightgbm as lgb
 
 
-@pytest.fixture
-def enformer_veff():
-    pass
-
 def run_enformer(dl: TSSDataloader, output_path, size, batch_size, num_output_bins):
     enformer = Enformer(is_random=True)
 
@@ -78,7 +74,7 @@ def get_veff_path(output_dir: Path, size: int, rm=False):
 
 @pytest.mark.parametrize("size, batch_size, num_output_bins", [
     (3, 1, 896), (5, 3, 896), (10, 5, 896),
-    (3, 1, 21), (5, 3, 21), (10, 5, 21),
+    (3, 1, 21), (5, 3, 21), (10, 5, 21), (100, 5, 21),
 ])
 def test_enformer_ref(chr22_example_files, output_dir: Path, size, batch_size, num_output_bins):
     args = {
@@ -88,7 +84,7 @@ def test_enformer_ref(chr22_example_files, output_dir: Path, size, batch_size, n
         'seq_length': 393_216,
         'size': size,
         'chromosome': 'chr22',
-        'canonical_only': True,
+        'canonical_only': False,
         'protein_coding_only': True,
     }
 
@@ -111,7 +107,7 @@ def test_enformer_alt(chr22_example_files, output_dir: Path, size, batch_size, n
         'vcf_file': chr22_example_files['vcf'],
         'variant_downstream_tss': 500,
         'variant_upstream_tss': 500,
-        'canonical_only': True,
+        'canonical_only': False,
         'protein_coding_only': True,
     }
 
@@ -191,11 +187,11 @@ def test_calculate_veff(chr22_example_files, output_dir: Path,
 
 
 @pytest.mark.parametrize("model", [
-    linear_model.ElasticNetCV(cv=5),
+    linear_model.ElasticNetCV(cv=2),
     lgb.LGBMRegressor()
 ])
 def test_train_tissue_mapper(chr22_example_files, gtex_tissue_mapper_path, enformer_tracks_path, output_dir,
-                             model, size=10, batch_size=5, num_output_bins=21):
+                             model, size=100, batch_size=5, num_output_bins=21):
     enformer_filepath = get_enformer_path(output_dir, size, AlleleType.REF)
     if not enformer_filepath.exists():
         logger.debug(f'Creating file: {enformer_filepath}')
