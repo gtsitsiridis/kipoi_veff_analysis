@@ -11,11 +11,9 @@ def setup_logger():
                         datefmt='%Y-%m-%d %H:%M:%S')
     logger.setLevel(logging.DEBUG)
 
-
 @pytest.fixture(autouse=True)
 def change_test_dir(request, monkeypatch):
     monkeypatch.chdir(Path(request.fspath.dirname).parent.parent.parent)
-
 
 @pytest.fixture
 def output_dir():

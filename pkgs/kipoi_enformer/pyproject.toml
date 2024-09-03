@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kipoi-enformer"
 version = "0.0.1"
-description = "Kipoi-based variant effect prediction"
+description = "Kipoi-based variant effect prediction around the TSS using Enformer"
 authors = [
     { name = "Florian Hölzlwimmer", email = "git.ich@frhoelzlwimmer.de" },
     { name = "George Tsitsiridis", email = "gtsitsiridis@gmail.com" },
 ]
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT licence"}
+license = { text = "MIT licence" }
 keywords = ["model zoo", "deep learning", "enformer", "aparent2",
     "computational biology", "bioinformatics", "genomics"]
 dependencies = [
@@ -24,7 +24,7 @@ dependencies = [
     "kipoiseq @ git+https://github.com/gtsitsiridis/kipoiseq.git@master",
     "tensorflow-hub==0.16.1",
     "tensorflow==2.16.1",
-    "polars>=0.20.19",
+    "polars>=1.5.0",
     "scikit-learn>=1.4.1.post1",
     "lightgbm>=4.3.0",
     "zarr>=2.15.0",
@@ -33,6 +33,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+    "cython"
 ]
 gpu = [
     "tensorflow-gpu>=2.16.1"
