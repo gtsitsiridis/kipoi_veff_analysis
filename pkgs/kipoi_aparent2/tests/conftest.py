@@ -12,20 +12,26 @@ def setup_logger():
     logger.setLevel(logging.DEBUG)
 
 
+@pytest.fixture(autouse=True)
+def change_test_dir(request, monkeypatch):
+    monkeypatch.chdir(Path(request.fspath.dirname).parent.parent.parent)
+
+
 @pytest.fixture
 def output_dir():
-    output_dir = Path('../../../output/test/')
+    output_dir = Path('output/test/')
     output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir
 
 
 @pytest.fixture
 def aparent2_model_path():
-    return Path('../../../assets/aparent_all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop.h5')
+    return Path('assets/aparent_all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop.h5')
+
 
 @pytest.fixture
 def chr22_example_files():
-    base = Path("../../../example_files")
+    base = Path("example_files")
     return {
         'fasta': base / "seq.fa",
         'gtf': base / "annot.gtf.gz",
