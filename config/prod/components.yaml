@@ -32,10 +32,8 @@ genomes:
 
 
 vcfs:
-  gtexv8_2000-500:
+  gtexv8:
     path: /s/project/rep/processed/training_results_v14/distinct_variants.valid_snp_indel.vcf.restored/distinct_variants.valid_snp_indel.vcf/
-    variant_upstream_tss: 2000
-    variant_downstream_tss: 500
 
 enformer:
   models:
@@ -56,7 +54,9 @@ enformer:
   alternatives:
     GRCh37_short__gtexv8_2000-500:
       reference: GRCh37_short
-      vcf: gtexv8_2000-500
+      vcf: gtexv8
+      variant_upstream_tss: 2000
+      variant_downstream_tss: 500
 
   mappers:
     elasticnet_dnase_cage_gtexv8:

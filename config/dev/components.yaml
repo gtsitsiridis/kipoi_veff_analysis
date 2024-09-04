@@ -11,8 +11,6 @@ genomes:
 vcfs:
   chr21_22_var:
     path: example_files/vcf
-    variant_upstream_tss: 2000
-    variant_downstream_tss: 500
 
 enformer:
   models:
@@ -34,6 +32,8 @@ enformer:
     alt1:
       reference: ref1
       vcf: chr21_22_var
+      variant_upstream_tss: 2000
+      variant_downstream_tss: 500
 
   mappers:
     elasticnet_cage:
