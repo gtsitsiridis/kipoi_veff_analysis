@@ -4,7 +4,7 @@
 
 ### Create main conda environment
 ```bash
-conda env create -f workflow/envs/kipoi-veff-analysis
+conda env create -f workflow/envs/kipoi-veff-analysis.yml
 conda activate kipoi-veff-analysis
 ```
 
