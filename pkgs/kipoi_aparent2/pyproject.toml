@@ -29,6 +29,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+    "cython"
 ]
 gpu = [
     "tensorflow-gpu==1.14.0"
