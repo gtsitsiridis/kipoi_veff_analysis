@@ -3,7 +3,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: elasticnet_cage
-    isoform_file: example_files/isoform_proportions.tsv
     aggregation_mode: logsumexp
     upstream_tss: 2000
     downstream_tss: 500
@@ -11,7 +10,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: elasticnet_cage
-    isoform_file: null
     aggregation_mode: canonical
     upstream_tss: 2000
     downstream_tss: 500
@@ -19,7 +17,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: lightgbm_cage
-    isoform_file: example_files/isoform_proportions.tsv
     aggregation_mode: logsumexp
     upstream_tss: 2000
     downstream_tss: 500
@@ -27,7 +24,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: lightgbm_cage
-    isoform_file: null
     aggregation_mode: canonical
     upstream_tss: 2000
     downstream_tss: 500
@@ -35,7 +31,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: lightgbm_cage
-    isoform_file: example_files/isoform_proportions.tsv
     aggregation_mode: logsumexp
     upstream_tss: 100
     downstream_tss: 500
@@ -43,7 +38,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: lightgbm_cage
-    isoform_file: null
     aggregation_mode: canonical
     upstream_tss: 100
     downstream_tss: 500
@@ -51,7 +45,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: lightgbm_cage
-    isoform_file: null
     aggregation_mode: canonical
     upstream_tss: null
     downstream_tss: null
@@ -59,10 +52,37 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: ridge_cage
-    isoform_file: null
     aggregation_mode: canonical
     upstream_tss: null
     downstream_tss: null
+  aparent2_veff1:
+    predictor: aparent2
+    alternative: alt1
+    aggregation_mode: delta_pdui
+    upstream_cse: 50
+    downstream_cse: 50
+    use_narrow_score: false
+  aparent2_veff2:
+    predictor: aparent2
+    alternative: alt1
+    aggregation_mode: delta_pdui
+    upstream_cse: 50
+    downstream_cse: 50
+    use_narrow_score: true
+  aparent2_veff3:
+    predictor: aparent2
+    alternative: alt1
+    aggregation_mode: lor
+    upstream_cse: 50
+    downstream_cse: 50
+    use_narrow_score: false
+  aparent2_veff4:
+    predictor: aparent2
+    alternative: alt1
+    aggregation_mode: lor
+    upstream_cse: 50
+    downstream_cse: 50
+    use_narrow_score: true
 
 comparisons:
   dev1:
@@ -70,3 +90,6 @@ comparisons:
     - enformer_veff2
     - enformer_veff3
     - enformer_veff8
+  dev2:
+    - aparent2_veff1
+    - aparent2_veff2

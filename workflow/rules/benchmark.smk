@@ -10,7 +10,12 @@ module enfomer_workflow:
     snakefile: "enformer.smk"
     config: config
 
+module aparent2_workflow:
+    snakefile: "aparent2.smk"
+    config: config
+
 use rule * from enfomer_workflow as enformer_*
+use rule * from aparent2_workflow as aparent2_*
 
 
 def vcfs(vcf_key):
@@ -24,7 +29,10 @@ def benchmark_input(wildcards):
     predictor = run_config['predictor']
     vcf_key = config[predictor]['alternatives'][run_config['alternative']]['vcf']
 
-    return [*expand(rules.enformer_variant_effect.output,run_key=run_key,vcf_name=vcfs(vcf_key))]
+    if predictor == 'enformer':
+        return [*expand(rules.enformer_variant_effect.output,run_key=run_key,vcf_name=vcfs(vcf_key))]
+    elif predictor == 'aparent2':
+        return [*expand(rules.aparent2_variant_effect.output,run_key=run_key,vcf_name=vcfs(vcf_key))]
 
 
 rule benchmark:

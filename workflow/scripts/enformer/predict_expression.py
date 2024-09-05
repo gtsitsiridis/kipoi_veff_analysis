@@ -51,8 +51,8 @@ elif params.type == 'alternative':
 
     logger.info('Using VCF file: %s', vcf_file)
     dl_args.update({'vcf_file': vcf_file,
-                    'variant_upstream_tss': vcf_config['variant_upstream_tss'],
-                    'variant_downstream_tss': vcf_config['variant_downstream_tss'],
+                    'variant_upstream_tss': alt_config['variant_upstream_tss'],
+                    'variant_downstream_tss': alt_config['variant_downstream_tss'],
                     'vcf_lazy': True})
 else:
     raise ValueError(f'invalid allele type {params["type"]}')

@@ -52,6 +52,13 @@ snakemake --workflow-profile=workflow/profiles/<profile>
 #snakemake --workflow-profile=workflow/profiles/prod --touch /s/project/promoter_prediction/kipoi_expression_prediction/process/common/genomes/GRCh37.parquet
 #snakemake --workflow-profile=workflow/profiles/prod --touch /s/project/promoter_prediction/kipoi_expression_prediction/process/enformer/alternative/raw/GRCh37_short__gtexv8_2000-500.parquet/part-0*
 #snakemake --workflow-profile=workflow/profiles/prod --touch /s/project/promoter_prediction/kipoi_expression_prediction/process/enformer/reference/raw/GRCh37_short.parquet/*/data.parquet
+
+# To speed up the construction of the DAG when running snakemake, the --batch option on the benchmark rule can be used.
+# example:
+# first batch
+#snakemake --workflow-profile=workflow/profiles/<profile> --batch benchmark=1/10
+# nth batch
+#snakemake --workflow-profile=workflow/profiles/<profile> --batch benchmark=n/10
 ```
 
 ## Predictors

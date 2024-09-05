@@ -4,6 +4,7 @@ genomes:
     fasta_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/GRCh37.primary_assembly.genome.fa
     canonical_only: false
     protein_coding_only: true
+    isoform_proportion_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     chromosomes:
       - chr1
       - chr2
@@ -32,10 +33,13 @@ genomes:
 
 
 vcfs:
-  gtexv8_2000-500:
+  gtexv8:
     path: /s/project/rep/processed/training_results_v14/distinct_variants.valid_snp_indel.vcf.restored/distinct_variants.valid_snp_indel.vcf/
-    variant_upstream_tss: 2000
-    variant_downstream_tss: 500
+
+apa_annotation:
+  ensembl_GRCh37:
+    type: ensembl
+    genome: GRCh37
 
 enformer:
   models:
@@ -56,7 +60,9 @@ enformer:
   alternatives:
     GRCh37_short__gtexv8_2000-500:
       reference: GRCh37_short
-      vcf: gtexv8_2000-500
+      vcf: gtexv8
+      variant_upstream_tss: 2000
+      variant_downstream_tss: 500
 
   mappers:
     elasticnet_dnase_cage_gtexv8:
@@ -121,3 +127,21 @@ enformer:
       expression_path: /s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/
       tracks_path: assets/enformer_tracks/human_enformer_tracks.yaml
       type: Ridge
+
+aparent2:
+  models:
+    all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop:
+      batch_size: 100000
+      path: assets/aparent2_models/aparent_all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop.h5
+
+  references:
+    ensembl_GRCh37:
+      model: all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop
+      apa_annotation: ensembl_GRCh37
+
+  alternatives:
+    ensembl_GRCh37__gtexv8_70-134:
+      reference: ensembl_GRCh37
+      vcf: gtexv8
+      variant_upstream_cse: 70
+      variant_downstream_cse: 134
