@@ -6,6 +6,7 @@ configfile:
   - config/prod/enformer_runs_elasticnet_cutoffs.yaml
 #  - config/prod/aparent2_runs.yaml
 executor: slurm
+scheduler: greedy
 jobs: 200
 rerun-incomplete: true
 rerun-triggers: mtime
