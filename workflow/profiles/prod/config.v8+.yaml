@@ -4,7 +4,7 @@ configfile:
   - config/prod/enformer_runs.yaml
   - config/prod/enformer_runs_ridge_cutoffs.yaml
   - config/prod/enformer_runs_elasticnet_cutoffs.yaml
-  - config/prod/aparent2_runs.yaml
+#  - config/prod/aparent2_runs.yaml
 executor: slurm
 jobs: 200
 rerun-incomplete: true
