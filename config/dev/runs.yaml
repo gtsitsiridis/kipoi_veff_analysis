@@ -3,7 +3,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: elasticnet_cage
-    isoform_file: example_files/isoform_proportions.tsv
     aggregation_mode: logsumexp
     upstream_tss: 2000
     downstream_tss: 500
@@ -11,7 +10,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: elasticnet_cage
-    isoform_file: null
     aggregation_mode: canonical
     upstream_tss: 2000
     downstream_tss: 500
@@ -19,7 +17,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: lightgbm_cage
-    isoform_file: example_files/isoform_proportions.tsv
     aggregation_mode: logsumexp
     upstream_tss: 2000
     downstream_tss: 500
@@ -27,7 +24,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: lightgbm_cage
-    isoform_file: null
     aggregation_mode: canonical
     upstream_tss: 2000
     downstream_tss: 500
@@ -35,7 +31,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: lightgbm_cage
-    isoform_file: example_files/isoform_proportions.tsv
     aggregation_mode: logsumexp
     upstream_tss: 100
     downstream_tss: 500
@@ -43,7 +38,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: lightgbm_cage
-    isoform_file: null
     aggregation_mode: canonical
     upstream_tss: 100
     downstream_tss: 500
@@ -51,7 +45,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: lightgbm_cage
-    isoform_file: null
     aggregation_mode: canonical
     upstream_tss: null
     downstream_tss: null
@@ -59,7 +52,6 @@ runs:
     predictor: enformer
     alternative: alt1
     mapper: ridge_cage
-    isoform_file: null
     aggregation_mode: canonical
     upstream_tss: null
     downstream_tss: null

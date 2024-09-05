@@ -15,7 +15,8 @@ logger.info(f'Running veff on {input_["alt_path"]}')
 logger.info(params)
 
 genome_df = pd.read_parquet(input_['genome_path'])
-veff = EnformerVeff(isoforms_path=params.get('isoform_file', None), gtf=genome_df)
+isoforms_path = wildcards['run_key']['alternative']['reference']['genome'].get('isoform_proportion_file', None)
+veff = EnformerVeff(isoforms_path=isoforms_path, gtf=genome_df)
 veff.run(input_['ref_paths'], input_['alt_path'], output['veff_path'],
          aggregation_mode=params['aggregation_mode'],
          upstream_tss=params.get('upstream_tss', None),

@@ -2,6 +2,7 @@ genomes:
   chr21_22:
     gtf_file: example_files/annot.gtf.gz
     fasta_file: example_files/seq.fa
+    isoform_proportion_file: example_files/isoform_proportions.tsv
     canonical_only: false
     protein_coding_only: true
     chromosomes:

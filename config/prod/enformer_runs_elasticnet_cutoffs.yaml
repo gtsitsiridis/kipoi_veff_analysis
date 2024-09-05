@@ -5,7 +5,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000
@@ -13,7 +12,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 1600
@@ -21,7 +19,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 1200
@@ -29,7 +26,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 800
@@ -37,7 +33,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 500
@@ -45,7 +40,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 400
@@ -53,7 +47,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 300
@@ -61,7 +54,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 200
@@ -69,7 +61,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 100
@@ -77,7 +68,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 50
@@ -85,7 +75,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000
@@ -93,7 +82,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 200
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 50
@@ -103,7 +91,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 1600
@@ -111,7 +98,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 1200
@@ -119,7 +105,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 800
@@ -127,7 +112,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 500
@@ -135,7 +119,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 400
@@ -143,7 +126,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 300
@@ -151,7 +133,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 200
@@ -159,7 +140,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 100
@@ -167,7 +147,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 500
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 50
@@ -175,7 +154,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 200
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 50
@@ -186,7 +164,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 400
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000
@@ -194,7 +171,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 300
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000
@@ -202,7 +178,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 200
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000
@@ -210,7 +185,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 100
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000
@@ -218,7 +192,6 @@ runs:
     aggregation_mode: canonical
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 50
-    isoform_file: null
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000
@@ -228,7 +201,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 400
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000
@@ -236,7 +208,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 300
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000
@@ -244,7 +215,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 200
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000
@@ -252,7 +222,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 100
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000
@@ -260,7 +229,6 @@ runs:
     aggregation_mode: logsumexp
     alternative: GRCh37_short__gtexv8_2000-500
     downstream_tss: 50
-    isoform_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     mapper: elasticnet_cage_gtexv8
     predictor: enformer
     upstream_tss: 2000

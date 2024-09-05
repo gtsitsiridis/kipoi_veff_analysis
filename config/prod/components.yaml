@@ -4,6 +4,7 @@ genomes:
     fasta_file: /s/genomes/Gencode/Gencode_human/release_40/GRCh37_mapping/GRCh37.primary_assembly.genome.fa
     canonical_only: false
     protein_coding_only: true
+    isoform_proportion_file: /s/project/abexp_veff/paper_submission/zenodo_user_update1/gtex_v8_isoform_proportions.tsv
     chromosomes:
       - chr1
       - chr2
