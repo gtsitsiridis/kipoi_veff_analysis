@@ -13,6 +13,11 @@ vcfs:
   chr21_22_var:
     path: example_files/vcf
 
+apa_annotation:
+  ensembl_chr21_22:
+    type: ensembl
+    genome: chr21_22
+
 enformer:
   models:
     short:
@@ -55,3 +60,22 @@ enformer:
       expression_path: example_files/gtex_samples/transcripts_tpms.zarr
       tracks_path: assets/enformer_tracks/human_cage_nonuniversal_enformer_tracks.yaml
       type: Ridge
+
+
+aparent2:
+  models:
+    all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop:
+      batch_size: 100
+      path: assets/aparent2_models/aparent_all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop.h5
+
+  references:
+    ref1:
+      model: all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop
+      apa_annotation: ensembl_chr21_22
+
+  alternatives:
+    alt1:
+      reference: ref1
+      vcf: chr21_22_var
+      variant_upstream_cse: 70
+      variant_downstream_cse: 134

@@ -36,6 +36,11 @@ vcfs:
   gtexv8:
     path: /s/project/rep/processed/training_results_v14/distinct_variants.valid_snp_indel.vcf.restored/distinct_variants.valid_snp_indel.vcf/
 
+apa_annotation:
+  ensembl_GRCh37:
+    type: ensembl
+    genome: GRCh37
+
 enformer:
   models:
     short:
@@ -122,3 +127,21 @@ enformer:
       expression_path: /s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/
       tracks_path: assets/enformer_tracks/human_enformer_tracks.yaml
       type: Ridge
+
+aparent2:
+  models:
+    all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop:
+      batch_size: 100000
+      path: assets/aparent2_models/aparent_all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop.h5
+
+  references:
+    ensembl_GRCh37:
+      model: all_libs_resnet_no_clinvar_wt_ep_5_var_batch_size_inference_mode_no_drop
+      apa_annotation: ensembl_GRCh37
+
+  alternatives:
+    ensembl_GRCh37__gtexv8_70-134:
+      reference: ensembl_GRCh37
+      vcf: gtexv8
+      variant_upstream_cse: 70
+      variant_downstream_cse: 134

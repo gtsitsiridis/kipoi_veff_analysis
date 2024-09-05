@@ -12,11 +12,10 @@ from pathlib import Path
 import polars as pl
 
 
-def run_aparent2(dl: ApaDataloader, aparent2_model_path, output_path, size, batch_size,
-                 num_cut_sites=50):
+def run_aparent2(dl: ApaDataloader, aparent2_model_path, output_path, size, batch_size):
     model = Aparent2(aparent2_model_path)
 
-    model.predict(dl, batch_size=batch_size, filepath=output_path, num_cut_sites=num_cut_sites)
+    model.predict(dl, batch_size=batch_size, filepath=output_path)
     table = pq.read_table(output_path, partitioning=None)
     logger.info(table.schema)
 

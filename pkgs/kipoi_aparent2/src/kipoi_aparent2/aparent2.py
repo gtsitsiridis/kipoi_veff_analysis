@@ -25,13 +25,12 @@ class Aparent2:
         logger.debug(f'Loading model from {model_path}')
         self._model = load_model(str(model_path))
 
-    def predict(self, dataloader: ApaDataloader, batch_size: int, num_cut_sites: int, filepath: str | pathlib.Path):
+    def predict(self, dataloader: ApaDataloader, batch_size: int, filepath: str | pathlib.Path):
         """
         Predict on a dataloader and save the results in a parquet file
         :param filepath:
         :param dataloader:
         :param batch_size:
-        :param num_cut_sites: The number of cut sites downstream of the CSE to consider for the variant effect calculation.
         :return: filepath to the parquet dataset
         """
         logger.debug('Predicting on dataloader')
@@ -56,14 +55,13 @@ class Aparent2:
         with pq.ParquetWriter(filepath, schema) as writer:
             for batch in tqdm(dataloader.batch_iter(batch_size=batch_size), total=total_batches):
                 batch_counter += 1
-                batch = self._to_pyarrow(self._process_batch(batch, num_cut_sites, cse_pos_index))
+                batch = self._to_pyarrow(self._process_batch(batch, cse_pos_index))
                 writer.write_batch(batch)
 
-    def _process_batch(self, batch, num_cut_sites, cse_pos_index):
+    def _process_batch(self, batch, cse_pos_index):
         """
         Process a batch of data. Run the model and prepare the results dict.
         :param batch: list of data dicts
-        :param num_cut_sites: The number of cut sites downstream of the CSE to consider for the variant effect calculation.
         :return: Results dict. Structure: {'metadata': {field: [values]}, 'predictions': {sequence_key: [values]}}
         """
         batch_size = batch['sequence'].shape[0]
@@ -82,7 +80,8 @@ class Aparent2:
 
         # sum the cut site probabilities
         # after core-hexamer (e.g. AATAAA)
-        cleavage_probability_narrow = np.sum(predictions[:, (cse_pos_index + 7):(cse_pos_index + 7 + num_cut_sites)],
+        # narrow window: 50bp downstream of the core-hexamer
+        cleavage_probability_narrow = np.sum(predictions[:, (cse_pos_index + 7):(cse_pos_index + 7 + 50)],
                                              axis=1)
         cleavage_probability_full = np.sum(predictions[:, 0:205], axis=1)
 
@@ -237,7 +236,7 @@ class Aparent2Veff:
                                          'variant_end', 'ref', 'alt', ]).agg(
                 pl.col(['transcript_id', 'pas_id', 'cse_pos', 'pas_pos', 'ref_score', 'alt_score', 'lor']).filter(
                     pl.col('abs_lor') == pl.col('max_abs_lor')).first()
-            ).rename({'lor': 'veff_score'}).drop(['abs_lor', 'max_abs_lor'])
+            ).rename({'lor': 'veff_score'}).drop(['abs_lor', 'max_abs_lor']).with_columns(tissue=pl.lit(None))
             veff_df = veff_ldf.collect()
 
         elif aggregation_mode == 'delta_pdui':

@@ -55,6 +55,34 @@ runs:
     aggregation_mode: canonical
     upstream_tss: null
     downstream_tss: null
+  aparent2_veff1:
+    predictor: aparent2
+    alternative: alt1
+    aggregation_mode: delta_pdui
+    upstream_cse: 50
+    downstream_cse: 50
+    use_narrow_score: false
+  aparent2_veff2:
+    predictor: aparent2
+    alternative: alt1
+    aggregation_mode: delta_pdui
+    upstream_cse: 50
+    downstream_cse: 50
+    use_narrow_score: true
+  aparent2_veff3:
+    predictor: aparent2
+    alternative: alt1
+    aggregation_mode: lor
+    upstream_cse: 50
+    downstream_cse: 50
+    use_narrow_score: false
+  aparent2_veff4:
+    predictor: aparent2
+    alternative: alt1
+    aggregation_mode: lor
+    upstream_cse: 50
+    downstream_cse: 50
+    use_narrow_score: true
 
 comparisons:
   dev1:
@@ -62,3 +90,6 @@ comparisons:
     - enformer_veff2
     - enformer_veff3
     - enformer_veff8
+  dev2:
+    - aparent2_veff1
+    - aparent2_veff2
