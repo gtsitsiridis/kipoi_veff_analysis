@@ -18,6 +18,6 @@ default-resources:
   slurm_partition: lowprio
 set-resources:
   enformer_predict_reference:
-    slurm_extra: "'--gpus=1'"
+    slurm_extra: "'--gpus=1 --exclude=ouga[01-04] --no-requeue'"
   enformer_predict_alternative:
-    slurm_extra: "'--gpus=1'"
+    slurm_extra: "'--gpus=1 --exclude=ouga[01-04] --no-requeue'"

@@ -19,7 +19,7 @@ class VeffBenchmark:
         self.fdr_cutoff = fdr_cutoff
         self.annotation_df = pl.scan_parquet(annotation_path).unique().rename({'gene': 'gene_id'})
         self.folds_df = pl.scan_parquet(folds_path)
-        self.genotypes_df = pl.scan_parquet(genotypes_path).select(
+        self.genotypes_df = pl.scan_parquet(genotypes_path, hive_partitioning=True).select(
             ['sampleId', 'chrom', 'start', 'end', 'ref', 'alt']).rename(
             {'sampleId': 'individual',
              'start': 'variant_start',

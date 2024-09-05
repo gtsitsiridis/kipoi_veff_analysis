@@ -2,29 +2,63 @@
 
 ## Setup:
 
-### Create main conda environment
-```bash
-conda env create -f workflow/envs/kipoi-veff-analysis.yml
-conda activate kipoi-veff-analysis
-```
+### Profiles
 
-### Snakemake workflow
 #### Local profile
 
-To run the snakemake workflow locally using the dev config, execute the following command:
+To run the test workflow locally use the following profile:
 
 ```bash
-conda activate kipoi-veff-analysis
-snakemake --workflow-profile=workflow/profiles/dev
+workflow/profiles/dev
 ```
 
 #### Slurm profile
 
-To run the snakemake workflow on a slurm cluster using the production config, execute the following command:
+To run the production workflow on a cluster with a SLURM scheduler use the following profile:
+
+```bash
+workflow/profiles/prod
+```
+
+### Create conda environments
+
+```bash
+conda env create -f workflow/envs/kipoi-veff-analysis.yml
+conda activate kipoi-veff-analysis
+# create conda envs on the cluster
+# if you want to use a GPU, make sure to create the environments on a server with a GPU
+snakemake --workflow-profile=workflow/profiles/<profile> --conda-create-envs-only
+```
+
+### Run Snakemake workflow
 
 ```bash
 conda activate kipoi-veff-analysis
-CONDA_OVERRIDE_CUDA="11.8" snakemake --workflow-profile=workflow/profiles/prod
+# Note: when running the prod profile, there is no need to execute the command in a server with GPU support,
+# if the conda envs have already been created on a server with GPU support.
+snakemake --workflow-profile=workflow/profiles/<profile>
+# to keep temporary files
+#snakemake --workflow-profile=workflow/profiles/<profile> --notemp
+
+# to run in high priority:
+#snakemake --workflow-profile=workflow/profiles/<profile> --default-resources slurm_partition=urgent slurm_extra="'--exclude=ouga[01-04] --no-requeue'"
+
+# example:
+# high priority and keep temp files
+#snakemake --workflow-profile=workflow/profiles/prod --notemp --default-resources slurm_partition=urgent slurm_extra="'--exclude=ouga[01-04] --no-requeue'"
+
+# To avoid re-running the workflow, for existing files, "touch" the existing files using the --touch directive.
+# example:
+#snakemake --workflow-profile=workflow/profiles/prod --touch /s/project/promoter_prediction/kipoi_expression_prediction/process/common/genomes/GRCh37.parquet
+#snakemake --workflow-profile=workflow/profiles/prod --touch /s/project/promoter_prediction/kipoi_expression_prediction/process/enformer/alternative/raw/GRCh37_short__gtexv8_2000-500.parquet/part-0*
+#snakemake --workflow-profile=workflow/profiles/prod --touch /s/project/promoter_prediction/kipoi_expression_prediction/process/enformer/reference/raw/GRCh37_short.parquet/*/data.parquet
+
+# To speed up the construction of the DAG when running snakemake, the --batch option on the benchmark rule can be used.
+# example:
+# first batch
+#snakemake --workflow-profile=workflow/profiles/<profile> --batch benchmark=1/10
+# nth batch
+#snakemake --workflow-profile=workflow/profiles/<profile> --batch benchmark=n/10
 ```
 
 ## Predictors

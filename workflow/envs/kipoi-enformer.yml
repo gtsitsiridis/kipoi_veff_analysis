@@ -4,8 +4,6 @@ channels:
   - bioconda
 dependencies:
   - python>=3.11
-  - tensorflow-hub==0.16.1
-  - tensorflow==2.16.1
   - numpy>=1.26.4
   - pandas>=2.2.1
   - attrs<=21.4.0 # because of kipoi
