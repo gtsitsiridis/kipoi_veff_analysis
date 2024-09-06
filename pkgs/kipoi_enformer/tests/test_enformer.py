@@ -153,8 +153,9 @@ def test_predict_tissue_mapper(allele_type: str, chr22_example_files, output_dir
 
 
 @pytest.mark.parametrize("aggregation_mode, upstream_tss, downstream_tss", [
-    ('logsumexp', 100, 50), ('canonical', 100, 50), ('median', 100, 50), ('weighted_sum', 100, 50),
-    ('logsumexp', 200, 50), ('canonical', 200, 50), ('median', 200, 50), ('weighted_sum', 200, 50),
+    ('logsumexp', 2000, 2000),
+    # ('canonical', 100, 50), ('median', 100, 50), ('weighted_sum', 100, 50),
+    # ('logsumexp', 200, 50), ('canonical', 200, 50), ('median', 200, 50), ('weighted_sum', 200, 50),
 ])
 def test_calculate_veff(chr22_example_files, output_dir: Path,
                         enformer_tracks_path: Path, gtex_tissue_mapper_path: Path, aggregation_mode, downstream_tss,

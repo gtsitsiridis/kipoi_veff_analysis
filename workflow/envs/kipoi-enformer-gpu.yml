@@ -23,3 +23,5 @@ dependencies:
   - pip
   - pip:
       - "../../pkgs/kipoi_enformer"
+variables:
+  - CONDA_OVERRIDE_CUDA: "12.4"

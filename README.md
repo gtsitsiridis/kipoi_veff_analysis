@@ -26,7 +26,6 @@ workflow/profiles/prod
 conda env create -f workflow/envs/kipoi-veff-analysis.yml
 conda activate kipoi-veff-analysis
 # create conda envs on the cluster
-# if you want to use a GPU, make sure to create the environments on a server with a GPU
 snakemake --workflow-profile=workflow/profiles/<profile> --conda-create-envs-only
 ```
 
