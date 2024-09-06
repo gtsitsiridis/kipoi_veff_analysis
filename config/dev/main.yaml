@@ -1,6 +1,7 @@
 # the path to the output folder
 output_path: output/smk
-use_gpu: false
+enformer_use_gpu: false
+aparent2_use_gpu: false
 
 test:
   dataloader_size: 100

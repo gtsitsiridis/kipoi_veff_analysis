@@ -27,7 +27,7 @@ rule predict_reference:
     params:
         type='reference'
     conda:
-        f'../envs/kipoi-aparent2{"" if not config.get("use_gpu", False) else "-gpu"}.yml'
+        f'../envs/kipoi-aparent2{"" if not config.get("aparent2_use_gpu", False) else "-gpu"}.yml'
     script:
         '../scripts/aparent2/predict_cleavage.py'
 
@@ -50,7 +50,7 @@ rule predict_alternative:
     params:
         type='alternative'
     conda:
-        f'../envs/kipoi-aparent2{"" if not config.get("use_gpu", False) else "-gpu"}.yml'
+        f'../envs/kipoi-aparent2{"" if not config.get("aparent2_use_gpu", False) else "-gpu"}.yml'
     script:
         '../scripts/aparent2/predict_cleavage.py'
 
@@ -85,6 +85,6 @@ rule variant_effect:
     wildcard_constraints:
         vcf_name=r'.*\.vcf\.gz'
     conda:
-        f'../envs/kipoi-aparent2{"" if not config.get("use_gpu", False) else "-gpu"}.yml'
+        f'../envs/kipoi-aparent2{"" if not config.get("aparent2_use_gpu", False) else "-gpu"}.yml'
     script:
         '../scripts/aparent2/veff.py'

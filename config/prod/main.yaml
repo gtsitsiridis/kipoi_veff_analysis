@@ -1,6 +1,8 @@
 # the path to the output folder
 output_path: /s/project/promoter_prediction/kipoi_expression_prediction
-use_gpu: true
+enformer_use_gpu: true
+aparent2_use_gpu: true
+
 benchmark:
   genotypes_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
   annotation_path: /s/project/rep/processed/training_results_v15/gtex_benchmark_with_annotation.parquet/*.parquet
