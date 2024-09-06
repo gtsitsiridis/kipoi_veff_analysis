@@ -32,7 +32,9 @@ gene_veff_df = pl.concat([pl.scan_parquet(path) for path in variant_effects_path
     pl.col('strand').cast(pl.Enum(['-', '+'])),
     pl.col(['chrom', 'variant_start', 'variant_end', 'ref', 'alt', 'veff_score'])
 ).with_columns(
-    pl.col('gene_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('gene_id'))
+    pl.col('gene_id').str.replace(r'([^\.]+)\..+$', "${1}").alias('gene_id'),
+    pl.col('tissue').cast(pl.Utf8())
+)
 
 # split gene_veff to tissue specific and non-tissue specific
 tissue_gene_veff_df = gene_veff_df.filter(pl.col('tissue').is_not_null()). \
