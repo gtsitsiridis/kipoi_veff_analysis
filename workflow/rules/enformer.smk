@@ -2,7 +2,7 @@ import pathlib
 
 # the path to the output folder
 output_path = pathlib.Path(config["output_path"]) / 'process' / 'enformer'
-veff_path = pathlib.Path(config["output_path"]) / 'veff.parquet'
+veff_path = pathlib.Path(config["output_path"]) / 'veff'
 
 module common_workflow:
     snakefile: "common.smk"
@@ -144,7 +144,7 @@ rule variant_effect:
         tasks=1,
         mem_mb=lambda wildcards, attempt, threads: 10000 + (1000 * attempt)
     output:
-        veff_path=veff_path / 'model=enformer/run={run_key}/{vcf_name}.parquet',
+        veff_path=veff_path / 'enformer.parquet/run={run_key}/{vcf_name}.parquet',
     input:
         unpack(variant_effect_input)
     wildcard_constraints:
