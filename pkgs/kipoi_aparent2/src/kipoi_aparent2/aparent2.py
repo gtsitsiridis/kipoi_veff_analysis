@@ -214,7 +214,10 @@ class Aparent2Veff:
         # calculate the log odds ratio (LOR)
         veff_ldf = veff_ldf.with_columns(lor=((pl.col('alt_score') / (1 - pl.col('alt_score'))) /
                                               (pl.col('ref_score') / (1 - pl.col('ref_score')))).log())
-        veff_df = self._aggregate(veff_ldf, aggregation_mode)
+        veff_df = self._aggregate(veff_ldf, aggregation_mode).select([
+            'chrom', 'strand', 'gene_id', 'transcript_id', 'pas_id', 'cse_pos', 'pas_pos',
+            'tissue', 'variant_start', 'variant_end', 'ref', 'alt', 'ref_score', 'alt_score', 'veff_score'
+        ])
         logger.debug(f'Writing the variant effect to {output_path}')
         veff_df.write_parquet(output_path)
 
