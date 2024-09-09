@@ -3,29 +3,29 @@ runs:
     predictor: aparent2
     alternative: ensembl_GRCh37__gtexv8_70-134
     aggregation_mode: delta_pdui
-    upstream_cse: 50
-    downstream_cse: 50
+    upstream_cse: 70
+    downstream_cse: 134
     use_narrow_score: false
   aparent2_ensembl_deltapdui_narrow:
     predictor: aparent2
     alternative: ensembl_GRCh37__gtexv8_70-134
     aggregation_mode: delta_pdui
-    upstream_cse: 50
-    downstream_cse: 50
+    upstream_cse: 70
+    downstream_cse: 134
     use_narrow_score: true
   aparent2_ensembl_lor_wide:
     predictor: aparent2
     alternative: ensembl_GRCh37__gtexv8_70-134
     aggregation_mode: lor
-    upstream_cse: 50
-    downstream_cse: 50
+    upstream_cse: 70
+    downstream_cse: 134
     use_narrow_score: false
   aparent2_ensembl_lor_narrow:
     predictor: aparent2
     alternative: ensembl_GRCh37__gtexv8_70-134
     aggregation_mode: lor
-    upstream_cse: 50
-    downstream_cse: 50
+    upstream_cse: 70
+    downstream_cse: 134
     use_narrow_score: true
 
 comparisons:
