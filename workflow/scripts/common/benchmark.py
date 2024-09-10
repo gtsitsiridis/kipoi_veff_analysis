@@ -39,15 +39,15 @@ gene_veff_df = pl.concat([pl.scan_parquet(path) for path in variant_effects_path
 # split gene_veff to tissue specific and non-tissue specific
 tissue_gene_veff_df = gene_veff_df.filter(pl.col('tissue').is_not_null()). \
     filter(pl.col('tissue').is_in(tissues)). \
-    select(['chrom', 'strand', 'gene_id', 'transcript_id', 'tissue', 'variant_start', 'variant_end', 'ref',
-            'alt', 'ref_score', 'alt_score', 'veff_score'])
+    select(['chrom', 'strand', 'gene_id', 'tissue', 'variant_start', 'variant_end', 'ref',
+            'alt', 'veff_score'])
 
 # populate non-tissue specific gene_veff with all tissues
 non_tissue_gene_veff_df = gene_veff_df.filter(pl.col('tissue').is_null()). \
     select(pl.exclude('tissue')). \
     join(pl.DataFrame({'tissue': tissues}).lazy(), on=None, how='cross'). \
-    select(['chrom', 'strand', 'gene_id', 'transcript_id', 'tissue', 'variant_start', 'variant_end', 'ref',
-            'alt', 'ref_score', 'alt_score', 'veff_score'])
+    select(['chrom', 'strand', 'gene_id', 'tissue', 'variant_start', 'variant_end', 'ref',
+            'alt', 'veff_score'])
 
 # concatanate tissue specific and non-tissue specific gene_veff
 gene_veff_df = pl.concat([tissue_gene_veff_df, non_tissue_gene_veff_df])
