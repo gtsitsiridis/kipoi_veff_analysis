@@ -17,10 +17,10 @@ fdr_cutoff = config['benchmark']['fdr_cutoff']
 annotation_df = pl.scan_parquet(config['benchmark']['annotation_path']).unique().rename({'gene': 'gene_id'})
 folds_df = pl.scan_parquet(config['benchmark']['folds_path'])
 genotypes_df = pl.scan_parquet(config['benchmark']['genotypes_path'], hive_partitioning=True).select(
-        ['sampleId', 'chrom', 'start', 'end', 'ref', 'alt']).rename(
-        {'sampleId': 'individual',
-         'start': 'variant_start',
-         'end': 'variant_end', })
+    ['sampleId', 'chrom', 'start', 'end', 'ref', 'alt']).rename(
+    {'sampleId': 'individual',
+     'start': 'variant_start',
+     'end': 'variant_end', })
 variant_effects_paths = list(input_['veff_path'])
 output_path = output['benchmark_path']
 
@@ -38,12 +38,16 @@ gene_veff_df = pl.concat([pl.scan_parquet(path) for path in variant_effects_path
 
 # split gene_veff to tissue specific and non-tissue specific
 tissue_gene_veff_df = gene_veff_df.filter(pl.col('tissue').is_not_null()). \
-    filter(pl.col('tissue').is_in(tissues))
+    filter(pl.col('tissue').is_in(tissues)). \
+    select(['chrom', 'strand', 'gene_id', 'transcript_id', 'tissue', 'variant_start', 'variant_end', 'ref',
+            'alt', 'ref_score', 'alt_score', 'veff_score'])
 
 # populate non-tissue specific gene_veff with all tissues
 non_tissue_gene_veff_df = gene_veff_df.filter(pl.col('tissue').is_null()). \
     select(pl.exclude('tissue')). \
-    join(pl.DataFrame({'tissue': tissues}).lazy(), on=None, how='cross')
+    join(pl.DataFrame({'tissue': tissues}).lazy(), on=None, how='cross'). \
+    select(['chrom', 'strand', 'gene_id', 'transcript_id', 'tissue', 'variant_start', 'variant_end', 'ref',
+            'alt', 'ref_score', 'alt_score', 'veff_score'])
 
 # concatanate tissue specific and non-tissue specific gene_veff
 gene_veff_df = pl.concat([tissue_gene_veff_df, non_tissue_gene_veff_df])
