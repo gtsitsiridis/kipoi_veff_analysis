@@ -166,6 +166,9 @@ class VCFApaDataloader(ApaDataloader):
                                                                     variant=variant)
                 metadata = {
                     "seq_start": interval.start,  # 0-based start of the input sequence
+                    # TODO this is wrong
+                    # Fast extractor is treating the interval end as 1-based, even though it is 0-based
+                    # So the following line should be: "seq_end": interval.end
                     "seq_end": interval.end + 1,  # 1-based stop of the input sequence
                     "pas_pos": attrs['pas_pos'],  # 0-based position of the PAS
                     "cse_pos": cse,  # 0-based position of the CSE

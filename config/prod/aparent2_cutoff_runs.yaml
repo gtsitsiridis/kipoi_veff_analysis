@@ -1,0 +1,161 @@
+runs:
+  # downstream_runs
+  aparent2_ensembl_deltapdui_wide_70_130:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 130
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_120:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 120
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_110:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 110
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_100:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 100
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_90:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 90
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_80:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 80
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_70:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 70
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_60:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 60
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_50:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 50
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_40:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 40
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_30:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 30
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_20:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 20
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_70_10:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 10
+    use_narrow_score: false
+
+  # upstream runs
+  aparent2_ensembl_deltapdui_wide_60_130:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 60
+    downstream_cse: 130
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_50_130:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 50
+    downstream_cse: 130
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_40_130:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 40
+    downstream_cse: 130
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_30_130:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 30
+    downstream_cse: 130
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_20_130:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 20
+    downstream_cse: 130
+    use_narrow_score: false
+  aparent2_ensembl_deltapdui_wide_10_130:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 10
+    downstream_cse: 130
+    use_narrow_score: false
+
+comparisons:
+  aparent2_ensembl_cutoffs_downstream:
+    - aparent2_ensembl_deltapdui_wide_70_130
+    - aparent2_ensembl_deltapdui_wide_70_120
+    - aparent2_ensembl_deltapdui_wide_70_110
+    - aparent2_ensembl_deltapdui_wide_70_100
+    - aparent2_ensembl_deltapdui_wide_70_90
+    - aparent2_ensembl_deltapdui_wide_70_80
+    - aparent2_ensembl_deltapdui_wide_70_70
+    - aparent2_ensembl_deltapdui_wide_70_60
+    - aparent2_ensembl_deltapdui_wide_70_50
+    - aparent2_ensembl_deltapdui_wide_70_40
+    - aparent2_ensembl_deltapdui_wide_70_30
+    - aparent2_ensembl_deltapdui_wide_70_20
+    - aparent2_ensembl_deltapdui_wide_70_10
+  aparent2_ensembl_cutoffs_upstream:
+    - aparent2_ensembl_deltapdui_wide_70_130
+    - aparent2_ensembl_deltapdui_wide_60_130
+    - aparent2_ensembl_deltapdui_wide_50_130
+    - aparent2_ensembl_deltapdui_wide_40_130
+    - aparent2_ensembl_deltapdui_wide_30_130
+    - aparent2_ensembl_deltapdui_wide_20_130
+    - aparent2_ensembl_deltapdui_wide_10_130
