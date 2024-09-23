@@ -7,7 +7,7 @@ import pandas as pd
 from kipoiseq.extractors import VariantSeqExtractor, FastaStringExtractor
 from kipoiseq import Interval, Variant
 from kipoiseq.transforms.functional import one_hot_dna
-from kipoi_enformer.utils import gtf_to_pandas
+import pyranges as pr
 
 
 class Dataloader(SampleGenerator, ABC):
@@ -108,7 +108,7 @@ def get_roi_from_genome_annotation(gtf: pd.DataFrame | str, chromosome: str | No
     :return: filtered genome_annotation
     """
     if not isinstance(gtf, pd.DataFrame):
-        genome_annotation = gtf_to_pandas(gtf)
+        genome_annotation = pr.read_gtf(gtf, as_df=True, duplicate_attr=True)
     else:
         genome_annotation = gtf.copy()
     if gene_ids is not None:

@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow_hub as hub
 import tensorflow as tf
 from kipoi_enformer.dataloader import TSSDataloader
-from kipoi_enformer.utils import RandomModel, gtf_to_pandas
+from kipoi_enformer.utils import RandomModel
 from kipoi_enformer.logger import logger
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -17,6 +17,7 @@ import xarray as xr
 from sklearn import linear_model, pipeline, preprocessing
 import pandas as pd
 import sklearn as sk
+import pyranges as pr
 
 __all__ = ['Enformer', 'EnformerAggregator', 'EnformerTissueMapper', 'EnformerVeff']
 
@@ -344,7 +345,7 @@ class EnformerVeff:
         # if GTF file is given, then extract the canonical transcripts for the canonical aggregation mode
         if gtf is not None:
             if isinstance(gtf, str) or isinstance(gtf, pathlib.Path):
-                gtf = gtf_to_pandas(gtf)
+                gtf = pr.read_gtf(gtf, as_df=True, duplicate_attr=True)
             elif not isinstance(gtf, pd.DataFrame):
                 raise ValueError('gtf must be a path or a pandas DataFrame')
 
