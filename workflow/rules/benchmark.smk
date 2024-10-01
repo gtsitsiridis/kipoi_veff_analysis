@@ -75,7 +75,5 @@ rule comparison:
         notebook=comparison_path / 'notebooks/{comparison_id}.r.ipynb'
     input:
         expand(rules.evaluation.output, run_key=lookup('comparisons/{comparison_id}', within=config))
-    conda:
-        "../../envs/plotting-r.yml"
     notebook:
         "../notebooks/comparison.r.ipynb"
