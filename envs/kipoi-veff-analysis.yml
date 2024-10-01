@@ -45,5 +45,7 @@ dependencies:
   - r-ggnewscale
   - r-rstatix
   - r-ggpubr
+  - jpeg
+  - cmake
   - pip:
       - "rep @ git+https://github.com/gagneurlab/rep.git@master"
