@@ -24,7 +24,7 @@ rule predict_reference:
     params:
         type='reference'
     conda:
-        f'../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
+        f'../../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
     script:
         '../scripts/enformer/predict_expression.py'
 
@@ -38,7 +38,7 @@ rule aggregate_prediction:
     input:
         prediction_path=output_path / '{allele_type}/raw/{key}.parquet/{subpath}',
     conda:
-        f'../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
+        f'../../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
     script:
         '../scripts/enformer/aggregate_tracks.py'
 
@@ -65,7 +65,7 @@ rule train_mapper:
     input:
         enformer_paths=train_mapper_input
     conda:
-        f'../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
+        f'../../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
     script:
         '../scripts/enformer/train_mapper.py'
 
@@ -91,7 +91,7 @@ rule tissue_expression:
             subpath='{subpath}'),
         tissue_mapper_path=expand(rules.train_mapper.output[0],mapper_key='{mapper_key}',ref_key='{ref_key}')
     conda:
-        f'../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
+        f'../../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
     script:
         '../scripts/enformer/tissue_expression.py'
 
@@ -110,7 +110,7 @@ rule predict_alternative:
     params:
         type='alternative'
     conda:
-        f'../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
+        f'../../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
     script:
         '../scripts/enformer/predict_expression.py'
 
@@ -150,6 +150,6 @@ rule variant_effect:
     wildcard_constraints:
         vcf_name=r'.*\.vcf\.gz'
     conda:
-        f'../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
+        f'../../envs/kipoi-enformer{"" if not config.get("enformer_use_gpu", False) else "-gpu"}.yml'
     script:
         '../scripts/enformer/veff.py'

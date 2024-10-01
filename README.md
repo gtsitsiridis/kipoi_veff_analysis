@@ -23,7 +23,7 @@ workflow/profiles/prod
 ### Create conda environments
 
 ```bash
-conda env create -f workflow/envs/kipoi-veff-analysis.yml
+conda env create -f envs/kipoi-veff-analysis.yml
 conda activate kipoi-veff-analysis
 # create conda envs on the cluster
 snakemake --workflow-profile=workflow/profiles/<profile> --conda-create-envs-only
