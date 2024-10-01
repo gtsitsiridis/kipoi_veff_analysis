@@ -12,8 +12,6 @@ dependencies:
   - matplotlib>=3.8.4
   - pip
   - plotnine>=0.13.6
-  - graphviz>=11.0.0
-  - python-graphviz>=0.20.3
   - jupyter>=1.0.0
   - jupyterlab_code_formatter>=2.2.1
   - nbconvert>=7.16.3
