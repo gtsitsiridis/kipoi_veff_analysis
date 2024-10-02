@@ -5,7 +5,7 @@ GENES_PATH="/data/nasif12/home_if12/tsi/projects/kipoi_veff_analysis/assets/gene
 GTEX_ANNOTATION_PATH="/s/project/gtex_genetic_diagnosis/v8/sample_annotation.tsv"
 GTF_PATH="/s/project/rep/processed/training_results_v15/gtex_v8_old_dna/gtf_transcripts.parquet"
 GTEX_TRANSCRIPT_TPM_PATH="/s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/"
-OUTPUT_PATH="/data/nasif12/home_if12/tsi/projects/kipoi_veff_analysis/output/sex_isoforms"
+OUTPUT_PATH="/s/project/promoter_prediction/sex_analysis/isoform_proportions"
 LOG_DIR="logs"
 
 # Read the number of genes

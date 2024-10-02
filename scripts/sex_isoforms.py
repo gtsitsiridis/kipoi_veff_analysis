@@ -45,7 +45,7 @@ def run_dirichlet_reg(df, output_path):
         print('Likelihood-ratio test')
         anovaRes = anova(nullModel, sexModel)
         print(anovaRes)
-        saveRDS(list(sexModel=sexModel, nullModel=nullModel, anovaRes=anovaRes), output)
+        saveRDS(list(sexModel=summary(sexModel), nullModel=summary(nullModel), anovaRes=summary(anovaRes)), output)
     ''')
 
 
