@@ -6,14 +6,13 @@ GTEX_ANNOTATION_PATH="/s/project/gtex_genetic_diagnosis/v8/sample_annotation.tsv
 GTF_PATH="/s/project/rep/processed/training_results_v15/gtex_v8_old_dna/gtf_transcripts.parquet"
 GTEX_TRANSCRIPT_TPM_PATH="/s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/"
 OUTPUT_PATH="/s/project/promoter_prediction/sex_analysis/isoform_proportions"
-LOG_PATH='logs'
 
 # Create log directory if it doesn't exist
-mkdir -p $LOG_PATH
+mkdir -p logs
 
 #SBATCH --job-name=sex_isoforms
-#SBATCH --output=${LOG_PATH}/sex_isoforms_%A_%a.out
-#SBATCH --error=${LOG_PATH}/sex_isoforms_%A_%a.err
+#SBATCH --output=logs/sex_isoforms_%A_%a.out
+#SBATCH --error=logs/sex_isoforms_%A_%a.err
 #SBATCH --time=01:00:00
 #SBATCH --mem=4G
 
