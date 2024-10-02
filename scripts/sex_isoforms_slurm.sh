@@ -8,7 +8,8 @@ GTEX_TRANSCRIPT_TPM_PATH="/s/project/rep/processed/training_results_v15/general/
 OUTPUT_PATH="/s/project/promoter_prediction/sex_analysis/isoform_proportions"
 
 # Read the number of genes
-NUM_GENES=$(wc -l < "$GENES_PATH")
+#NUM_GENES=$(wc -l < "$GENES_PATH")
+NUM_GENES=4
 
 # Create log directory if it doesn't exist
 mkdir -p logs
@@ -21,6 +22,9 @@ sbatch --array=0-$(($NUM_GENES-1)) --ntasks=200 --partition=lowprio<< EOF
 #SBATCH --error=logs/sex_isoforms_%A_%a.err
 #SBATCH --time=01:00:00
 #SBATCH --mem=4G
+
+echo "Slurm Job Id SLURM_ARRAY_JOB_ID is ${SLURM_ARRAY_JOB_ID}"
+echo "Slurm job array index SLURM_ARRAY_TASK_ID value is ${SLURM_ARRAY_TASK_ID}"
 
 # Run the Python script with the gene index
 python scripts/sex_isoforms.py --gtex_annotation_path ${GTEX_ANNOTATION_PATH} --gtf_path ${GTF_PATH} --gtex_transcript_tpm_path ${GTEX_TRANSCRIPT_TPM_PATH} --genes_path ${GENES_PATH} --output_path ${OUTPUT_PATH} --gene_index $SLURM_ARRAY_TASK_ID
