@@ -50,7 +50,7 @@ def run_dirichlet_reg(df, output_path):
         print('Fitting null model')
         nullModel = DirichReg(proportion ~ tissue, data = df, model='alternative')
         print('Fitting sex model')
-        sexModel = DirichReg(proportion ~ tissue * sex, data = df, model='alternative')
+        sexModel = DirichReg(proportion ~ tissue * sex | tissue + sex, data = df, model='alternative')
         print('Likelihood-ratio test')
         anovaRes = anova(nullModel, sexModel)
         print(anovaRes)
