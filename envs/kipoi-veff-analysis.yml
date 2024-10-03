@@ -43,6 +43,7 @@ dependencies:
   - r-ggnewscale
   - r-rstatix
   - r-ggpubr
+  - r-dirichletreg
   - cmake
   - pip:
       - "rep @ git+https://github.com/gagneurlab/rep.git@master"
