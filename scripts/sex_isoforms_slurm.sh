@@ -4,8 +4,6 @@
 #SBATCH --error=logs/sex_isoforms_%A_%a.err
 #SBATCH --time=01:00:00
 #SBATCH --mem=4G
-#SBATCH --requeue
-#SBATCH --max-requeue=3
 
 # Define variables for file paths
 GENES_PATH="/data/nasif12/home_if12/tsi/projects/kipoi_veff_analysis/assets/genes.txt"
