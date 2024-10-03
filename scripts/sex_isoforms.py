@@ -116,6 +116,12 @@ def main():
 
     final_xrds = xr.merge([expression_xrds, transcript_xrds], join='inner')
 
+    tissue_sex_count = final_xrds[['tissue', 'individual', 'sex']].to_pandas().reset_index()[
+        ['tissue', 'sex']].drop_duplicates().groupby('tissue').count()
+
+    unisex_tissues = tissue_sex_count.query('sex == 2').index.values
+    final_xrds = final_xrds.sel(sample=final_xrds['tissue'].isin(unisex_tissues))
+
     gene_selector = final_xrds['gene'] == gene
     xrds = final_xrds.sel(transcript=gene_selector)
     total_tpm = xrds['tpm'].groupby('sample').sum('transcript')
