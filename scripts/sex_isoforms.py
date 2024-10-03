@@ -31,6 +31,7 @@ def parse_args():
     parser.add_argument('--genes_path', type=str, required=True, help='Path to genes file')
     parser.add_argument('--output_path', type=str, required=True, help='Path to output directory')
     parser.add_argument('--gene_index', type=int, default=0, help='Index of the gene to process')
+    parser.add_argument('--start_row', type=int, default=0, help='Row from where to start reading')
     return parser.parse_args()
 
 
@@ -68,8 +69,9 @@ def main():
     output_path = Path(args.output_path)
     output_path.mkdir(exist_ok=True, parents=False)
     gene_index = args.gene_index
+    start_row = args.start_row
 
-    genes = np.loadtxt(genes_path, dtype=str)
+    genes = np.loadtxt(genes_path, dtype=str, skiprows=start_row)
     gene = genes[gene_index]
 
     output_file = output_path / f'{gene}.RDS'

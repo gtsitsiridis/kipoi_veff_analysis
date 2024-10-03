@@ -6,6 +6,8 @@
 #SBATCH --mem=4G
 #SBATCH --exclude=ouga[01-04]
 
+START_ROW=$1
+
 # Define variables for file paths
 GENES_PATH="/data/nasif12/home_if12/tsi/projects/kipoi_veff_analysis/assets/genes.txt"
 GTEX_ANNOTATION_PATH="/s/project/gtex_genetic_diagnosis/v8/sample_annotation.tsv"
@@ -19,4 +21,5 @@ echo "Slurm job array index SLURM_ARRAY_TASK_ID value is ${SLURM_ARRAY_TASK_ID}"
 # Run the Python script with the gene index
 python scripts/sex_isoforms.py --gtex_annotation_path ${GTEX_ANNOTATION_PATH} \
   --gtf_path ${GTF_PATH} --gtex_transcript_tpm_path ${GTEX_TRANSCRIPT_TPM_PATH} \
-  --genes_path ${GENES_PATH} --output_path ${OUTPUT_PATH} --gene_index $SLURM_ARRAY_TASK_ID
+  --genes_path ${GENES_PATH} --output_path ${OUTPUT_PATH} --gene_index $SLURM_ARRAY_TASK_ID \
+  --start_row $START_ROW
