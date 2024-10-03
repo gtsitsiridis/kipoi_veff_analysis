@@ -4,14 +4,23 @@ import polars as pl
 from pathlib import Path
 import xarray as xr
 import numpy as np
-import matplotlib.pyplot as plt
-import plotnine as pn
 import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
 from rpy2.robjects import pandas2ri
+import logging
+
+# os.environ['R_HOME'] = '/opt/modules/i12g/anaconda/envs/kipoi-veff-analysis/lib/R'
 
 rbase = importr('base')
 rdirichlet_reg = importr('DirichletReg')
+
+# Configure logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    handlers=[
+                        logging.FileHandler("sex_isoforms.log"),
+                        logging.StreamHandler()
+                    ])
 
 
 def parse_args():
@@ -26,7 +35,7 @@ def parse_args():
 
 
 def run_dirichlet_reg(df, output_path):
-    df = df.pivot(index=['sample', 'subtissue', 'individual', 'sex'], columns='transcript', values='proportion')
+    df = df.pivot(index=['sample', 'tissue', 'individual', 'sex'], columns='transcript', values='proportion')
     prop_columns = [f'proportion_{c}' for c in df.columns]
     df.columns = prop_columns
     df = df.reset_index()
@@ -34,25 +43,23 @@ def run_dirichlet_reg(df, output_path):
         ro.r.assign('df', df)
         ro.r.assign('output', str(output_path))
         ro.r.assign('propColumns', ro.StrVector(prop_columns))
-
+    logging.info('Running R script')
     ro.r(f'''
         print('Running test')
         df$proportion = DR_data(df[, propColumns])
         print('Fitting null model')
-        nullModel = DirichReg(proportion ~ subtissue, data = df)
+        nullModel = DirichReg(proportion ~ tissue, data = df)
         print('Fitting sex model')
-        sexModel = DirichReg(proportion ~ subtissue + sex, data = df)
+        sexModel = DirichReg(proportion ~ tissue * sex, data = df)
         print('Likelihood-ratio test')
         anovaRes = anova(nullModel, sexModel)
         print(anovaRes)
-        saveRDS(list(sexModel=summary(sexModel), nullModel=summary(nullModel), anovaRes=summary(anovaRes)), output)
+        saveRDS(list(sexModelCoef=coef(sexModel), anovaRes=anovaRes), output)
     ''')
 
 
 def main():
     args = parse_args()
-
-    os.environ['R_HOME'] = '/opt/modules/i12g/anaconda/envs/kipoi-veff-analysis/lib/R'
 
     gtex_annotation_path = Path(args.gtex_annotation_path)
     gtf_path = Path(args.gtf_path)
@@ -64,6 +71,13 @@ def main():
 
     genes = np.loadtxt(genes_path, dtype=str)
     gene = genes[gene_index]
+
+    output_file = output_path / f'{gene}.RDS'
+    if output_file.exists():
+        logging.info("Output file %s already exists. Skipping computation.", output_file)
+        return
+
+    logging.info('Processing gene %s', gene)
 
     transcript_ldf = pl.scan_parquet(gtf_path). \
         filter((pl.col('Feature') == 'transcript') & (pl.col('gene_type') == 'protein_coding')). \
@@ -106,8 +120,9 @@ def main():
     xrds = xrds.assign(total_tpm=total_tpm,
                        proportion=xrds['tpm'] / total_tpm)
     df = xrds['proportion'].to_dataframe().reset_index()[
-        ['transcript', 'sample', 'subtissue', 'sex', 'proportion', 'individual']]
-    run_dirichlet_reg(df, output_path / f'{gene}.RDS')
+        ['transcript', 'sample', 'tissue', 'sex', 'proportion', 'individual']]
+    logging.info('Running Dirichlet regression')
+    run_dirichlet_reg(df, output_file)
 
 
 if __name__ == "__main__":
