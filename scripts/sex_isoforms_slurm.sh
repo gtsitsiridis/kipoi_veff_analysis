@@ -13,9 +13,6 @@ GTF_PATH="/s/project/rep/processed/training_results_v15/gtex_v8_old_dna/gtf_tran
 GTEX_TRANSCRIPT_TPM_PATH="/s/project/rep/processed/training_results_v15/general/gtex_transcript_tpms.zarr/"
 OUTPUT_PATH="/s/project/promoter_prediction/sex_analysis/isoform_proportions"
 
-# Create log directory if it doesn't exist
-mkdir -p logs
-
 echo "Slurm Job Id SLURM_ARRAY_JOB_ID is ${SLURM_ARRAY_JOB_ID}"
 echo "Slurm job array index SLURM_ARRAY_TASK_ID value is ${SLURM_ARRAY_TASK_ID}"
 
