@@ -4,6 +4,7 @@
 #SBATCH --error=logs/sex_isoforms_%A_%a.err
 #SBATCH --time=01:00:00
 #SBATCH --mem=4G
+#SBATCH --excude=ouga[01-04]
 
 # Define variables for file paths
 GENES_PATH="/data/nasif12/home_if12/tsi/projects/kipoi_veff_analysis/assets/genes.txt"
@@ -14,8 +15,6 @@ OUTPUT_PATH="/s/project/promoter_prediction/sex_analysis/isoform_proportions"
 
 # Create log directory if it doesn't exist
 mkdir -p logs
-
-
 
 echo "Slurm Job Id SLURM_ARRAY_JOB_ID is ${SLURM_ARRAY_JOB_ID}"
 echo "Slurm job array index SLURM_ARRAY_TASK_ID value is ${SLURM_ARRAY_TASK_ID}"
