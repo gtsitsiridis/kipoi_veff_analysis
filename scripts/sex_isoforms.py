@@ -92,6 +92,8 @@ def main():
         select(['gene', 'transcript', 'chrom'])
     transcript_df = transcript_ldf.collect().to_pandas().set_index('transcript')
     transcript_xrds = xr.Dataset.from_dataframe(transcript_df).set_coords(("gene", "chrom"))
+    genes = transcript_xrds.to_pandas().reset_index().groupby('gene').count().query('transcript > 1').index
+    transcript_xrds = transcript_xrds.sel(transcript=transcript_xrds['gene'].isin(genes))
 
     gtex_individual_ldf = pl.scan_csv(gtex_annotation_path, separator='\t'). \
         select(['INDIVIDUAL_ID', 'SEX']). \
