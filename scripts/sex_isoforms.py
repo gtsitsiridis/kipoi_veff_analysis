@@ -50,9 +50,9 @@ def run_dirichlet_reg(df, output_path):
         print('Running test')
         df$proportion = DR_data(df[, propColumns])
         print('Fitting null model')
-        nullModel = DirichReg(proportion ~ tissue, data = df)
+        nullModel = DirichReg(proportion ~ tissue * sex | tissue , data = df, model='alternative')
         print('Fitting sex model')
-        sexModel = DirichReg(proportion ~ tissue + sex, data = df)
+        sexModel = DirichReg(proportion ~ tissue * sex | tissue + sex, data = df, model='alternative')
         print('Likelihood-ratio test')
         anovaRes = anova(nullModel, sexModel)
         print(anovaRes)
@@ -111,25 +111,40 @@ def balanced_sample(data, seed=42):
 
     result = []
 
-    # Group by tissue
-    for tissue, group in data.groupby('tissue'):
-        # Drop duplicate individuals by sampling 1 sample per individual
-        group_unique = group.drop_duplicates(subset=['individual'])
+    # global balance of individuals
+    # Ensure one sample per individual per tissue
+    data_unique = data.drop_duplicates(subset=['individual', 'tissue'])
 
-        # Split by sex
-        males = group_unique[group_unique['sex'] == 'Male']
-        females = group_unique[group_unique['sex'] == 'Female']
+    # Split by sex globally
+    males_global = data_unique[data_unique['sex'] == 'Male']
+    females_global = data_unique[data_unique['sex'] == 'Female']
 
-        # Find the minimum number of individuals between males and females
-        min_count = min(len(males), len(females))
+    # Find the minimum count of unique individuals between sexes globally
+    min_count_global = min(len(males_global['individual'].unique()), len(females_global['individual'].unique()))
 
-        # Sample the minimum number of males and females
-        sampled_males = males.sample(n=min_count, random_state=seed)
-        sampled_females = females.sample(n=min_count, random_state=seed)
+    # Sample globally balanced individuals
+    sampled_males = males_global.drop_duplicates(subset='individual').sample(n=min_count_global, random_state=42)
+    sampled_females = females_global.drop_duplicates(subset='individual').sample(n=min_count_global, random_state=42)
 
-        # Concatenate the samples
-        balanced_group = pd.concat([sampled_males, sampled_females])
-        result.append(balanced_group)
+    # Keep all tissues and balance sexes per tissue
+    balanced_individuals = pd.concat([sampled_males['individual'], sampled_females['individual']]).unique()
+    for tissue, group in data_unique.groupby('tissue'):
+        # Get individuals in this tissue and in the balanced individuals set
+        tissue_group = group[group['individual'].isin(balanced_individuals)]
+
+        # Separate males and females in the tissue
+        males_in_tissue = tissue_group[tissue_group['sex'] == 'Male']
+        females_in_tissue = tissue_group[tissue_group['sex'] == 'Female']
+
+        # Find the minimum number between males and females for balance in the tissue
+        min_count_tissue = min(len(males_in_tissue), len(females_in_tissue))
+
+        # Sample balanced individuals for this tissue
+        sampled_males_tissue = males_in_tissue.sample(n=min_count_tissue, random_state=seed)
+        sampled_females_tissue = females_in_tissue.sample(n=min_count_tissue, random_state=seed)
+
+        # Append the balanced samples for the tissue
+        result.append(pd.concat([sampled_males_tissue, sampled_females_tissue]))
 
     # Concatenate the results for all tissues
     return pd.concat(result)
@@ -150,9 +165,10 @@ def main():
     genes = np.loadtxt(genes_path, dtype=str, skiprows=start_row)
     gene = genes[gene_index]
 
-    output_file = output_path / f'{gene}.RDS'
-    if output_file.exists():
-        logging.info("Output file %s already exists. Skipping computation.", output_file)
+    output_rds_file = output_path / f'{gene}.RDS'
+    output_control_file = output_path / f'{gene}.done'
+    if output_control_file.exists():
+        logging.info("Output file %s already exists. Skipping computation.", output_control_file)
         return
 
     logging.info('Processing gene %s', gene)
@@ -181,10 +197,24 @@ def main():
     final_xrds = final_xrds.assign(total_tpm=total_tpm,
                                    proportion=final_xrds['tpm'] / total_tpm)
 
+    # if the median proportion of a transcript is < 0.1, remove it
+    final_xrds = final_xrds.sel(transcript=final_xrds['proportion'].median('sample') > 0.1)
+
+    # if the final number of transcripts is 1, skip the gene
+    if final_xrds['transcript'].shape[0] < 2:
+        # create done file
+        output_control_file.touch()
+        return
+
     # checks
+    # how many individuals per sex?
+    assert final_xrds[['sample']].to_pandas()[['individual', 'sex']].drop_duplicates().groupby('sex'). \
+               count()['individual'].nunique() == 1
+
     # is there max 1 sample per individual-tissue?
-    assert np.all(final_xrds[['sample']].to_pandas()[['individual', 'tissue', ]].drop_duplicates().reset_index().groupby(
-        ['individual', 'tissue']).count() == 1)
+    assert np.all(
+        final_xrds[['sample']].to_pandas()[['individual', 'tissue', ]].drop_duplicates().reset_index().groupby(
+            ['individual', 'tissue']).count() == 1)
 
     # are the counts of samples per tissue the same for both sexes?
     sample_counts_per_tissue_sex = final_xrds[['sample']].to_pandas().reset_index().groupby(['tissue', 'sex'])[
@@ -197,7 +227,8 @@ def main():
 
     # run Dirichlet regression
     logging.info('Running Dirichlet regression')
-    run_dirichlet_reg(df, output_file)
+    run_dirichlet_reg(df, output_rds_file)
+    output_control_file.touch()
 
 
 if __name__ == "__main__":
