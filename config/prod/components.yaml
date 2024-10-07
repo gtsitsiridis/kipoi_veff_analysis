@@ -145,3 +145,8 @@ aparent2:
       vcf: gtexv8
       variant_upstream_cse: 70
       variant_downstream_cse: 134
+
+custom:
+  alternatives:
+    gtexv8:
+      vcf: gtexv8

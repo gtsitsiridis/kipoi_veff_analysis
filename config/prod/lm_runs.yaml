@@ -18,8 +18,10 @@ runs:
   # lm models
   lm_tss:
     predictor: custom
+    alternative: gtexv8
   lm_apa:
     predictor: custom
+    alternative: gtexv8
 
 comparisons:
   enformer_lm_tss:
