@@ -192,13 +192,17 @@ def main():
     gene_selector = final_xrds['gene'] == gene
     final_xrds = final_xrds.sel(transcript=gene_selector)
 
+    # remove transcripts with low expression
+    zero_read_count_percentage = (final_xrds['tpm'] < 1).mean(axis=1)
+    final_xrds = final_xrds.sel(transcript=zero_read_count_percentage < 0.90)
+
     # normalize TPMs, calculate proportion of each transcript
     total_tpm = final_xrds['tpm'].groupby('sample').sum('transcript')
     final_xrds = final_xrds.assign(total_tpm=total_tpm,
                                    proportion=final_xrds['tpm'] / total_tpm)
 
     # if the median proportion of a transcript is < 0.1, remove it
-    final_xrds = final_xrds.sel(transcript=final_xrds['proportion'].median('sample') > 0.1)
+    # final_xrds = final_xrds.sel(transcript=final_xrds['proportion'].median('sample') > 0.1)
 
     # if the final number of transcripts is 1, skip the gene
     if final_xrds['transcript'].shape[0] < 2:
