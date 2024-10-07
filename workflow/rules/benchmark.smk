@@ -2,7 +2,7 @@ import pathlib
 
 # the path to the output folder
 benchmark_path = pathlib.Path(config["output_path"]) / 'benchmark.parquet'
-veff_path = pathlib.Path(config["output_path"]) / 'veff.parquet'
+veff_path = pathlib.Path(config["output_path"]) / 'veff'
 evaluation_path = pathlib.Path(config["output_path"]) / 'evaluation'
 comparison_path = pathlib.Path(config["output_path"]) / 'comparison'
 
