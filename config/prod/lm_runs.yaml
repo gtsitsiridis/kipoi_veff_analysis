@@ -1,0 +1,32 @@
+runs:
+  # best enformer model
+  enformer_gtexv8_elasticnet_cage_canonical_50_200:
+    aggregation_mode: canonical
+    alternative: GRCh37_short__gtexv8_2000-500
+    downstream_tss: 200
+    mapper: elasticnet_cage_gtexv8
+    predictor: enformer
+    upstream_tss: 50
+  # best aparent2 model
+  aparent2_ensembl_deltapdui_wide_10_130:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 10
+    downstream_cse: 130
+    use_narrow_score: false
+  # lm models
+  lm_tss:
+    predictor: custom
+  lm_apa:
+    predictor: custom
+
+comparisons:
+  enformer_lm_tss:
+    - enformer_gtexv8_elasticnet_cage_canonical_50_200
+    - lm_tss
+  aparent2_lm_apa:
+    - aparent2_ensembl_deltapdui_wide_10_130
+    - lm_apa
+
+
