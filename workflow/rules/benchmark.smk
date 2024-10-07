@@ -34,7 +34,7 @@ def benchmark_input(wildcards):
     elif predictor == 'aparent2':
         return [*expand(rules.aparent2_variant_effect.output,run_key=run_key,vcf_name=vcfs(vcf_key))]
     elif predictor == 'custom':
-        return veff_path / f'{run_key}.parquet/{vcf_name}.parquet'
+        return [veff_path / f'{run_key}.parquet/{vcf_name}.parquet' for vcf_name in vcfs(vcf_key)]
 
 
 rule benchmark:
