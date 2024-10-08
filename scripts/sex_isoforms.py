@@ -202,7 +202,7 @@ def main():
                                    proportion=final_xrds['tpm'] / total_tpm)
 
     # if the median proportion of a transcript is < 0.1, remove it
-    # final_xrds = final_xrds.sel(transcript=final_xrds['proportion'].median('sample') > 0.1)
+    final_xrds = final_xrds.sel(transcript=final_xrds['proportion'].median('sample') > 0.1)
 
     # if the final number of transcripts is 1, skip the gene
     if final_xrds['transcript'].shape[0] < 2:
