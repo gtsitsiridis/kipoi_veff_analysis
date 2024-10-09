@@ -9,6 +9,7 @@ from rpy2.robjects.packages import importr
 from rpy2.robjects import pandas2ri
 import logging
 import pandas as pd
+from scipy.ndimage import gaussian_filter
 
 # os.environ['R_HOME'] = '/opt/modules/i12g/anaconda/envs/kipoi-veff-analysis/lib/R'
 
@@ -33,14 +34,21 @@ def parse_args():
     parser.add_argument('--output_path', type=str, required=True, help='Path to output directory')
     parser.add_argument('--gene_index', type=int, default=0, help='Index of the gene to process')
     parser.add_argument('--start_row', type=int, default=0, help='Row from where to start reading')
+    parser.add_argument('--is_inter_tissue_sex', type=bool, default=True, help='Whether to consider an '
+                                                                               'interaction term between tissue and sex')
     return parser.parse_args()
 
 
-def run_dirichlet_reg(df, output_path):
+def run_dirichlet_reg(df, output_path, is_inter_tissue_sex=True):
     df = df.pivot(index=['sample', 'tissue', 'individual', 'sex'], columns='transcript', values='proportion')
     prop_columns = [f'proportion_{c}' for c in df.columns]
     df.columns = prop_columns
     df = df.reset_index()
+    if is_inter_tissue_sex:
+        full_model = 'proportion ~ tissue * sex | tissue'
+    else:
+        full_model = 'proportion ~ tissue + sex | tissue'
+
     with (ro.default_converter + pandas2ri.converter).context():
         ro.r.assign('df', df)
         ro.r.assign('output', str(output_path))
@@ -52,7 +60,7 @@ def run_dirichlet_reg(df, output_path):
         print('Fitting null model')
         nullModel = DirichReg(proportion ~ tissue | tissue , data = df, model='alternative')
         print('Fitting sex model')
-        sexModel = DirichReg(proportion ~ tissue + sex | tissue, data = df, model='alternative')
+        sexModel = DirichReg({full_model}, data = df, model='alternative')
         print('Likelihood-ratio test')
         anovaRes = anova(nullModel, sexModel)
         print(anovaRes)
