@@ -34,12 +34,10 @@ def parse_args():
     parser.add_argument('--output_path', type=str, required=True, help='Path to output directory')
     parser.add_argument('--gene_index', type=int, default=0, help='Index of the gene to process')
     parser.add_argument('--start_row', type=int, default=0, help='Row from where to start reading')
-    parser.add_argument('--is_inter_tissue_sex', type=bool, default=True, help='Whether to consider an '
-                                                                               'interaction term between tissue and sex')
     return parser.parse_args()
 
 
-def run_dirichlet_reg(df, output_path, is_inter_tissue_sex=True):
+def run_dirichlet_reg(df, output_path, is_inter_tissue_sex=False):
     df = df.pivot(index=['sample', 'tissue', 'individual', 'sex'], columns='transcript', values='proportion')
     prop_columns = [f'proportion_{c}' for c in df.columns]
     df.columns = prop_columns
