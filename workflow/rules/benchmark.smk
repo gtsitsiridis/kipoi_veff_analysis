@@ -78,7 +78,8 @@ rule comparison:
     input:
         expand(rules.evaluation.output, run_key=lookup('comparisons/{comparison_id}', within=config),
             benchmark_name='{benchmark_name}'),
-        eval_path=evaluation_path
     params:
+        evaluation_dir = lambda wildcards:
+            str(evaluation_path).replace('{benchmark_name}', wildcards['benchmark_name'])
     notebook:
         "../notebooks/comparison.r.ipynb"
