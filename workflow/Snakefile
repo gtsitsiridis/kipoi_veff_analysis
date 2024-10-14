@@ -27,6 +27,6 @@ def get_config_runs():
 rule all:
     default_target: True
     input:
-        expand(rules.comparison.log, comparison_id=config['comparisons'].keys())
+        expand(rules.comparison.log, comparison_id=config['comparisons'].keys(), benchmark_name=config['benchmarks'].keys()),
     log: output_path / 'config.yaml'
     script: 'scripts/write_config.py'

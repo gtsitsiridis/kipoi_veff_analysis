@@ -12,11 +12,13 @@ config = snakemake.config
 logger = logging.getLogger()
 
 # variables
-tissues = config['benchmark']['tissues']
-fdr_cutoff = config['benchmark']['fdr_cutoff']
-annotation_df = pl.scan_parquet(config['benchmark']['annotation_path']).unique().rename({'gene': 'gene_id'})
-folds_df = pl.scan_parquet(config['benchmark']['folds_path'])
-genotypes_df = pl.scan_parquet(config['benchmark']['genotypes_path'], hive_partitioning=True).select(
+benchmark_name = wildcards['benchmark_name']
+benchmark_config = config['benchmarks'][benchmark_name]
+tissues = benchmark_config['tissues']
+fdr_cutoff = benchmark_config['fdr_cutoff']
+annotation_df = pl.scan_parquet(benchmark_config['annotation_path']).unique().rename({'gene': 'gene_id'})
+folds_df = pl.scan_parquet(benchmark_config['folds_path'])
+genotypes_df = pl.scan_parquet(benchmark_config['genotypes_path'], hive_partitioning=True).select(
     ['sampleId', 'chrom', 'start', 'end', 'ref', 'alt']).rename(
     {'sampleId': 'individual',
      'start': 'variant_start',

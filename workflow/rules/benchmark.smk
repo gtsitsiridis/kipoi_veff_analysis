@@ -1,10 +1,10 @@
 import pathlib
 
 # the path to the output folder
-benchmark_path = pathlib.Path(config["output_path"]) / 'benchmark.parquet'
 veff_path = pathlib.Path(config["output_path"]) / 'veff'
-evaluation_path = pathlib.Path(config["output_path"]) / 'evaluation'
-comparison_path = pathlib.Path(config["output_path"]) / 'comparison'
+benchmark_path = pathlib.Path(config["output_path"]) / 'benchmark.parquet/name={benchmark_name}'
+evaluation_path = pathlib.Path(config["output_path"]) / 'evaluation/{benchmark_name}'
+comparison_path = pathlib.Path(config["output_path"]) / 'comparison/{benchmark_name}'
 
 module enfomer_workflow:
     snakefile: "enformer.smk"
@@ -76,6 +76,9 @@ rule comparison:
     log:
         notebook=comparison_path / 'notebooks/{comparison_id}.r.ipynb'
     input:
-        expand(rules.evaluation.output, run_key=lookup('comparisons/{comparison_id}', within=config))
+        expand(rules.evaluation.output, run_key=lookup('comparisons/{comparison_id}', within=config),
+            benchmark_name='{benchmark_name}'),
+        eval_path=evaluation_path
+    params:
     notebook:
         "../notebooks/comparison.r.ipynb"
