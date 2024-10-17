@@ -59,7 +59,7 @@ benchmarks:
       - "Uterus"
       - "Vagina"
       - "Whole Blood"
-  tss_2500:
+  tss_50_200:
     genotypes_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
     annotation_path: /s/project/promoter_prediction/kipoi_expression_prediction/new_benchmarks/tss_benchmark.parquet
     folds_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/folds.parquet
@@ -114,7 +114,7 @@ benchmarks:
       - "Uterus"
       - "Vagina"
       - "Whole Blood"
-  pas_2500:
+  pas_10_130:
     genotypes_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
     annotation_path: /s/project/promoter_prediction/kipoi_expression_prediction/new_benchmarks/pas_benchmark.parquet
     folds_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/folds.parquet
