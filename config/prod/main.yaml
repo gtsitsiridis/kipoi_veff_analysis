@@ -8,7 +8,7 @@ benchmarks:
     genotypes_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
     annotation_path: /s/project/rep/processed/training_results_v15/gtex_benchmark_with_annotation.parquet/*.parquet
     folds_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/folds.parquet
-    fdr_cutoff: 0.2
+    fdr_cutoff: 0.05
     tissues:
       - "Adipose - Subcutaneous"
       - "Adipose - Visceral (Omentum)"
@@ -63,7 +63,7 @@ benchmarks:
     genotypes_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
     annotation_path: /s/project/promoter_prediction/kipoi_expression_prediction/new_benchmarks/tss_benchmark.parquet
     folds_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/folds.parquet
-    fdr_cutoff: 0.2
+    fdr_cutoff: 0.05
     tissues:
       - "Adipose - Subcutaneous"
       - "Adipose - Visceral (Omentum)"
@@ -118,7 +118,7 @@ benchmarks:
     genotypes_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/private_variants.parquet/rare_variants.vcf.parquet/**/*.parquet
     annotation_path: /s/project/promoter_prediction/kipoi_expression_prediction/new_benchmarks/pas_benchmark.parquet
     folds_path: /s/project/rep/processed/training_results_v15/gtex_v8_old_dna/folds.parquet
-    fdr_cutoff: 0.2
+    fdr_cutoff: 0.05
     tissues:
       - "Adipose - Subcutaneous"
       - "Adipose - Visceral (Omentum)"
