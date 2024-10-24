@@ -34,6 +34,7 @@ def parse_args():
     parser.add_argument('--output_path', type=str, required=True, help='Path to output directory')
     parser.add_argument('--gene_index', type=int, default=0, help='Index of the gene to process')
     parser.add_argument('--start_row', type=int, default=0, help='Row from where to start reading')
+    parser.add_argument("--randomize", action="store_true", help="increase output verbosity")
     return parser.parse_args()
 
 
@@ -167,6 +168,10 @@ def main():
     output_path.mkdir(exist_ok=True, parents=False)
     gene_index = args.gene_index
     start_row = args.start_row
+    randomize = args.randomize
+
+    if randomize:
+        logging.info('The labels will be randomized')
 
     genes = np.loadtxt(genes_path, dtype=str, skiprows=start_row)
     gene = genes[gene_index]
@@ -237,6 +242,15 @@ def main():
 
     # run Dirichlet regression
     logging.info('Running Dirichlet regression')
+
+    if randomize:
+        logging.info('Randomizing the data')
+        # extract relevant data
+        random_individuals_df = df[['individual', 'sex']].drop_duplicates().reset_index(drop=True)
+        random_individuals_df['sex'] = np.random.permutation(random_individuals_df['sex'].values)
+        random_individuals_df = random_individuals_df.set_index('individual')
+        df['sex'] = random_individuals_df.loc[df['individual'].values]['sex'].values
+
     run_dirichlet_reg(df, output_rds_file)
     output_control_file.touch()
 
