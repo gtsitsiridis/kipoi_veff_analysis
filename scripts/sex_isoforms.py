@@ -106,11 +106,12 @@ def load_expression_data(gtex_transcript_tpm_path, gtex_individual_df):
     )
 
 
-def balanced_sample(data, seed=42):
+def balanced_sample(data, min_samples_per_sex_tissue=100, seed=42):
     """
     Balance the samples by selecting the same number of samples for each sex in each tissue.
     Every individual should only have one sample per tissue.
 
+    :param min_samples_per_sex_tissue:
     :param data:
     :param seed:
     :return:
@@ -149,6 +150,11 @@ def balanced_sample(data, seed=42):
         # Sample balanced individuals for this tissue
         sampled_males_tissue = males_in_tissue.sample(n=min_count_tissue, random_state=seed)
         sampled_females_tissue = females_in_tissue.sample(n=min_count_tissue, random_state=seed)
+
+        # Find the minimum number between males and females for balance in the tissue
+        min_count_tissue = min(len(males_in_tissue), len(females_in_tissue))
+        if min_count_tissue < min_samples_per_sex_tissue:
+            continue
 
         # Append the balanced samples for the tissue
         result.append(pd.concat([sampled_males_tissue, sampled_females_tissue]))
@@ -245,11 +251,7 @@ def main():
 
     if randomize:
         logging.info('Randomizing the data')
-        # extract relevant data
-        random_individuals_df = df[['individual', 'sex']].drop_duplicates().reset_index(drop=True)
-        random_individuals_df['sex'] = np.random.permutation(random_individuals_df['sex'].values)
-        random_individuals_df = random_individuals_df.set_index('individual')
-        df['sex'] = random_individuals_df.loc[df['individual'].values]['sex'].values
+        df['sex'] = np.random.permutation(df['sex'].values)
 
     run_dirichlet_reg(df, output_rds_file)
     output_control_file.touch()
