@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument('--gene_index', type=int, default=0, help='Index of the gene to process')
     parser.add_argument('--start_row', type=int, default=0, help='Row from where to start reading')
     parser.add_argument("--randomize", action="store_true", help="increase output verbosity")
+    parser.add_argument("--interaction", action="store_true", help="increase output verbosity")
     return parser.parse_args()
 
 
@@ -44,8 +45,10 @@ def run_dirichlet_reg(df, output_path, is_inter_tissue_sex=False):
     df.columns = prop_columns
     df = df.reset_index()
     if is_inter_tissue_sex:
+        logging.info('Full Model: proportion ~ tissue * sex | tissue')
         full_model = 'proportion ~ tissue * sex | tissue'
     else:
+        logging.info('Full Model: proportion ~ tissue + sex | tissue')
         full_model = 'proportion ~ tissue + sex | tissue'
 
     with (ro.default_converter + pandas2ri.converter).context():
@@ -175,6 +178,10 @@ def main():
     gene_index = args.gene_index
     start_row = args.start_row
     randomize = args.randomize
+    is_inter_tissue_sex = args.interaction
+
+    if is_inter_tissue_sex:
+        logging.info('Interaction term between tissue and sex included.')
 
     if randomize:
         logging.info('The labels will be randomized')
@@ -253,7 +260,7 @@ def main():
         logging.info('Randomizing the data')
         df['sex'] = np.random.permutation(df['sex'].values)
 
-    run_dirichlet_reg(df, output_rds_file)
+    run_dirichlet_reg(df, output_rds_file, is_inter_tissue_sex=is_inter_tissue_sex)
     output_control_file.touch()
 
 
