@@ -234,17 +234,17 @@ runs:
     upstream_tss: 2000
 
 comparisons:
-  enformer_elasticnet_cage_logsumexp_upstream_cutoffs:
-    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_500
-    - enformer_gtexv8_elasticnet_cage_logsumexp_1600_500
-    - enformer_gtexv8_elasticnet_cage_logsumexp_1200_500
-    - enformer_gtexv8_elasticnet_cage_logsumexp_800_500
-    - enformer_gtexv8_elasticnet_cage_logsumexp_500_500
-    - enformer_gtexv8_elasticnet_cage_logsumexp_400_500
-    - enformer_gtexv8_elasticnet_cage_logsumexp_300_500
-    - enformer_gtexv8_elasticnet_cage_logsumexp_200_500
-    - enformer_gtexv8_elasticnet_cage_logsumexp_100_500
-    - enformer_gtexv8_elasticnet_cage_logsumexp_50_500
+        #  enformer_elasticnet_cage_logsumexp_upstream_cutoffs:
+        #    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_500
+        #    - enformer_gtexv8_elasticnet_cage_logsumexp_1600_500
+        #    - enformer_gtexv8_elasticnet_cage_logsumexp_1200_500
+        #    - enformer_gtexv8_elasticnet_cage_logsumexp_800_500
+        #    - enformer_gtexv8_elasticnet_cage_logsumexp_500_500
+        #    - enformer_gtexv8_elasticnet_cage_logsumexp_400_500
+        #    - enformer_gtexv8_elasticnet_cage_logsumexp_300_500
+        #    - enformer_gtexv8_elasticnet_cage_logsumexp_200_500
+        #    - enformer_gtexv8_elasticnet_cage_logsumexp_100_500
+        #    - enformer_gtexv8_elasticnet_cage_logsumexp_50_500
   enformer_elasticnet_cage_canonical_upstream_cutoffs:
     - enformer_gtexv8_elasticnet_cage_canonical_2000_500
     - enformer_gtexv8_elasticnet_cage_canonical_1600_500
@@ -256,13 +256,13 @@ comparisons:
     - enformer_gtexv8_elasticnet_cage_canonical_200_500
     - enformer_gtexv8_elasticnet_cage_canonical_100_500
     - enformer_gtexv8_elasticnet_cage_canonical_50_500
-  enformer_elasticnet_cage_logsumexp_downstream_cutoffs:
-    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_500
-    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_400
-    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_300
-    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_200
-    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_100
-    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_50
+      #  enformer_elasticnet_cage_logsumexp_downstream_cutoffs:
+      #    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_500
+      #    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_400
+      #    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_300
+      #    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_200
+      #    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_100
+      #    - enformer_gtexv8_elasticnet_cage_logsumexp_2000_50
   enformer_elasticnet_cage_canonical_downstream_cutoffs:
     - enformer_gtexv8_elasticnet_cage_canonical_2000_500
     - enformer_gtexv8_elasticnet_cage_canonical_2000_400

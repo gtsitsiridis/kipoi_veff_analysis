@@ -153,23 +153,23 @@ comparisons:
     - enformer_gtexv8_elasticnet_dnase_logsumexp
     - enformer_gtexv8_elasticnet_total_logsumexp
     - enformer_gtexv8_elasticnet_total_canonical
-  enformer_lightgbm:
-    - enformer_gtexv8_lightgbm_dnase_cage_logsumexp
-    - enformer_gtexv8_lightgbm_cage_logsumexp
-    - enformer_gtexv8_lightgbm_dnase_cage_canonical
-    - enformer_gtexv8_lightgbm_cage_canonical
-    - enformer_gtexv8_lightgbm_total_logsumexp
-    - enformer_gtexv8_lightgbm_total_canonical
-  enformer_ridge:
-    - enformer_gtexv8_ridge_dnase_cage_logsumexp
-    - enformer_gtexv8_ridge_cage_logsumexp
-    - enformer_gtexv8_ridge_dnase_cage_canonical
-    - enformer_gtexv8_ridge_cage_canonical
-    - enformer_gtexv8_ridge_total_logsumexp
-    - enformer_gtexv8_ridge_total_canonical
+      #  enformer_lightgbm:
+      #    - enformer_gtexv8_lightgbm_dnase_cage_logsumexp
+      #    - enformer_gtexv8_lightgbm_cage_logsumexp
+      #    - enformer_gtexv8_lightgbm_dnase_cage_canonical
+      #    - enformer_gtexv8_lightgbm_cage_canonical
+      #    - enformer_gtexv8_lightgbm_total_logsumexp
+      #    - enformer_gtexv8_lightgbm_total_canonical
+      #  enformer_ridge:
+      #    - enformer_gtexv8_ridge_dnase_cage_logsumexp
+      #    - enformer_gtexv8_ridge_cage_logsumexp
+      #    - enformer_gtexv8_ridge_dnase_cage_canonical
+      #    - enformer_gtexv8_ridge_cage_canonical
+      #    - enformer_gtexv8_ridge_total_logsumexp
+      #    - enformer_gtexv8_ridge_total_canonical
   enformer_tissue_mapper_model:
     - enformer_gtexv8_elasticnet_cage_canonical
-    - enformer_gtexv8_lightgbm_dnase_cage_canonical
+    - enformer_gtexv8_lightgbm_cage_canonical
     - enformer_gtexv8_ridge_cage_canonical
 
 

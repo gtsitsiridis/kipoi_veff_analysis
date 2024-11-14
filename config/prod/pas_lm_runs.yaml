@@ -1,0 +1,20 @@
+runs:
+  # best aparent2 model
+  aparent2_ensembl_deltapdui_wide_70_130:
+    predictor: aparent2
+    alternative: ensembl_GRCh37__gtexv8_70-134
+    aggregation_mode: delta_pdui
+    upstream_cse: 70
+    downstream_cse: 130
+    use_narrow_score: false
+  # lm models
+  lm_apa:
+    predictor: custom
+    alternative: gtexv8
+
+comparisons:
+  aparent2_lm_apa:
+    - aparent2_ensembl_deltapdui_wide_70_130
+    - lm_apa
+
+

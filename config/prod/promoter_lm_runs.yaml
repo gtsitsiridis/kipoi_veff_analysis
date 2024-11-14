@@ -1,0 +1,18 @@
+runs:
+  # best enformer model
+  enformer_gtexv8_elasticnet_cage_canonical_50_500:
+    aggregation_mode: canonical
+    alternative: GRCh37_short__gtexv8_2000-500
+    downstream_tss: 500
+    mapper: elasticnet_cage_gtexv8
+    predictor: enformer
+    upstream_tss: 50
+  # lm models
+  lm_tss:
+    predictor: custom
+    alternative: gtexv8
+
+comparisons:
+  enformer_lm_tss:
+    - enformer_gtexv8_elasticnet_cage_canonical_50_500
+    - lm_tss
